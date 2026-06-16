@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Orión Logistic | Cotizador Público</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-variant": "#e4e1e7",
+                    "primary-fixed": "#dce1ff",
+                    "secondary-fixed": "#ffe088",
+                    "tertiary-fixed-dim": "#fcb887",
+                    "on-secondary": "#ffffff",
+                    "secondary-fixed-dim": "#e9c349",
+                    "surface-container-lowest": "#ffffff",
+                    "on-secondary-fixed": "#241a00",
+                    "surface-tint": "#4e5c92",
+                    "surface-container-low": "#f5f3f8",
+                    "outline-variant": "#c6c5d1",
+                    "outline": "#767680",
+                    "primary-fixed-dim": "#b7c4ff",
+                    "surface-dim": "#dbd9de",
+                    "surface-container": "#efedf2",
+                    "surface": "#fbf8fe",
+                    "on-error": "#ffffff",
+                    "secondary": "#735c00",
+                    "on-surface": "#1b1b1f",
+                    "on-secondary-fixed-variant": "#574500",
+                    "on-secondary-container": "#745c00",
+                    "on-primary-fixed": "#05164b",
+                    "error-container": "#ffdad6",
+                    "on-tertiary-fixed": "#301400",
+                    "on-background": "#1b1b1f",
+                    "on-primary": "#ffffff",
+                    "on-error-container": "#93000a",
+                    "tertiary-fixed": "#ffdcc5",
+                    "surface-bright": "#fbf8fe",
+                    "surface-container-highest": "#e4e1e7",
+                    "primary-container": "#1b2a5e",
+                    "on-primary-container": "#8593cd",
+                    "secondary-container": "#fed65b",
+                    "on-surface-variant": "#45464f",
+                    "error": "#ba1a1a",
+                    "inverse-surface": "#303034",
+                    "tertiary": "#2c1200",
+                    "inverse-on-surface": "#f2f0f5",
+                    "on-tertiary-container": "#c5885b",
+                    "inverse-primary": "#b7c4ff",
+                    "on-primary-fixed-variant": "#354479",
+                    "background": "#fbf8fe",
+                    "on-tertiary": "#ffffff",
+                    "surface-container-high": "#e9e7ec",
+                    "on-tertiary-fixed-variant": "#6a3b15",
+                    "tertiary-container": "#4b2300",
+                    "primary": "#021449",
+                    "whatsapp": "#25D366"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "xs": "4px",
+                    "xl": "32px",
+                    "base": "4px",
+                    "container-margin": "24px",
+                    "md": "16px",
+                    "lg": "24px",
+                    "sm": "8px",
+                    "gutter": "16px"
+            },
+            "fontFamily": {
+                    "display-lg": ["Inter"],
+                    "body-md": ["Inter"],
+                    "display-xl": ["Inter"],
+                    "label-sm": ["Inter"],
+                    "body-sm": ["Inter"],
+                    "label-md": ["Inter"],
+                    "display-md": ["Inter"]
+            },
+            "fontSize": {
+                    "display-lg": ["22px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "display-xl": ["28px", {"lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "label-sm": ["11px", {"lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "600"}],
+                    "body-sm": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+                    "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                    "display-md": ["18px", {"lineHeight": "24px", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; background-color: #F4F6FA; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .card-shadow { box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+        .whatsapp-hover:hover { background-color: #128C7E; transform: translateY(-1px); }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+<!-- Header (Shared Component) -->
+<nav class="w-full top-0 sticky bg-surface dark:bg-inverse-surface border-b border-outline-variant dark:border-outline shadow-sm z-50">
+<div class="max-w-7xl mx-auto px-lg flex items-center justify-between h-16">
+<div class="font-display-lg text-display-lg font-bold text-primary dark:text-inverse-primary">
+                Orión Logistic
+            </div>
+<div class="hidden md:flex space-x-lg items-center">
+<a class="font-body-md text-body-md text-primary dark:text-inverse-primary border-b-2 border-primary dark:border-inverse-primary pb-1" href="#">Cotizar</a>
+<a class="font-body-md text-body-md text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-inverse-primary transition-colors" href="#">Rastrear pedido</a>
+<a class="font-body-md text-body-md text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-inverse-primary transition-colors" href="#">Servicios</a>
+<a class="font-body-md text-body-md text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-inverse-primary transition-colors" href="#">Nosotros</a>
+</div>
+<button class="bg-primary dark:bg-primary-container text-on-primary dark:text-on-primary-container px-md py-sm rounded-lg font-label-md text-label-md hover:opacity-90 transition-opacity active:scale-95 duration-150">
+                WhatsApp
+            </button>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="flex-grow flex items-center justify-center py-xl px-container-margin">
+<div class="w-full max-w-[600px] flex flex-col gap-lg">
+<!-- Card Header Section -->
+<div class="flex flex-col gap-md">
+<div class="flex justify-between items-center">
+<h1 class="text-[26px] font-bold text-primary uppercase leading-tight tracking-tight">COTIZA TU PRÓXIMO ENVÍO</h1>
+<div class="bg-surface-container-high px-sm py-xs rounded-full flex items-center gap-xs">
+<span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+<span class="text-label-md text-on-surface-variant uppercase">Tarifas en vivo</span>
+</div>
+</div>
+<!-- Value Input Section -->
+<div class="relative">
+<div class="flex items-center border-[1.5px] border-[#D4AF37] rounded-lg overflow-hidden bg-white">
+<div class="bg-primary px-md py-4 text-white font-bold text-body-md flex items-center justify-center min-w-[80px]">
+                            USD $
+                        </div>
+<input class="flex-grow px-md py-4 text-[20px] font-bold text-primary focus:outline-none bg-white border-none" readonly="" type="text" value="850"/>
+</div>
+<!-- Detection Badge -->
+<div class="mt-sm inline-flex items-center gap-xs bg-[#FEF3C7] text-[#92400E] px-sm py-1 rounded-full text-label-sm font-semibold">
+<span class="material-symbols-outlined text-[14px]">auto_awesome</span>
+                        Para este envío te asesoramos personalmente
+                    </div>
+</div>
+</div>
+<!-- Advisor Invitation Card -->
+<div class="bg-white rounded-xl card-shadow border border-[#E2E6EE] border-t-[4px] border-t-primary p-xl flex flex-col items-center gap-lg">
+<!-- Icon Container -->
+<div class="w-20 h-20 rounded-full bg-[#E6F1FB] flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-[48px]">support_agent</span>
+</div>
+<div class="text-center space-y-md">
+<h2 class="text-[20px] font-bold text-primary uppercase leading-tight">
+                        PARA ESTE ENVÍO TE AYUDAMOS PERSONALMENTE
+                    </h2>
+<p class="text-[14px] text-[#3D4B6B] leading-relaxed max-w-[480px] mx-auto">
+                        Los productos con valor mayor a $200 tienen un proceso especial. Uno de nuestros asesores calculará el costo exacto para ti y te guiará en cada paso.
+                    </p>
+</div>
+<!-- Benefit Chips -->
+<div class="flex flex-wrap justify-center gap-sm">
+<span class="flex items-center gap-xs px-sm py-xs bg-surface border border-[#E2E6EE] rounded-lg text-label-md text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px] text-primary">chat</span>
+                        Respuesta rápida
+                    </span>
+<span class="flex items-center gap-xs px-sm py-xs bg-surface border border-[#E2E6EE] rounded-lg text-label-md text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px] text-primary">target</span>
+                        Precio exacto
+                    </span>
+<span class="flex items-center gap-xs px-sm py-xs bg-surface border border-[#E2E6EE] rounded-lg text-label-md text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px] text-primary">verified</span>
+                        Sin compromiso
+                    </span>
+</div>
+<!-- CTA Section -->
+<div class="w-full text-center space-y-sm">
+<button class="w-full h-14 bg-whatsapp text-white font-bold text-[15px] uppercase rounded-lg flex items-center justify-center gap-sm whatsapp-hover transition-all duration-200 active:scale-95">
+<svg class="w-6 h-6 fill-current" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"></path>
+</svg>
+                        HABLAR CON UN ASESOR
+                    </button>
+<p class="text-[12px] text-[#8A93A8]">
+                        Disponible de lunes a sábado · Respuesta en minutos
+                    </p>
+</div>
+</div>
+<!-- Secondary Action -->
+<a class="flex items-center justify-center gap-xs text-[12px] font-medium text-primary hover:underline transition-all" href="#">
+<span class="material-symbols-outlined text-[14px]">arrow_back</span>
+                Mi producto vale menos de $200 · Calcular costo
+            </a>
+</div>
+</main>
+<!-- Footer (Shared Component) -->
+<footer class="w-full py-xl bg-primary dark:bg-primary-container text-on-primary dark:text-on-primary-container">
+<div class="max-w-7xl mx-auto px-lg flex flex-col md:flex-row justify-between items-center gap-md">
+<div class="font-display-md text-display-md font-bold text-on-primary">
+                Orión Logistic
+            </div>
+<div class="flex gap-lg flex-wrap justify-center">
+<a class="font-label-md text-label-md text-on-primary/80 hover:text-on-primary transition-opacity" href="#">Términos y Condiciones</a>
+<a class="font-label-md text-label-md text-on-primary/80 hover:text-on-primary transition-opacity" href="#">Política de Privacidad</a>
+<a class="font-label-md text-label-md text-on-primary/80 hover:text-on-primary transition-opacity" href="#">Libro de Reclamaciones</a>
+</div>
+<div class="font-label-md text-label-md opacity-70">
+                © 2024 Orión Logistic. Todos los derechos reservados.
+            </div>
+</div>
+</footer>
+<script>
+        // Micro-interaction for input hover/focus state
+        const inputContainer = document.querySelector('.relative > div');
+        const inputField = document.querySelector('input');
+
+        inputField.addEventListener('focus', () => {
+            inputContainer.style.boxShadow = '0 0 0 3px rgba(212, 175, 55, 0.2)';
+        });
+
+        inputField.addEventListener('blur', () => {
+            inputContainer.style.boxShadow = 'none';
+        });
+    </script>
+</body></html>

@@ -1,0 +1,308 @@
+<!DOCTYPE html><html class="light" lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Orión Logistic - Assign Permissions</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-primary": "#b7c4ff",
+                        "surface": "#fbf8fe",
+                        "on-tertiary-fixed-variant": "#6a3b15",
+                        "primary-fixed-dim": "#b7c4ff",
+                        "inverse-surface": "#303034",
+                        "error-container": "#ffdad6",
+                        "surface-bright": "#fbf8fe",
+                        "on-error-container": "#93000a",
+                        "outline-variant": "#c6c5d1",
+                        "on-surface-variant": "#45464f",
+                        "primary-fixed": "#dce1ff",
+                        "on-primary-container": "#8593cd",
+                        "on-secondary-fixed-variant": "#574500",
+                        "on-tertiary-fixed": "#301400",
+                        "surface-container-low": "#f5f3f8",
+                        "tertiary-container": "#4b2300",
+                        "on-tertiary": "#ffffff",
+                        "surface-container-high": "#e9e7ec",
+                        "on-secondary-fixed": "#241a00",
+                        "surface-container": "#efedf2",
+                        "on-secondary-container": "#745c00",
+                        "on-primary-fixed": "#05164b",
+                        "on-primary-fixed-variant": "#354479",
+                        "outline": "#767680",
+                        "background": "#fbf8fe",
+                        "tertiary": "#2c1200",
+                        "on-secondary": "#ffffff",
+                        "secondary-container": "#fed65b",
+                        "on-tertiary-container": "#c5885b",
+                        "error": "#ba1a1a",
+                        "on-background": "#1b1b1f",
+                        "surface-container-highest": "#e4e1e7",
+                        "primary": "#021449",
+                        "surface-variant": "#e4e1e7",
+                        "tertiary-fixed": "#ffdcc5",
+                        "surface-tint": "#4e5c92",
+                        "on-primary": "#ffffff",
+                        "secondary-fixed-dim": "#e9c349",
+                        "on-surface": "#1b1b1f",
+                        "on-error": "#ffffff",
+                        "primary-container": "#1b2a5e",
+                        "surface-dim": "#dbd9de",
+                        "secondary-fixed": "#ffe088",
+                        "secondary": "#735c00",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary-fixed-dim": "#fcb887",
+                        "inverse-on-surface": "#f2f0f5"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xs": "4px",
+                        "container-margin": "24px",
+                        "md": "16px",
+                        "sm": "8px",
+                        "xl": "32px",
+                        "lg": "24px",
+                        "gutter": "16px",
+                        "base": "4px"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-md": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "display-xl": ["Inter"],
+                        "display-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "display-lg": ["22px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "500" }],
+                        "body-sm": ["13px", { "lineHeight": "18px", "fontWeight": "400" }],
+                        "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "600" }],
+                        "display-xl": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "display-md": ["18px", { "lineHeight": "24px", "fontWeight": "600" }]
+                    }
+                }
+            }
+        };
+    </script>
+<style>
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #021449;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #021449;
+        }
+        .toggle-checkbox:disabled + .toggle-label {
+            background-color: #e4e1e7;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body class="bg-surface font-body-md text-on-surface antialiased flex h-screen overflow-hidden">
+<!-- Dimmed Background for Context -->
+<div aria-hidden="true" class="fixed inset-0 bg-inverse-surface/40 backdrop-blur-sm z-40 transition-opacity"></div>
+<!-- Side Panel Overlay -->
+<div class="fixed inset-y-0 right-0 z-50 w-full max-w-[400px] bg-surface shadow-[0_4px_24px_rgba(0,0,0,0.12)] flex flex-col transform transition-transform duration-300 translate-x-0">
+<!-- Header -->
+<div class="px-lg py-lg border-b border-outline-variant/30 bg-surface">
+<div class="flex justify-between items-start mb-md">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded-full bg-primary-container text-on-primary flex items-center justify-center font-display-md">
+                        MG
+                    </div>
+<div>
+<h2 class="font-display-md text-display-md text-primary tracking-tight">María García</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">maria@orionlogistic.com</p>
+</div>
+</div>
+<button aria-label="Cerrar panel" class="text-on-surface-variant hover:text-primary transition-colors p-sm -mr-sm">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<div class="flex items-center gap-xs mb-sm">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#E8F5E9] text-[#2E7D32] border border-[#A5D6A7]">
+                    Empleado · Activo
+                </span>
+</div>
+<h1 class="font-display-md text-display-md text-on-surface mb-xs mt-sm">Asignación de permisos</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Define exactamente qué puede ver y hacer María en el sistema.</p>
+</div>
+<!-- Body -->
+<div class="flex-1 overflow-y-auto px-lg py-lg space-y-lg bg-surface">
+<!-- Warning Card -->
+<div class="bg-[#FAEEDA] border border-[#FAC775] rounded-lg p-md flex gap-sm items-start shadow-sm">
+<span class="material-symbols-outlined text-[#B77B0D] text-[20px] mt-0.5" style="font-variation-settings: 'FILL' 1;">warning</span>
+<div>
+<h3 class="font-label-md text-label-md text-[#8C5D0A] mb-xs">Atención</h3>
+<p class="font-body-sm text-body-sm text-[#8C5D0A]">Los cambios de permisos se aplican de inmediato. Ten precaución al otorgar acceso a Finanzas y Configuración.</p>
+</div>
+</div>
+<!-- Permissions Matrix -->
+<div>
+<div class="flex justify-between items-end border-b border-outline-variant/30 pb-sm mb-sm px-sm">
+<div class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider w-[50%]">Módulo</div>
+<div class="flex gap-lg w-[50%] justify-end">
+<div class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider w-12 text-center">Ver</div>
+<div class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider w-12 text-center">Editar</div>
+</div>
+</div>
+<div class="space-y-sm">
+<!-- Row 1: Pedidos -->
+<div class="flex items-center justify-between p-sm hover:bg-surface-container-low rounded-lg transition-colors group">
+<div class="flex items-start gap-sm w-[50%]">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors text-[20px]">package_2</span>
+<div>
+<p class="font-label-md text-label-md text-on-surface">Pedidos</p>
+<p class="font-body-sm text-[10px] text-on-surface-variant leading-tight">Registrar y ver pedidos</p>
+</div>
+</div>
+<div class="flex gap-lg w-[50%] justify-end items-center">
+<!-- Toggle Ver -->
+<div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in w-12 flex justify-center">
+<input checked="" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer z-10 top-0.5 right-0 border-primary" id="toggle_ver_pedidos" name="toggle_ver_pedidos" type="checkbox">
+<label class="toggle-label block overflow-hidden h-6 rounded-full bg-primary cursor-pointer w-10" for="toggle_ver_pedidos"></label>
+</div>
+<!-- Toggle Editar -->
+<div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in w-12 flex justify-center">
+<input checked="" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer z-10 top-0.5 right-0 border-primary" id="toggle_editar_pedidos" name="toggle_editar_pedidos" type="checkbox">
+<label class="toggle-label block overflow-hidden h-6 rounded-full bg-primary cursor-pointer w-10" for="toggle_editar_pedidos"></label>
+</div>
+</div>
+</div>
+<!-- Row 2: Tablero -->
+<div class="flex items-center justify-between p-sm hover:bg-surface-container-low rounded-lg transition-colors group">
+<div class="flex items-start gap-sm w-[50%]">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors text-[20px]">view_kanban</span>
+<div>
+<p class="font-label-md text-label-md text-on-surface">Tablero</p>
+<p class="font-body-sm text-[10px] text-on-surface-variant leading-tight">Cambiar el estado</p>
+</div>
+</div>
+<div class="flex gap-lg w-[50%] justify-end items-center">
+<!-- Toggle Ver -->
+<div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in w-12 flex justify-center">
+<input checked="" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer z-10 top-0.5 right-0 border-primary" id="toggle_ver_tablero" name="toggle_ver_tablero" type="checkbox">
+<label class="toggle-label block overflow-hidden h-6 rounded-full bg-primary cursor-pointer w-10" for="toggle_ver_tablero"></label>
+</div>
+<!-- Toggle Editar -->
+<div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in w-12 flex justify-center">
+<input checked="" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer z-10 top-0.5 right-0 border-primary" id="toggle_editar_tablero" name="toggle_editar_tablero" type="checkbox">
+<label class="toggle-label block overflow-hidden h-6 rounded-full bg-primary cursor-pointer w-10" for="toggle_editar_tablero"></label>
+</div>
+</div>
+</div>
+<!-- Row 3: Finanzas (Disabled Row) -->
+<div class="p-sm rounded-lg border border-outline-variant/20 bg-surface-container-low/30 relative">
+<div class="flex items-center justify-between opacity-60">
+<div class="flex items-start gap-sm w-[50%]">
+<span class="material-symbols-outlined text-on-surface-variant text-[20px]">monitoring</span>
+<div>
+<p class="font-label-md text-label-md text-on-surface">Finanzas</p>
+<p class="font-body-sm text-[10px] text-on-surface-variant leading-tight">Ver ingresos</p>
+</div>
+</div>
+<div class="flex gap-lg w-[50%] justify-end items-center">
+<!-- Toggle Ver (Disabled/Off) -->
+<div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in w-12 flex justify-center">
+<input class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-not-allowed z-10 top-0.5 left-0 border-outline-variant" disabled="" id="toggle_ver_finanzas" name="toggle_ver_finanzas" type="checkbox">
+<label class="toggle-label block overflow-hidden h-6 rounded-full bg-surface-variant cursor-not-allowed w-10" for="toggle_ver_finanzas"></label>
+</div>
+<!-- Toggle Editar (Disabled/Off) -->
+<div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in w-12 flex justify-center">
+<input class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-not-allowed z-10 top-0.5 left-0 border-outline-variant" disabled="" id="toggle_editar_finanzas" name="toggle_editar_finanzas" type="checkbox">
+<label class="toggle-label block overflow-hidden h-6 rounded-full bg-surface-variant cursor-not-allowed w-10" for="toggle_editar_finanzas"></label>
+</div>
+</div>
+</div>
+<p class="font-body-sm text-[10px] text-on-surface-variant mt-xs italic pl-[36px]">Sin acceso — solo el admin puede ver finanzas</p>
+</div>
+<!-- Row 4: Cotizador -->
+<div class="flex items-center justify-between p-sm hover:bg-surface-container-low rounded-lg transition-colors group">
+<div class="flex items-start gap-sm w-[50%]">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors text-[20px]">calculate</span>
+<div>
+<p class="font-label-md text-label-md text-on-surface">Cotizador</p>
+<p class="font-body-sm text-[10px] text-on-surface-variant leading-tight">Ver y configurar tarifas</p>
+</div>
+</div>
+<div class="flex gap-lg w-[50%] justify-end items-center">
+<!-- Toggle Ver -->
+<div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in w-12 flex justify-center">
+<input checked="" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer z-10 top-0.5 right-0 border-primary" id="toggle_ver_cotizador" name="toggle_ver_cotizador" type="checkbox">
+<label class="toggle-label block overflow-hidden h-6 rounded-full bg-primary cursor-pointer w-10" for="toggle_ver_cotizador"></label>
+</div>
+<!-- Toggle Editar (Off) -->
+<div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in w-12 flex justify-center">
+<input class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer z-10 top-0.5 left-0 border-outline-variant" id="toggle_editar_cotizador" name="toggle_editar_cotizador" type="checkbox">
+<label class="toggle-label block overflow-hidden h-6 rounded-full bg-surface-variant cursor-pointer w-10" for="toggle_editar_cotizador"></label>
+</div>
+</div>
+</div>
+<!-- Row 5: Configuración (Disabled Row) -->
+<div class="p-sm rounded-lg border border-outline-variant/20 bg-surface-container-low/30 relative">
+<div class="flex items-center justify-between opacity-60">
+<div class="flex items-start gap-sm w-[50%]">
+<span class="material-symbols-outlined text-on-surface-variant text-[20px]">settings</span>
+<div>
+<p class="font-label-md text-label-md text-on-surface">Configuración</p>
+<p class="font-body-sm text-[10px] text-on-surface-variant leading-tight">Gestionar usuarios</p>
+</div>
+</div>
+<div class="flex gap-lg w-[50%] justify-end items-center">
+<!-- Toggle Ver (Disabled/Off) -->
+<div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in w-12 flex justify-center">
+<input class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-not-allowed z-10 top-0.5 left-0 border-outline-variant" disabled="" id="toggle_ver_config" name="toggle_ver_config" type="checkbox">
+<label class="toggle-label block overflow-hidden h-6 rounded-full bg-surface-variant cursor-not-allowed w-10" for="toggle_ver_config"></label>
+</div>
+<!-- Toggle Editar (Disabled/Off) -->
+<div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in w-12 flex justify-center">
+<input class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-not-allowed z-10 top-0.5 left-0 border-outline-variant" disabled="" id="toggle_editar_config" name="toggle_editar_config" type="checkbox">
+<label class="toggle-label block overflow-hidden h-6 rounded-full bg-surface-variant cursor-not-allowed w-10" for="toggle_editar_config"></label>
+</div>
+</div>
+</div>
+<p class="font-body-sm text-[10px] text-on-surface-variant mt-xs italic pl-[36px]">Solo el administrador puede acceder a Configuración</p>
+</div>
+</div>
+</div>
+<!-- Summary Card -->
+<div class="bg-[#E1F5EE] border border-[#A5D6A7] rounded-lg p-md shadow-sm">
+<div class="flex items-center gap-xs mb-sm">
+<span class="material-symbols-outlined text-[#2E7D32] text-[18px]">verified_user</span>
+<h3 class="font-label-md text-label-md text-[#1B5E20]">Resumen de Accesos</h3>
+</div>
+<ul class="font-body-sm text-body-sm text-[#2E7D32] space-y-1 pl-6 list-disc marker:text-[#2E7D32]">
+<li>Puede registrar y gestionar el estado de los pedidos.</li>
+<li>Puede ver tarifas en el cotizador, pero no modificarlas.</li>
+<li>No tiene acceso a reportes financieros ni a la configuración general del sistema.</li>
+</ul>
+</div>
+</div>
+<!-- Footer -->
+<div class="border-t border-outline-variant/30 px-lg py-md bg-surface mt-auto">
+<p class="font-body-sm text-[11px] text-on-surface-variant mb-md text-center">Los cambios se aplican al iniciar sesión</p>
+<div class="flex gap-sm justify-end">
+<button class="px-md py-2 rounded-lg font-label-md text-label-md text-primary border border-primary bg-surface hover:bg-surface-container-low transition-colors w-full sm:w-auto">
+                    Cancelar
+                </button>
+<button class="px-md py-2 rounded-lg font-label-md text-label-md text-on-primary bg-primary hover:bg-primary-container transition-colors w-full sm:w-auto shadow-sm">
+                    Guardar permisos
+                </button>
+</div>
+</div>
+</div>
+</body></html>

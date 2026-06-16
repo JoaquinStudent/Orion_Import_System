@@ -1,0 +1,454 @@
+<!DOCTYPE html><html class="light" lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Usuarios y Permisos | Orión Logistic</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-container": "#1b2a5e",
+                    "on-secondary-fixed-variant": "#574500",
+                    "secondary-fixed": "#ffe088",
+                    "on-error-container": "#93000a",
+                    "inverse-primary": "#b7c4ff",
+                    "tertiary": "#2c1200",
+                    "on-tertiary-fixed": "#301400",
+                    "on-secondary-container": "#745c00",
+                    "background": "#fbf8fe",
+                    "on-tertiary-fixed-variant": "#6a3b15",
+                    "secondary-fixed-dim": "#e9c349",
+                    "primary-fixed-dim": "#b7c4ff",
+                    "on-surface-variant": "#45464f",
+                    "on-tertiary": "#ffffff",
+                    "on-secondary": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "surface": "#fbf8fe",
+                    "surface-container-highest": "#e4e1e7",
+                    "on-surface": "#1b1b1f",
+                    "tertiary-fixed": "#ffdcc5",
+                    "surface-container-high": "#e9e7ec",
+                    "outline-variant": "#c6c5d1",
+                    "surface-tint": "#4e5c92",
+                    "on-background": "#1b1b1f",
+                    "secondary": "#735c00",
+                    "tertiary-container": "#4b2300",
+                    "on-secondary-fixed": "#241a00",
+                    "surface-dim": "#dbd9de",
+                    "on-primary": "#ffffff",
+                    "on-tertiary-container": "#c5885b",
+                    "primary-fixed": "#dce1ff",
+                    "on-error": "#ffffff",
+                    "surface-container-lowest": "#ffffff",
+                    "primary": "#021449",
+                    "inverse-surface": "#303034",
+                    "inverse-on-surface": "#f2f0f5",
+                    "error": "#ba1a1a",
+                    "outline": "#767680",
+                    "surface-variant": "#e4e1e7",
+                    "on-primary-container": "#8593cd",
+                    "surface-container-low": "#f5f3f8",
+                    "surface-bright": "#fbf8fe",
+                    "tertiary-fixed-dim": "#fcb887",
+                    "secondary-container": "#fed65b",
+                    "surface-container": "#efedf2",
+                    "on-primary-fixed-variant": "#354479",
+                    "on-primary-fixed": "#05164b"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "sm": "8px",
+                    "lg": "24px",
+                    "xs": "4px",
+                    "container-margin": "24px",
+                    "xl": "32px",
+                    "md": "16px",
+                    "gutter": "16px",
+                    "base": "4px"
+            },
+            "fontFamily": {
+                    "display-md": ["Inter"],
+                    "body-sm": ["Inter"],
+                    "body-md": ["Inter"],
+                    "display-lg": ["Inter"],
+                    "label-sm": ["Inter"],
+                    "label-md": ["Inter"],
+                    "display-xl": ["Inter"]
+            },
+            "fontSize": {
+                    "display-md": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                    "body-sm": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "display-lg": ["22px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "label-sm": ["11px", {"lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "600"}],
+                    "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                    "display-xl": ["28px", {"lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; background-color: #F4F6FA; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .permission-row-muted { background-color: #FAFAFA; color: #C0C0C0; }
+        .custom-shadow { box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+        .toggle-checkbox:checked + .toggle-label { background-color: #021449; }
+        .toggle-checkbox:checked + .toggle-label:after { transform: translateX(100%); }
+    </style>
+</head>
+<body class="overflow-x-hidden"><div class="fixed top-6 right-6 z-[100] w-[320px] bg-white border-l-4 border-[#1D9E75] rounded-lg shadow-2xl p-md animate-in slide-in-from-right duration-500">
+<div class="flex gap-sm">
+<span class="material-symbols-outlined text-[#1D9E75] text-[20px]">check_circle</span>
+<div>
+<p class="text-label-md font-bold text-primary">Empleado creado exitosamente</p>
+<p class="text-label-sm text-on-surface-variant">María García ya puede iniciar sesión con sus credenciales</p>
+</div>
+</div>
+<div class="absolute bottom-0 left-0 h-1 bg-[#1D9E75]/20 w-full overflow-hidden">
+<div class="h-full bg-[#1D9E75] w-full origin-left animate-[shrink_3s_linear_forwards]"></div>
+</div>
+</div>
+<style>
+@keyframes shrink { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+</style>
+<!-- SideNavBar -->
+<aside class="fixed h-screen w-[240px] left-0 top-0 bg-primary dark:bg-primary-container shadow-md flex flex-col py-lg z-50">
+<div class="px-md mb-xl">
+<h1 class="text-display-lg font-display-lg font-bold text-on-primary">Orión Logistic</h1>
+<p class="text-label-md font-label-md text-on-primary/60">Panel Administrativo</p>
+</div>
+<nav class="flex-1 space-y-xs">
+<a class="flex items-center gap-md text-primary-fixed-dim hover:bg-on-primary-fixed-variant/10 px-md py-sm mx-sm rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="text-label-md font-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-md text-primary-fixed-dim hover:bg-on-primary-fixed-variant/10 px-md py-sm mx-sm rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="package_2">package_2</span>
+<span class="text-label-md font-label-md">Pedidos</span>
+</a>
+<a class="flex items-center gap-md text-primary-fixed-dim hover:bg-on-primary-fixed-variant/10 px-md py-sm mx-sm rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="assignment">assignment</span>
+<span class="text-label-md font-label-md">Tablero de estados</span>
+</a>
+<a class="flex items-center gap-md text-primary-fixed-dim hover:bg-on-primary-fixed-variant/10 px-md py-sm mx-sm rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span class="text-label-md font-label-md">Finanzas</span>
+</a>
+<a class="flex items-center gap-md text-primary-fixed-dim hover:bg-on-primary-fixed-variant/10 px-md py-sm mx-sm rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="calculate">calculate</span>
+<span class="text-label-md font-label-md">Cotizador</span>
+</a>
+<a class="flex items-center gap-md bg-secondary-container text-on-secondary-container rounded-lg px-md py-sm mx-sm shadow-sm" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="text-label-md font-label-md">Configuración</span>
+</a>
+</nav>
+<div class="px-md mt-auto">
+<button class="w-full bg-on-primary text-primary font-bold py-sm rounded-lg text-label-md hover:bg-opacity-90 transition-transform active:scale-95">
+                Nuevo Envío
+            </button>
+</div>
+</aside>
+<!-- TopNavBar -->
+<header class="flex justify-between items-center h-16 px-lg ml-[240px] w-[calc(100%-240px)] bg-surface dark:bg-surface-container-low border-b border-outline-variant dark:border-outline sticky top-0 z-40">
+<div class="flex items-center gap-md">
+<div class="relative group">
+<span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+<span class="material-symbols-outlined text-outline" data-icon="search">search</span>
+</span>
+<input class="bg-surface-container-low border border-outline-variant rounded-full pl-10 pr-4 py-1.5 text-body-sm focus:ring-1 focus:ring-primary-container focus:border-primary-container w-64 transition-all" placeholder="Buscar..." type="text">
+</div>
+</div>
+<div class="flex items-center gap-lg">
+<div class="flex items-center gap-sm">
+<div class="text-right">
+<p class="text-display-md font-display-md text-primary">Hola, Administrador</p>
+<p class="text-body-sm font-body-sm text-on-surface-variant">Viernes, 24 Mayo</p>
+</div>
+<div class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center text-on-primary-fixed font-bold border border-outline-variant overflow-hidden">
+<img alt="Avatar del usuario" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDYUDoCSQzEWf33qu-lXu9ocygxTfpmo9ZoA_KSJbWwlxAu_VngYcEtz3EVieiJ3E1PIAbLh91K4HUDIDzDLAOno1PiyN5xeBUB43hV9IUKe2IiOZ7CYzWXljevOlPKF9w2Xn1ktgz7RG-EJT_rcYq3wUkgLMZ_U4_sbeIOVX886WghdEO7cCRo3qn9RU_O_JDa2PKU6tz-5btQd4g4T1BoeLh0PuuPisgNMqAUFDQV80HDNE8oMBI8fITLNk5XtReJ_dEL13AjGA">
+</div>
+</div>
+<div class="flex items-center gap-sm">
+<button class="p-2 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-colors relative">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<button class="p-2 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-colors">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="ml-[240px] p-lg">
+<!-- Page Header -->
+<div class="flex justify-between items-end mb-xl">
+<div>
+<h2 class="text-display-lg font-display-lg text-primary">Usuarios del sistema</h2>
+<p class="text-body-md text-on-surface-variant">Gestiona el acceso y permisos de tu equipo</p>
+</div>
+<button class="bg-primary text-on-primary px-lg py-sm rounded-lg flex items-center gap-sm font-bold text-label-md hover:opacity-90 transition-all custom-shadow">
+<span class="material-symbols-outlined text-[18px]" data-icon="person_add">person_add</span>
+                Agregar empleado
+            </button>
+</div>
+<!-- User Cards Section -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-lg mb-xl">
+<!-- Card 1: Joaquín -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md custom-shadow flex flex-col h-full">
+<div class="flex justify-between items-start mb-md">
+<div class="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-on-primary font-bold text-display-md">
+                        JQ
+                    </div>
+<span class="bg-secondary-fixed text-on-secondary-fixed-variant px-sm py-0.5 rounded-full text-label-sm font-bold">
+                        Admin · Dueño
+                    </span>
+</div>
+<div class="flex-1">
+<h3 class="text-display-md text-primary">Joaquín Rodríguez</h3>
+<p class="text-body-sm text-on-surface-variant mb-md">joaquin@orionlogistic.com</p>
+<div class="flex items-center gap-sm mb-lg">
+<span class="w-2 h-2 bg-green-500 rounded-full"></span>
+<span class="text-label-md text-green-700 font-medium">Activo</span>
+</div>
+</div>
+<div class="pt-md border-t border-outline-variant">
+<p class="text-body-sm italic text-on-surface-variant/70 text-center">Permisos completos — no editables</p>
+</div>
+</div>
+<!-- Card 2: José Salinas -->
+<div class="bg-surface-container-lowest border border-primary/20 rounded-xl p-md custom-shadow flex flex-col h-full ring-2 ring-primary/5">
+<div class="flex justify-between items-start mb-md">
+<div class="w-12 h-12 bg-[#378ADD] rounded-full flex items-center justify-center text-white font-bold text-display-md">
+                        JS
+                    </div>
+<span class="bg-surface-container-high text-on-surface-variant px-sm py-0.5 rounded-full text-label-sm font-bold">
+                        Empleado
+                    </span>
+</div>
+<div class="flex-1">
+<h3 class="text-display-md text-primary">José Salinas</h3>
+<p class="text-body-sm text-on-surface-variant mb-md">jose@orionlogistic.com</p>
+<div class="flex items-center gap-sm mb-lg">
+<span class="w-2 h-2 bg-green-500 rounded-full"></span>
+<span class="text-label-md text-green-700 font-medium">Activo</span>
+</div>
+</div>
+<div class="pt-md border-t border-outline-variant flex justify-between">
+<button class="text-primary font-bold text-label-md hover:underline decoration-primary" onclick="togglePermissions(true)">Editar permisos</button>
+<button class="text-error font-bold text-label-md hover:underline decoration-error">Desactivar</button>
+</div>
+</div>
+<!-- Card 3: Add New -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md custom-shadow flex flex-col h-full animate-in fade-in slide-in-from-bottom-4 duration-500">
+<div class="flex justify-between items-start mb-md">
+<div class="flex flex-col gap-xs">
+<span class="bg-[#E1F5EE] text-[#085041] px-sm py-0.5 rounded-full text-[10px] font-bold w-fit">Nuevo</span>
+<div class="w-11 h-11 bg-primary rounded-full flex items-center justify-center text-on-primary font-bold text-[15px]">MG</div>
+</div>
+<span class="bg-surface-container-high text-on-surface-variant px-sm py-0.5 rounded-full text-label-sm font-bold">Empleado</span>
+</div>
+<div class="flex-1">
+<h3 class="text-display-md text-primary">María García</h3>
+<p class="text-body-sm text-on-surface-variant mb-sm">maria@orionlogistic.com</p>
+<div class="flex items-center gap-sm mb-md">
+<span class="w-2 h-2 bg-green-500 rounded-full"></span>
+<span class="text-label-md text-green-700 font-medium">Activo</span>
+</div>
+<div class="flex flex-wrap gap-xs mb-lg">
+<span class="bg-[#E1F5EE] text-[#085041] px-1.5 py-0.5 rounded text-[10px]">✓ Pedidos</span>
+<span class="bg-[#E1F5EE] text-[#085041] px-1.5 py-0.5 rounded text-[10px]">✓ Tablero</span>
+<span class="bg-surface-container-low text-on-surface-variant px-1.5 py-0.5 rounded text-[10px]">✗ Finanzas</span>
+<span class="bg-[#E1F5EE] text-[#085041] px-1.5 py-0.5 rounded text-[10px]">✓ Cotizador (ver)</span>
+<span class="bg-surface-container-low text-on-surface-variant px-1.5 py-0.5 rounded text-[10px]">✗ Config</span>
+</div>
+</div>
+<div class="pt-md border-t border-outline-variant flex justify-between">
+<button class="text-primary font-bold text-label-md hover:underline decoration-primary">Editar permisos</button>
+<button class="text-error font-bold text-label-md hover:underline decoration-error">Desactivar</button>
+</div>
+</div><div class="border-2 border-dashed border-outline-variant rounded-xl p-md flex flex-col items-center justify-center h-full bg-surface-container/30 hover:bg-surface-container transition-colors cursor-pointer group">
+<div class="w-12 h-12 rounded-full border-2 border-outline flex items-center justify-center text-outline mb-md group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-[32px]" data-icon="add">add</span>
+</div>
+<p class="text-display-md text-on-surface-variant mb-md font-bold">Agregar empleado</p>
+<button class="border border-primary text-primary px-lg py-sm rounded-lg font-bold text-label-md hover:bg-primary/5 transition-all">
+                    + Nuevo
+                </button>
+</div>
+</div>
+<!-- WhatsApp Config Section -->
+<section class="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg custom-shadow">
+<div class="flex items-center gap-md mb-lg">
+<div class="p-3 bg-green-50 text-green-600 rounded-lg">
+<span class="material-symbols-outlined text-[28px]" data-icon="chat">chat</span>
+</div>
+<div>
+<h3 class="text-display-md text-primary">N° de WhatsApp de atención al cliente</h3>
+<p class="text-body-sm text-on-surface-variant">Este número aparecerá visible en la app pública, cotizador y rastreo.</p>
+</div>
+</div>
+<div class="flex flex-col md:flex-row gap-lg items-end">
+<div class="w-full md:w-80">
+<label class="block text-label-md text-primary mb-sm">Número de contacto</label>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 flex items-center pl-sm pointer-events-none">
+<img alt="Peru flag" class="w-5 mr-xs" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC5HcJSNjQ1qvMDxNKLB8x81LsFBgPWfTnbYJnYyKlRF3NBMWw_u3J6DAEvEW1OKyUBcZGRxZ86tsmfLjoVhcYUdWwBrEOMFvRkYPK675OgbBKUhZEC7Hg8XEcu9iIqQux7aG0uW0Er14M4Mykq-gg1XzYRwqnkLCbvXJZDbWNXbAzvo3BvuMutuIoqgqg4OfAsWVPuF_gsk0EmQCs-BreWdSqYkQY6F_Lr2NMvexL9rIdhzNP-WUio-iIwMRAMyQn4QwadRXorcg">
+<span class="text-body-sm font-medium text-on-surface-variant">+51</span>
+</div>
+<input class="w-full border border-outline-variant rounded-lg pl-[64px] pr-md py-2.5 text-body-md focus:ring-1 focus:ring-primary focus:border-primary" type="text" value="999 999 999">
+</div>
+</div>
+<button class="bg-primary text-on-primary px-lg py-[11px] rounded-lg font-bold text-label-md hover:opacity-95 transition-all">
+                    Guardar número
+                </button>
+<div class="flex-1 flex items-center gap-sm bg-surface-container-low px-md py-sm rounded-lg border border-outline-variant/30">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant" data-icon="info">info</span>
+<p class="text-label-sm text-on-surface-variant">Aparece en: <span class="font-bold">Landing page · Cotizador · Rastreador de pedidos</span></p>
+</div>
+</div>
+</section>
+</main>
+<!-- Permissions Panel (Slide-in) -->
+<div class="fixed inset-0 bg-black/40 z-[60] backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300" id="permissionsOverlay" onclick="togglePermissions(false)"></div>
+<div class="fixed top-0 right-0 w-[380px] h-screen bg-white z-[70] translate-x-full transition-transform duration-300 ease-in-out shadow-2xl flex flex-col" id="permissionsPanel">
+<div class="p-lg border-b border-outline-variant flex justify-between items-start">
+<div>
+<h2 class="text-display-md text-primary">Permisos de José Salinas</h2>
+<p class="text-body-sm text-on-surface-variant">Define qué puede ver y hacer en el sistema</p>
+</div>
+<button class="p-1 hover:bg-surface-container rounded-full text-on-surface-variant transition-colors" onclick="togglePermissions(false)">
+<span class="material-symbols-outlined" data-icon="close">close</span>
+</button>
+</div>
+<div class="flex-1 overflow-y-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low border-b border-outline-variant">
+<th class="px-lg py-md text-label-md text-on-surface-variant">Módulo</th>
+<th class="px-sm py-md text-label-md text-on-surface-variant text-center">Ver</th>
+<th class="px-sm py-md text-label-md text-on-surface-variant text-center">Editar</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/50">
+<!-- Pedidos -->
+<tr class="hover:bg-surface-container-low/50">
+<td class="px-lg py-md text-body-md font-medium text-primary">Pedidos</td>
+<td class="px-sm py-md text-center">
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only toggle-checkbox" type="checkbox">
+<div class="w-8 h-4 bg-gray-200 rounded-full toggle-label transition-colors after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all"></div>
+</label>
+</td>
+<td class="px-sm py-md text-center">
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only toggle-checkbox" type="checkbox">
+<div class="w-8 h-4 bg-gray-200 rounded-full toggle-label transition-colors after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all"></div>
+</label>
+</td>
+</tr>
+<!-- Tablero -->
+<tr class="hover:bg-surface-container-low/50">
+<td class="px-lg py-md text-body-md font-medium text-primary">Tablero estados</td>
+<td class="px-sm py-md text-center">
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only toggle-checkbox" type="checkbox">
+<div class="w-8 h-4 bg-gray-200 rounded-full toggle-label transition-colors after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all"></div>
+</label>
+</td>
+<td class="px-sm py-md text-center">
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only toggle-checkbox" type="checkbox">
+<div class="w-8 h-4 bg-gray-200 rounded-full toggle-label transition-colors after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all"></div>
+</label>
+</td>
+</tr>
+<!-- Finanzas -->
+<tr class="permission-row-muted">
+<td class="px-lg py-md text-body-md font-medium">Finanzas</td>
+<td class="px-sm py-md text-center">
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only toggle-checkbox" type="checkbox">
+<div class="w-8 h-4 bg-gray-200 rounded-full toggle-label transition-colors after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all"></div>
+</label>
+</td>
+<td class="px-sm py-md text-center">
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only toggle-checkbox" type="checkbox">
+<div class="w-8 h-4 bg-gray-200 rounded-full toggle-label transition-colors after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all"></div>
+</label>
+</td>
+</tr>
+<!-- Cotizador -->
+<tr class="hover:bg-surface-container-low/50">
+<td class="px-lg py-md text-body-md font-medium text-primary">Cotizador</td>
+<td class="px-sm py-md text-center">
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only toggle-checkbox" type="checkbox">
+<div class="w-8 h-4 bg-gray-200 rounded-full toggle-label transition-colors after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all"></div>
+</label>
+</td>
+<td class="px-sm py-md text-center">
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only toggle-checkbox" type="checkbox">
+<div class="w-8 h-4 bg-gray-200 rounded-full toggle-label transition-colors after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all"></div>
+</label>
+</td>
+</tr>
+<!-- Configuración -->
+<tr class="permission-row-muted">
+<td class="px-lg py-md text-body-md font-medium">Configuración</td>
+<td class="px-sm py-md text-center">
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only toggle-checkbox" type="checkbox">
+<div class="w-8 h-4 bg-gray-200 rounded-full toggle-label transition-colors after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all"></div>
+</label>
+</td>
+<td class="px-sm py-md text-center">
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only toggle-checkbox" type="checkbox">
+<div class="w-8 h-4 bg-gray-200 rounded-full toggle-label transition-colors after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all"></div>
+</label>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="p-lg border-t border-outline-variant bg-surface-container-low">
+<p class="text-label-sm text-on-surface-variant mb-md flex items-center gap-xs">
+<span class="material-symbols-outlined text-[14px]" data-icon="sync">sync</span>
+                Los cambios se aplican de inmediato tras guardar.
+            </p>
+<button class="w-full bg-primary text-on-primary py-md rounded-lg font-bold text-label-md hover:opacity-95 shadow-md active:scale-95 transition-transform">
+                Guardar cambios
+            </button>
+</div>
+</div>
+<script>
+        function togglePermissions(show) {
+            const panel = document.getElementById('permissionsPanel');
+            const overlay = document.getElementById('permissionsOverlay');
+            if (show) {
+                panel.classList.remove('translate-x-full');
+                overlay.classList.remove('opacity-0', 'pointer-events-none');
+                overlay.classList.add('opacity-100');
+            } else {
+                panel.classList.add('translate-x-full');
+                overlay.classList.add('opacity-0', 'pointer-events-none');
+                overlay.classList.remove('opacity-100');
+            }
+        }
+    </script>
+</body></html>

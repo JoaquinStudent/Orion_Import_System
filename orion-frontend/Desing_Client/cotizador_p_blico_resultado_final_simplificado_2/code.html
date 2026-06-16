@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Cotización | Orión Logistic</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined { font-size: 20px; vertical-align: middle; }
+        .pulsing-dot {
+            width: 6px;
+            height: 6px;
+            background-color: #10b981;
+            border-radius: 50%;
+            display: inline-block;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-highest": "#e4e1e7",
+                        "background": "#fbf8fe",
+                        "tertiary-container": "#4b2300",
+                        "tertiary": "#2c1200",
+                        "on-primary": "#ffffff",
+                        "surface": "#fbf8fe",
+                        "inverse-surface": "#303034",
+                        "surface-container": "#efedf2",
+                        "secondary": "#735c00",
+                        "on-surface": "#1b1b1f",
+                        "on-secondary-fixed": "#241a00",
+                        "on-background": "#1b1b1f",
+                        "surface-variant": "#e4e1e7",
+                        "on-secondary-fixed-variant": "#574500",
+                        "on-primary-container": "#8593cd",
+                        "on-secondary-container": "#745c00",
+                        "surface-bright": "#fbf8fe",
+                        "tertiary-fixed": "#ffdcc5",
+                        "primary-fixed-dim": "#b7c4ff",
+                        "tertiary-fixed-dim": "#fcb887",
+                        "on-error-container": "#93000a",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-container": "#fed65b",
+                        "on-primary-fixed": "#05164b",
+                        "on-tertiary": "#ffffff",
+                        "secondary-fixed-dim": "#e9c349",
+                        "error-container": "#ffdad6",
+                        "on-surface-variant": "#45464f",
+                        "secondary-fixed": "#ffe088",
+                        "outline": "#767680",
+                        "on-error": "#ffffff",
+                        "inverse-primary": "#b7c4ff",
+                        "surface-tint": "#4e5c92",
+                        "primary-fixed": "#dce1ff",
+                        "primary-container": "#1b2a5e",
+                        "on-secondary": "#ffffff",
+                        "surface-container-high": "#e9e7ec",
+                        "on-tertiary-container": "#c5885b",
+                        "on-tertiary-fixed-variant": "#6a3b15",
+                        "inverse-on-surface": "#f2f0f5",
+                        "on-primary-fixed-variant": "#354479",
+                        "surface-dim": "#dbd9de",
+                        "error": "#ba1a1a",
+                        "surface-container-low": "#f5f3f8",
+                        "primary": "#021449",
+                        "on-tertiary-fixed": "#301400",
+                        "outline-variant": "#c6c5d1",
+                        "brand-navy": "#1B2A5E",
+                        "brand-secondary": "#3D4B6B",
+                        "brand-muted": "#8A93A8",
+                        "brand-gold": "#D4AF37",
+                        "brand-quoter-bg": "#F4F6FA"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "lg": "24px",
+                        "gutter": "16px",
+                        "xs": "4px",
+                        "sm": "8px",
+                        "base": "4px",
+                        "container-margin": "24px",
+                        "md": "16px",
+                        "xl": "32px"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "label-md": ["Inter"],
+                        "display-md": ["Inter"],
+                        "body-md": ["Inter"],
+                        "display-xl": ["Inter"]
+                    },
+                    "fontSize": {
+                        "display-lg": ["22px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-sm": ["13px", { "lineHeight": "18px", "fontWeight": "400" }],
+                        "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "600" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "500" }],
+                        "display-md": ["18px", { "lineHeight": "24px", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "display-xl": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "700" }]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- TopNavBar Mapping -->
+<nav class="fixed top-0 left-0 w-full z-50 bg-surface dark:bg-on-background border-b border-outline-variant dark:border-outline">
+<div class="max-w-7xl mx-auto flex justify-between items-center px-lg md:px-xl py-md">
+<span class="text-display-md font-display-md font-bold text-primary dark:text-primary-fixed">Orión Logistic</span>
+<div class="hidden md:flex gap-xl items-center">
+<a class="font-label-md text-label-md text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed transition-colors" href="#">Servicios</a>
+<a class="font-label-md text-label-md text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed transition-colors" href="#">Rastreo</a>
+<a class="font-label-md text-label-md text-primary dark:text-secondary-fixed-dim font-bold border-b-2 border-primary dark:border-secondary-fixed-dim pb-1" href="#">Importaciones</a>
+<a class="font-label-md text-label-md text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed transition-colors" href="#">Nosotros</a>
+</div>
+<button class="bg-primary text-on-primary px-lg py-sm rounded-lg font-label-md hover:bg-surface-container transition-colors opacity-90 active:opacity-80 flex items-center gap-2">
+<span class="material-symbols-outlined" style="font-size: 18px;">chat</span>
+                WhatsApp
+            </button>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="min-h-screen pt-32 pb-20 px-gutter flex flex-col items-center">
+<!-- Result Card -->
+<div class="w-full max-w-[600px] bg-brand-quoter-bg rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-outline-variant overflow-hidden">
+<!-- Card Header -->
+<div class="p-lg bg-surface-container-lowest">
+<div class="flex justify-between items-start mb-2">
+<h1 class="text-[28px] font-bold text-brand-navy leading-tight uppercase font-display-xl">COTIZA TU PRÓXIMO ENVÍO</h1>
+<div class="flex items-center gap-2 bg-surface px-sm py-xs rounded-full border border-outline-variant">
+<span class="pulsing-dot"></span>
+<span class="text-[11px] font-semibold text-brand-secondary">Dólar: S/ 3.40 · en vivo</span>
+</div>
+</div>
+<p class="text-[13px] text-brand-muted font-body-sm">Ingresa los datos de tu producto y calcula el costo al instante</p>
+</div>
+<div class="px-lg pb-lg">
+<!-- Summary Chips -->
+<div class="flex items-center justify-between bg-brand-quoter-bg rounded-lg p-sm mb-md">
+<div class="flex gap-2">
+<span class="bg-brand-navy text-white text-[11px] px-3 py-1 rounded-full font-semibold flex items-center gap-1 uppercase">
+<span class="material-symbols-outlined" style="font-size: 12px;">check</span> USD $ 20
+                        </span>
+<span class="bg-brand-navy text-white text-[11px] px-3 py-1 rounded-full font-semibold flex items-center gap-1 uppercase">
+<span class="material-symbols-outlined" style="font-size: 12px;">check</span> 1.3 kg → 2 kg cobrados
+                        </span>
+</div>
+<a class="text-[12px] font-semibold text-brand-navy hover:underline transition-all" href="/cotizar">Calcular de nuevo</a>
+</div>
+<!-- Result Section -->
+<div class="space-y-gutter">
+<!-- Status Pill -->
+<div class="flex justify-center">
+<span class="bg-[#E1F5EE] text-[#085041] text-[14px] font-bold px-6 py-2 rounded-full flex items-center gap-2">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">verified</span>
+                            EMBARQUE · Valor menor a $200
+                        </span>
+</div>
+<!-- Breakdown Table -->
+<div class="space-y-3 pt-4">
+<div class="flex justify-between text-[14px] font-body-md text-brand-secondary">
+<span>Valor del producto</span>
+<span class="text-brand-navy">$ 20.00</span>
+</div>
+<div class="flex justify-between text-[14px] font-body-md text-brand-secondary">
+<span>Peso ingresado</span>
+<span class="text-brand-navy">1.3 kg</span>
+</div>
+<div class="flex justify-between text-[14px] font-body-md">
+<span class="text-brand-secondary">Peso cobrado (↑)</span>
+<span class="text-brand-navy font-bold">2 kg</span>
+</div>
+<hr class="border-outline-variant"/>
+<div class="flex justify-between text-[14px] font-body-md text-brand-muted">
+<span>Precio por kilo</span>
+<span>$ 10.00 / kg</span>
+</div>
+<div class="flex justify-between text-[14px] font-body-md">
+<span class="text-brand-secondary">Flete (2 kg × $10)</span>
+<span class="text-brand-navy font-bold">$ 20.00</span>
+</div>
+<div class="flex justify-between text-[14px] font-body-md">
+<span class="text-brand-secondary">Desaduanaje</span>
+<span class="text-brand-navy font-bold">$ 9.00</span>
+</div>
+<hr class="border-outline-variant"/>
+<div class="flex justify-between items-center">
+<span class="text-[14px] font-bold text-brand-navy uppercase">Total en dólares</span>
+<span class="text-[14px] font-bold text-brand-navy">$ 29.00</span>
+</div>
+<div class="flex justify-between text-[12px] text-brand-muted italic">
+<span>Tipo de cambio</span>
+<span>× S/ 3.40</span>
+</div>
+</div>
+<!-- Total Row -->
+<div class="mt-xl flex justify-between items-center bg-brand-quoter-bg border-t-2 border-outline-variant py-md px-sm">
+<span class="text-[14px] font-bold text-brand-navy uppercase">TOTAL ESTIMADO EN SOLES</span>
+<span class="text-[28px] font-bold text-brand-gold">S/ 98.60</span>
+</div>
+<!-- Rounding Note -->
+<div class="bg-[#EEEDFE] border border-[#AFA9EC] rounded-lg p-md flex gap-3 items-start">
+<span class="material-symbols-outlined text-[#3C3489]">balance</span>
+<p class="text-[12px] text-[#3C3489] leading-relaxed">
+                            El peso de 1.3 kg fue redondeado a 2 kg para el cálculo del flete. El flete siempre se cobra por kilogramo entero.
+                        </p>
+</div>
+<!-- Actions -->
+<div class="pt-xl space-y-4">
+<p class="text-[11px] italic text-brand-muted text-center">Estimado referencial. El precio final puede variar.</p>
+<a class="flex items-center justify-center gap-3 w-full bg-[#25D366] text-white py-4 rounded-xl font-bold text-[14px] hover:brightness-105 transition-all shadow-md active:scale-[0.98] uppercase" href="https://wa.me/your-number" target="_blank">
+<svg class="w-6 h-6 fill-current" viewbox="0 0 24 24">
+<path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217s.231.001.332.005c.109.004.258-.041.404.311.159.389.542 1.32.59 1.417.048.096.08.209.014.339-.066.13-.1.21-.198.324-.096.115-.205.257-.294.341-.103.097-.21.203-.09.392.119.189.53.876 1.139 1.42.783.699 1.445.918 1.647 1.019.201.101.317.085.435-.05.117-.136.506-.589.641-.79.135-.202.27-.17.455-.101s1.17.552 1.372.653c.202.101.337.151.385.232.048.081.048.468-.096.873z"></path>
+</svg>
+                            ¿LISTO PARA IMPORTAR? ESCRÍBENOS POR WHATSAPP
+                        </a>
+<a class="block text-center text-[12px] font-semibold text-brand-navy hover:text-brand-secondary transition-colors py-2" href="/cotizar">
+                            ← Calcular otro producto
+                        </a>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer Mapping -->
+<footer class="w-full bg-primary dark:bg-on-background py-xl px-lg md:px-xl flex flex-col md:flex-row justify-between items-center gap-md">
+<span class="text-display-md font-display-md text-secondary-fixed dark:text-secondary-fixed-dim font-bold uppercase">Orión Logistic</span>
+<div class="flex flex-wrap justify-center gap-md">
+<a class="font-body-sm text-body-sm text-surface-variant dark:text-outline-variant hover:text-secondary-fixed-dim transition-colors" href="#">Términos y Condiciones</a>
+<a class="font-body-sm text-body-sm text-surface-variant dark:text-outline-variant hover:text-secondary-fixed-dim transition-colors" href="#">Política de Privacidad</a>
+<a class="font-body-sm text-body-sm text-surface-variant dark:text-outline-variant hover:text-secondary-fixed-dim transition-colors" href="#">Libro de Reclamaciones</a>
+<a class="font-body-sm text-body-sm text-surface-variant dark:text-outline-variant hover:text-secondary-fixed-dim transition-colors" href="#">Contacto</a>
+</div>
+<p class="font-body-sm text-body-sm text-surface-variant dark:text-outline-variant opacity-90">
+            © 2024 Orión Logistic. Todos los derechos reservados.
+        </p>
+</footer>
+<script>
+        // Simple entrance animation
+        document.addEventListener('DOMContentLoaded', () => {
+            const card = document.querySelector('main > div');
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            card.style.transition = 'all 0.6s ease-out';
+            
+            setTimeout(() => {
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, 100);
+        });
+    </script>
+</body></html>

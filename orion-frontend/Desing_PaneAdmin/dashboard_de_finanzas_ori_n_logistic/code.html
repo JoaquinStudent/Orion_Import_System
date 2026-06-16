@@ -1,0 +1,436 @@
+<!DOCTYPE html><html class="light" lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Orión Logistic | Finanzas</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .bg-navy-main { background-color: #1B2A5E; }
+        .text-navy-main { color: #1B2A5E; }
+        .text-gold-main { color: #D4AF37; }
+        .bg-gold-main { background-color: #D4AF37; }
+        .border-navy-main { border-color: #1B2A5E; }
+        .border-gold-main { border-color: #D4AF37; }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F4F6FA;
+        }
+
+        /* Custom scrollbar for pro-tool feel */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #c6c5d1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #1B2A5E; }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-container": "#efedf2",
+                      "surface-container-lowest": "#ffffff",
+                      "on-primary-fixed": "#05164b",
+                      "background": "#fbf8fe",
+                      "secondary-fixed": "#ffe088",
+                      "primary": "#021449",
+                      "on-secondary": "#ffffff",
+                      "on-surface-variant": "#45464f",
+                      "outline-variant": "#c6c5d1",
+                      "on-tertiary-container": "#c5885b",
+                      "secondary-container": "#fed65b",
+                      "on-tertiary-fixed-variant": "#6a3b15",
+                      "surface-container-high": "#e9e7ec",
+                      "primary-fixed": "#dce1ff",
+                      "on-background": "#1b1b1f",
+                      "on-surface": "#1b1b1f",
+                      "error-container": "#ffdad6",
+                      "secondary-fixed-dim": "#e9c349",
+                      "surface-bright": "#fbf8fe",
+                      "surface": "#fbf8fe",
+                      "on-secondary-fixed-variant": "#574500",
+                      "tertiary-container": "#4b2300",
+                      "on-primary-container": "#8593cd",
+                      "tertiary-fixed-dim": "#fcb887",
+                      "surface-tint": "#4e5c92",
+                      "surface-container-low": "#f5f3f8",
+                      "on-secondary-container": "#745c00",
+                      "outline": "#767680",
+                      "primary-fixed-dim": "#b7c4ff",
+                      "tertiary-fixed": "#ffdcc5",
+                      "surface-dim": "#dbd9de",
+                      "on-secondary-fixed": "#241a00",
+                      "secondary": "#735c00",
+                      "surface-container-highest": "#e4e1e7",
+                      "inverse-on-surface": "#f2f0f5",
+                      "on-error": "#ffffff",
+                      "on-primary": "#ffffff",
+                      "tertiary": "#2c1200",
+                      "on-tertiary-fixed": "#301400",
+                      "primary-container": "#1B2A5E",
+                      "on-primary-fixed-variant": "#354479",
+                      "surface-variant": "#e4e1e7",
+                      "on-error-container": "#93000a",
+                      "inverse-surface": "#303034",
+                      "error": "#ba1a1a",
+                      "inverse-primary": "#b7c4ff",
+                      "on-tertiary": "#ffffff"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "xs": "4px",
+                      "gutter": "16px",
+                      "xl": "32px",
+                      "container-margin": "24px",
+                      "md": "16px",
+                      "base": "4px",
+                      "sm": "8px",
+                      "lg": "24px"
+              },
+              "fontFamily": {
+                      "display-md": ["Inter"],
+                      "display-lg": ["Inter"],
+                      "body-md": ["Inter"],
+                      "label-sm": ["Inter"],
+                      "display-xl": ["Inter"],
+                      "label-md": ["Inter"],
+                      "body-sm": ["Inter"]
+              },
+              "fontSize": {
+                      "display-md": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                      "display-lg": ["22px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                      "label-sm": ["11px", {"lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "600"}],
+                      "display-xl": ["28px", {"lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                      "body-sm": ["13px", {"lineHeight": "18px", "fontWeight": "400"}]
+              }
+            },
+          },
+        }
+      </script>
+</head>
+<body class="flex">
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-full w-[240px] bg-primary flex flex-col gap-sm p-md z-50">
+<div class="mb-xl px-sm">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded-lg bg-on-primary flex items-center justify-center overflow-hidden">
+<img alt="Orión Logistic Logo" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCn0LFMam47MRiPc8dxoioeXnzt18wNmU0p-Eanzebnsl05VyUAX9HZcwUA8OxZypLfTt1qBlyVp4itfd5dMGCtK-qZWOnu6uas-zbcvgOa31SKqtnXU07Q68mw2V5jt8z3qwqNhdcpJZYxcf7U9IdEs2f-ND2gCZIvNJNHrhbJAgXBf0cGlqfmlHpAY53tga_KcP1jSlR3WNSAprT0801vyeCIq6PzWMhbc4kYpizkjquFPVnyBy-gs9Q-ToPRZYQNL07glwR0ZQ">
+</div>
+<div>
+<h1 class="font-display-md text-display-md font-bold text-on-primary leading-tight">Orión Logistic</h1>
+<p class="font-label-sm text-label-sm text-on-primary-container opacity-80">Courier &amp; Import</p>
+</div>
+</div>
+</div>
+<nav class="flex flex-col gap-xs flex-grow">
+<a class="flex items-center gap-md p-sm text-on-primary-container hover:bg-on-primary-fixed-variant hover:text-white rounded-lg transition-colors duration-200 cursor-pointer active:scale-95" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-md p-sm text-on-primary-container hover:bg-on-primary-fixed-variant hover:text-white rounded-lg transition-colors duration-200 cursor-pointer active:scale-95" href="#">
+<span class="material-symbols-outlined">package_2</span>
+<span class="font-label-md text-label-md">Pedidos</span>
+</a>
+<a class="flex items-center gap-md p-sm text-on-primary-container hover:bg-on-primary-fixed-variant hover:text-white rounded-lg transition-colors duration-200 cursor-pointer active:scale-95" href="#">
+<span class="material-symbols-outlined">leaderboard</span>
+<span class="font-label-md text-label-md">Tablero</span>
+</a>
+<a class="flex items-center gap-md p-sm bg-secondary-container text-on-secondary-container rounded-lg font-bold transition-all cursor-pointer active:scale-95" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span class="font-label-md text-label-md">Finanzas</span>
+</a>
+<a class="flex items-center gap-md p-sm text-on-primary-container hover:bg-on-primary-fixed-variant hover:text-white rounded-lg transition-colors duration-200 cursor-pointer active:scale-95" href="#">
+<span class="material-symbols-outlined">calculate</span>
+<span class="font-label-md text-label-md">Cotizador</span>
+</a>
+<a class="mt-auto flex items-center gap-md p-sm text-on-primary-container hover:bg-on-primary-fixed-variant hover:text-white rounded-lg transition-colors duration-200 cursor-pointer active:scale-95" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-md text-label-md">Configuración</span>
+</a>
+</nav>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-[240px] w-[calc(100%-240px)] min-h-screen flex flex-col">
+<!-- TopNavBar -->
+<header class="fixed top-0 right-0 h-16 w-[calc(100%-240px)] bg-surface border-b border-outline-variant flex justify-between items-center px-lg z-40">
+<div class="flex items-center flex-1 max-w-xl">
+<div class="relative w-full group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="w-full bg-surface-container-low border-none rounded-lg pl-10 pr-4 py-2 text-body-md focus:ring-2 focus:ring-primary focus:bg-white transition-all" placeholder="Buscar movimientos, clientes o tracking..." type="text">
+</div>
+</div>
+<div class="flex items-center gap-md ml-lg">
+<button class="material-symbols-outlined p-2 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-colors">notifications</button>
+<button class="material-symbols-outlined p-2 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-colors">help</button>
+<div class="h-8 w-[1px] bg-outline-variant mx-sm"></div>
+<div class="flex items-center gap-sm cursor-pointer hover:bg-surface-container-high p-1 pr-3 rounded-full transition-all">
+<img alt="User profile" class="w-8 h-8 rounded-full border border-outline-variant" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCmPU6PLxqrwAtKakpqRwK35rNmrLmRsg6uq2MftdNXtE5zUSqckjD9GnvBm72vUYAVFhrjR8FyoLvo1dP2TFzPy8pKaruhjEzofilumk75ZS_ugm7Lkajcq6WkgCLPtnpaXkS-U9NdskTX2JaMVAnTKwP6yi82pJZ2Y7mmah2TtZRVyhf4xB3qlVQHWzoAPf4erZ1sC7UFMC7Srg0Vr5DYRa2YXAGKLf-zDW0ISlgk7tFbfJFGZobR7OHqpixeHWWlbc7KWud2Zg">
+<span class="font-label-md text-label-md text-primary font-bold">Admin Orión</span>
+</div>
+</div>
+</header>
+<!-- Content Canvas -->
+<div class="mt-16 p-lg space-y-lg">
+<!-- Page Header -->
+<div class="flex justify-between items-center">
+<div>
+<h2 class="font-display-lg text-display-lg text-navy-main">Finanzas</h2>
+<p class="text-body-sm text-outline">Gestión de ingresos por servicios de importación</p>
+</div>
+<div class="flex items-center gap-md">
+<!-- Period Toggle -->
+<div class="flex bg-white border border-outline-variant p-1 rounded-lg">
+<button class="px-4 py-1.5 text-label-md rounded-md hover:bg-surface-container transition-colors">Hoy</button>
+<button class="px-4 py-1.5 text-label-md rounded-md hover:bg-surface-container transition-colors">Esta semana</button>
+<button class="px-4 py-1.5 text-label-md rounded-md bg-navy-main text-white shadow-sm font-bold">Este mes</button>
+<button class="px-4 py-1.5 text-label-md rounded-md hover:bg-surface-container transition-colors">Este año</button>
+</div>
+<!-- Export Button -->
+<button class="flex items-center gap-sm px-md py-2 border border-outline-variant bg-white text-navy-main text-label-md font-bold rounded-lg hover:bg-surface-container-high transition-all active:scale-95">
+<span class="material-symbols-outlined text-green-600">table_view</span>
+                        Exportar a Excel
+                    </button>
+</div>
+</div>
+<!-- Row 1: KPI Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-lg">
+<!-- Card 1 -->
+<div class="bg-white p-lg rounded-xl border border-outline-variant shadow-[0_2px_8px_rgba(0,0,0,0.06)] relative overflow-hidden group">
+<div class="flex flex-col gap-sm">
+<span class="text-label-md font-bold text-navy-main uppercase tracking-wider">Ingresos hoy</span>
+<span class="text-display-xl font-bold text-gold-main">$ 1,240.50</span>
+<div class="flex items-center gap-xs text-green-600 font-bold text-body-sm">
+<span class="material-symbols-outlined text-[16px]">trending_up</span>
+                            vs ayer +12%
+                        </div>
+</div>
+<div class="absolute bottom-0 left-0 w-full h-[3px] bg-gold-main transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-500"></div>
+</div>
+<!-- Card 2 -->
+<div class="bg-white p-lg rounded-xl border border-outline-variant shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
+<div class="flex flex-col gap-sm">
+<span class="text-label-md font-bold text-navy-main uppercase tracking-wider">Ingresos este mes</span>
+<span class="text-display-xl font-bold text-gold-main">$ 14,820.00</span>
+<span class="text-body-sm text-outline">142 pedidos registrados</span>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="bg-white p-lg rounded-xl border border-outline-variant shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
+<div class="flex flex-col gap-sm">
+<span class="text-label-md font-bold text-navy-main uppercase tracking-wider">Ingresos este año</span>
+<span class="text-display-xl font-bold text-gold-main">$ 162,450.00</span>
+<span class="text-body-sm text-outline">Mejor mes: Octubre</span>
+</div>
+</div>
+</div>
+<!-- Row 2: Income Chart -->
+<div class="bg-white p-lg rounded-xl border border-outline-variant shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
+<div class="mb-md">
+<h3 class="font-bold text-navy-main text-body-md">Evolución de ingresos</h3>
+<p class="text-label-md text-outline">Basado en costos de importación cobrados (Últimos 30 días)</p>
+</div>
+<div class="h-[240px] w-full relative">
+<!-- SVG Chart Mockup -->
+<svg class="w-full h-full preserve-3d" preserveAspectRatio="none" viewBox="0 0 1000 200">
+<defs>
+<linearGradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#1B2A5E" stop-opacity="0.1"></stop>
+<stop offset="100%" stop-color="#1B2A5E" stop-opacity="0"></stop>
+</linearGradient>
+</defs>
+<!-- Navy Fill -->
+<path d="M0,180 L100,140 L200,160 L300,100 L400,120 L500,60 L600,80 L700,50 L800,90 L900,40 L1000,70 L1000,200 L0,200 Z" fill="url(#chartGradient)"></path>
+<!-- Navy Line -->
+<path d="M0,180 L100,140 L200,160 L300,100 L400,120 L500,60 L600,80 L700,50 L800,90 L900,40 L1000,70" fill="none" stroke="#1B2A5E" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"></path>
+<!-- Gold Data Points -->
+<circle cx="100" cy="140" fill="#D4AF37" r="4" style="transition: 0.3s;"></circle>
+<circle cx="300" cy="100" fill="#D4AF37" r="4" style="transition: 0.3s;"></circle>
+<circle cx="500" cy="60" fill="#D4AF37" r="4" style="transition: 0.3s;"></circle>
+<circle cx="700" cy="50" fill="#D4AF37" r="4" style="transition: 0.3s;"></circle>
+<circle cx="900" cy="40" fill="#D4AF37" r="4" style="transition: 0.3s;"></circle>
+</svg>
+<!-- Grid Lines Mockup -->
+<div class="absolute inset-0 flex flex-col justify-between pointer-events-none border-b border-l border-outline-variant opacity-30">
+<div class="border-t border-outline-variant w-full h-[1px]"></div>
+<div class="border-t border-outline-variant w-full h-[1px]"></div>
+<div class="border-t border-outline-variant w-full h-[1px]"></div>
+<div class="border-t border-outline-variant w-full h-[1px]"></div>
+</div>
+</div>
+<div class="flex justify-between mt-sm text-label-sm text-outline px-sm">
+<span class="">Semana 1</span>
+<span class="">Semana 2</span>
+<span class="">Semana 3</span>
+<span class="">Semana 4</span>
+</div>
+</div>
+<!-- Row 3: Two Columns -->
+<div class="grid grid-cols-1 lg:grid-cols-10 gap-lg">
+<!-- LEFT Column: Table (60%) -->
+<div class="lg:col-span-6 bg-white rounded-xl border border-outline-variant shadow-[0_2px_8px_rgba(0,0,0,0.06)] overflow-hidden">
+<div class="p-lg border-b border-outline-variant flex justify-between items-center">
+<h3 class="font-bold text-navy-main text-body-md">Detalle de ingresos</h3>
+<div class="flex gap-sm">
+<span class="flex items-center gap-xs px-2 py-1 bg-surface-container rounded text-label-sm text-navy-main">
+<span class="w-2 h-2 rounded-full bg-gold-main"></span>
+                                Costo real
+                            </span>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead class="bg-surface-container-low">
+<tr>
+<th class="px-md py-sm text-label-sm text-outline font-bold uppercase">Fecha</th>
+<th class="px-md py-sm text-label-sm text-outline font-bold uppercase">N° Tracking</th>
+<th class="px-md py-sm text-label-sm text-outline font-bold uppercase">Titular</th><th class="px-md py-sm text-label-sm text-outline font-bold uppercase">Comunidad</th>
+<th class="px-md py-sm text-label-sm text-outline font-bold uppercase">Valor Prod.</th>
+<th class="px-md py-sm text-label-sm text-navy-main font-bold uppercase bg-surface-container-high/30">Costo Import.</th>
+<th class="px-md py-sm text-label-sm text-outline font-bold uppercase">Estado</th>
+</tr>
+</thead>
+<tbody class="text-body-sm">
+<tr class="border-b border-outline-variant hover:bg-surface-container-low transition-colors">
+<td class="px-md py-md">12/10/2023</td>
+<td class="px-md py-md font-mono text-outline">AMZ-9022-US</td>
+<td class="px-md py-md font-medium">Carlos Ruiz</td><td class="px-md py-md text-outline">Comunidad Norte</td>
+<td class="px-md py-md text-outline">$ 420.00</td>
+<td class="px-md py-md font-bold text-navy-main bg-surface-container-high/10 border-l-2 border-gold-main">$ 54.50</td>
+<td class="px-md py-md"><span class="px-2 py-0.5 bg-green-100 text-green-800 rounded-full text-label-sm font-bold">Liquidado</span></td>
+</tr>
+<tr class="border-b border-outline-variant bg-surface-container-low/30 hover:bg-surface-container-low transition-colors">
+<td class="px-md py-md">11/10/2023</td>
+<td class="px-md py-md font-mono text-outline">EBY-3341-CN</td>
+<td class="px-md py-md font-medium">María Delgado</td><td class="px-md py-md text-outline">Comunidad Sur</td>
+<td class="px-md py-md text-outline">$ 1,250.00</td>
+<td class="px-md py-md font-bold text-navy-main bg-surface-container-high/10 border-l-2 border-gold-main">$ 180.20</td>
+<td class="px-md py-md"><span class="px-2 py-0.5 bg-green-100 text-green-800 rounded-full text-label-sm font-bold">Liquidado</span></td>
+</tr>
+<tr class="border-b border-outline-variant hover:bg-surface-container-low transition-colors">
+<td class="px-md py-md">11/10/2023</td>
+<td class="px-md py-md font-mono text-outline">USP-1122-TX</td>
+<td class="px-md py-md font-medium">Juan Perez</td><td class="px-md py-md text-outline">Comunidad Centro</td>
+<td class="px-md py-md text-outline">$ 85.00</td>
+<td class="px-md py-md font-bold text-navy-main bg-surface-container-high/10 border-l-2 border-gold-main">$ 22.00</td>
+<td class="px-md py-md"><span class="px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded-full text-label-sm font-bold">Pendiente</span></td>
+</tr>
+<tr class="border-b border-outline-variant bg-surface-container-low/30 hover:bg-surface-container-low transition-colors">
+<td class="px-md py-md">10/10/2023</td>
+<td class="px-md py-md font-mono text-outline">DHL-8871-DE</td>
+<td class="px-md py-md font-medium">Elena Vargas</td><td class="px-md py-md text-outline">Comunidad Norte</td>
+<td class="px-md py-md text-outline">$ 2,400.00</td>
+<td class="px-md py-md font-bold text-navy-main bg-surface-container-high/10 border-l-2 border-gold-main">$ 310.00</td>
+<td class="px-md py-md"><span class="px-2 py-0.5 bg-green-100 text-green-800 rounded-full text-label-sm font-bold">Liquidado</span></td>
+</tr>
+<tr class="border-b border-outline-variant hover:bg-surface-container-low transition-colors">
+<td class="px-md py-md">09/10/2023</td>
+<td class="px-md py-md font-mono text-outline">FED-4456-MI</td>
+<td class="px-md py-md font-medium">Roberto Lima</td><td class="px-md py-md text-outline">Comunidad Sur</td>
+<td class="px-md py-md text-outline">$ 110.00</td>
+<td class="px-md py-md font-bold text-navy-main bg-surface-container-high/10 border-l-2 border-gold-main">$ 28.50</td>
+<td class="px-md py-md"><span class="px-2 py-0.5 bg-green-100 text-green-800 rounded-full text-label-sm font-bold">Liquidado</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="p-md text-center">
+<button class="text-label-md font-bold text-navy-main hover:underline">Ver todo el historial</button>
+</div>
+</div>
+<!-- RIGHT Column: Summary Card (40%) -->
+<div class="lg:col-span-4 flex flex-col gap-lg">
+<!-- Resumen Periodo -->
+<div class="bg-white p-lg rounded-xl border border-outline-variant shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
+<h3 class="font-bold text-navy-main text-body-md mb-lg">Resumen del período</h3>
+<div class="space-y-md">
+<div class="flex justify-between items-center py-sm border-b border-surface-container">
+<span class="text-body-sm text-outline">Total de pedidos</span>
+<span class="font-bold text-navy-main">42</span>
+</div>
+<div class="flex justify-between items-center py-sm border-b border-surface-container">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-outline">local_shipping</span>
+<span class="text-body-sm text-outline">Método Courier</span>
+</div>
+<span class="font-bold text-navy-main">30 pedidos</span>
+</div>
+<div class="flex justify-between items-center py-sm border-b border-surface-container">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-outline">flight_takeoff</span>
+<span class="text-body-sm text-outline">Método Viajero</span>
+</div>
+<span class="font-bold text-navy-main">12 pedidos</span>
+</div>
+<div class="mt-xl pt-lg border-t-2 border-dashed border-outline-variant">
+<div class="flex flex-col gap-xs">
+<span class="text-label-sm font-bold text-outline uppercase tracking-wider">Ingreso total (USD)</span>
+<span class="text-[32px] font-extrabold text-gold-main leading-tight">$ 14,820.00</span>
+</div>
+</div>
+<button class="w-full mt-lg py-3 px-md border border-navy-main text-navy-main font-bold rounded-lg hover:bg-navy-main hover:text-white transition-all duration-300">
+                                Exportar período
+                            </button>
+</div>
+</div>
+<!-- Atmospheric Brand Element -->
+<div class="relative rounded-xl overflow-hidden h-40 group">
+<img alt="Financial precision" class="w-full h-full object-cover grayscale opacity-20 group-hover:scale-105 transition-transform duration-700" data-alt="A macro close-up of high-quality metallic coins and financial documents on a modern desk. The scene is illuminated by soft, professional lighting reflecting the corporate modern style of Orión Logistic. Deep navy and gold accents are subtly visible through high-end cinematic photography. The mood is precise, authoritative, and reliable." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCo53J44k-jtDaN0EoYL0zGmlS6IKmj8IcyYwCiaRyw6RfyLK2PLABSxK5QBg4Nygetrk0WjKnU4hgUrl68J2DgFXCtloVWSYPxCs6CbuD7A1aVK1LEsFisLv_gUJq7gqr1e4FDvzeC-KnFADjYjmevT2ONdO501GXNpdZyNdiOU72JWMmQ9UTRzaFRAxQwOxOwdyqTcGLNQEFtEIM-PRXGQQQfPDnKNJQI9hhcStXhmrUbc6pDV6iseipZ_deVrrZBLCcXo4MvhA">
+<div class="absolute inset-0 bg-navy-main/80 flex items-center justify-center p-md">
+<div class="text-center">
+<p class="text-on-primary font-display-md text-display-md">Consolidado 2023</p>
+<p class="text-on-primary-container text-body-sm mt-xs">Haga clic para ver el reporte anual proyectado.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer -->
+<footer class="mt-auto p-md text-center border-t border-outline-variant bg-white">
+<p class="text-label-sm text-outline">© 2023 Orión Logistic - Panel de Control Financiero. Todos los montos en USD.</p>
+</footer>
+</main>
+<script>
+        // Micro-interactions and effects
+        document.querySelectorAll('button, a').forEach(el => {
+            el.addEventListener('mousedown', () => {
+                el.style.transform = 'scale(0.98)';
+            });
+            el.addEventListener('mouseup', () => {
+                el.style.transform = 'scale(1)';
+            });
+            el.addEventListener('mouseleave', () => {
+                el.style.transform = 'scale(1)';
+            });
+        });
+
+        // Add small hover effect to chart points
+        const dots = document.querySelectorAll('circle');
+        dots.forEach(dot => {
+            dot.style.transition = 'all 0.3s ease';
+            dot.addEventListener('mouseenter', () => {
+                dot.setAttribute('r', '8');
+                dot.setAttribute('fill', '#1B2A5E');
+            });
+            dot.addEventListener('mouseleave', () => {
+                dot.setAttribute('r', '4');
+                dot.setAttribute('fill', '#D4AF37');
+            });
+        });
+    </script>
+
+
+</body></html>

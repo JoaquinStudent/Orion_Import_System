@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Configuración del Cotizador | Orión Logistic</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface": "#fbf8fe",
+                    "on-surface-variant": "#45464f",
+                    "on-primary-container": "#8593cd",
+                    "secondary": "#735c00",
+                    "surface-variant": "#e4e1e7",
+                    "error": "#ba1a1a",
+                    "on-tertiary-fixed-variant": "#6a3b15",
+                    "surface-tint": "#4e5c92",
+                    "tertiary-fixed": "#ffdcc5",
+                    "outline-variant": "#c6c5d1",
+                    "background": "#fbf8fe",
+                    "error-container": "#ffdad6",
+                    "surface-bright": "#fbf8fe",
+                    "on-tertiary-container": "#c5885b",
+                    "surface-container-lowest": "#ffffff",
+                    "on-surface": "#1b1b1f",
+                    "secondary-container": "#fed65b",
+                    "on-secondary": "#ffffff",
+                    "secondary-fixed-dim": "#e9c349",
+                    "primary-container": "#1b2a5e",
+                    "surface-dim": "#dbd9de",
+                    "primary-fixed-dim": "#b7c4ff",
+                    "surface-container-high": "#e9e7ec",
+                    "on-secondary-container": "#745c00",
+                    "on-tertiary-fixed": "#301400",
+                    "on-background": "#1b1b1f",
+                    "primary-fixed": "#dce1ff",
+                    "primary": "#1b2a5e",
+                    "surface-container-low": "#f5f3f8",
+                    "tertiary": "#2c1200",
+                    "on-tertiary": "#ffffff",
+                    "on-primary-fixed-variant": "#354479",
+                    "inverse-primary": "#b7c4ff",
+                    "tertiary-fixed-dim": "#fcb887",
+                    "on-primary-fixed": "#05164b",
+                    "surface-container": "#efedf2",
+                    "on-secondary-fixed-variant": "#574500",
+                    "on-error-container": "#93000a",
+                    "on-error": "#ffffff",
+                    "on-primary": "#ffffff",
+                    "surface-container-highest": "#e4e1e7",
+                    "secondary-fixed": "#ffe088",
+                    "outline": "#767680",
+                    "inverse-surface": "#303034",
+                    "on-secondary-fixed": "#241a00",
+                    "tertiary-container": "#4b2300",
+                    "inverse-on-surface": "#f2f0f5",
+                    "brand-gold": "#D4AF37",
+                    "alert-green": "#1D9E75",
+                    "alert-bg": "#E1F5EE",
+                    "alert-border": "#9FE1CB"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "xs": "4px",
+                    "xl": "32px",
+                    "md": "16px",
+                    "gutter": "16px",
+                    "sm": "8px",
+                    "container-margin": "24px",
+                    "lg": "24px",
+                    "base": "4px"
+            },
+            "fontFamily": {
+                    "label-sm": ["Inter"],
+                    "display-lg": ["Inter"],
+                    "display-md": ["Inter"],
+                    "label-md": ["Inter"],
+                    "display-xl": ["Inter"],
+                    "body-sm": ["Inter"],
+                    "body-md": ["Inter"]
+            },
+            "fontSize": {
+                    "label-sm": ["11px", {"lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "600"}],
+                    "display-lg": ["22px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "display-md": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                    "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                    "display-xl": ["28px", {"lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-sm": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; vertical-align: middle; }
+        .custom-shadow { box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+        .sidebar-active { background-color: #e9e7ec; border-right: 4px solid #1b2a5e; font-weight: 700; color: #1b2a5e; }
+        .transition-all-fast { transition: all 0.2s ease-in-out; }
+    </style>
+</head>
+<body class="bg-[#F4F6FA] text-on-surface">
+<!-- SideNavBar -->
+<aside class="h-screen w-[240px] fixed left-0 top-0 bg-surface-container-lowest border-r border-outline-variant flex flex-col py-lg z-50">
+<div class="px-md mb-xl">
+<h1 class="font-display-md text-display-md font-black text-primary">Orión Logistic</h1>
+<p class="text-label-md text-on-surface-variant">Admin Portal</p>
+</div>
+<nav class="flex-grow space-y-1">
+<a class="flex items-center px-md py-sm text-on-surface-variant hover:bg-surface-container transition-all hover:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined mr-md">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<a class="flex items-center px-md py-sm text-on-surface-variant hover:bg-surface-container transition-all hover:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined mr-md">local_shipping</span>
+<span class="font-label-md text-label-md">Shipments</span>
+</a>
+<a class="sidebar-active flex items-center px-md py-sm transition-all hover:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined mr-md">calculate</span>
+<span class="font-label-md text-label-md">Quoter Config</span>
+</a>
+<a class="flex items-center px-md py-sm text-on-surface-variant hover:bg-surface-container transition-all hover:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined mr-md">groups</span>
+<span class="font-label-md text-label-md">Customers</span>
+</a>
+<a class="flex items-center px-md py-sm text-on-surface-variant hover:bg-surface-container transition-all hover:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined mr-md">receipt_long</span>
+<span class="font-label-md text-label-md">Invoices</span>
+</a>
+<a class="flex items-center px-md py-sm text-on-surface-variant hover:bg-surface-container transition-all hover:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined mr-md">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+</nav>
+<div class="px-md mt-auto pt-md border-t border-outline-variant">
+<a class="flex items-center py-sm text-on-surface-variant hover:text-error transition-colors" href="#">
+<span class="material-symbols-outlined mr-md">logout</span>
+<span class="font-label-md text-label-md">Logout</span>
+</a>
+</div>
+</aside>
+<!-- TopAppBar -->
+<header class="fixed top-0 left-[240px] right-0 h-16 bg-surface-container-lowest border-b border-outline-variant flex items-center justify-between px-md z-40 custom-shadow">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary">search</span>
+<input class="border-none bg-transparent focus:ring-0 text-body-md w-64" placeholder="Buscar transacción..." type="text"/>
+</div>
+<div class="flex items-center gap-md">
+<button class="p-sm hover:bg-surface-container-high rounded-full transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">help</span>
+</button>
+<button class="p-sm hover:bg-surface-container-high rounded-full transition-colors relative">
+<span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<div class="h-8 w-px bg-outline-variant mx-xs"></div>
+<div class="flex items-center gap-sm cursor-pointer group">
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline">
+<img alt="Administrator Profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDAA89XKEMO2DYevcIKkDto_m6J2At19ZiNlPuTZ5NHgxYrYBTitVKfjD34HyIRBkiK_9xrYoKtHudRo4OyXu7AgERmuCCG37uNe53eNvv3CyzcYmwwED_HbTXRTY8YqBWwByUsNdldO_tP0DTImuZ3fzbdv-2C6njfubGo6vfpSrmFrc_Jb2KLBPAKsPm_7CD-hhEylIOVKPO5dnnJmh4pPPNbAKzorYCsaec-lmQ_O43i7af_e4qwnZ_ZB-o4tYMMl26JOyLzxg"/>
+</div>
+<div class="hidden lg:block">
+<p class="text-label-md font-bold text-primary group-hover:text-primary-fixed-dim transition-colors">Admin Orión</p>
+<p class="text-[10px] text-on-surface-variant leading-none">Logistics Lead</p>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="ml-[240px] pt-16 pb-32 min-h-screen">
+<div class="p-lg max-w-[1280px] mx-auto">
+<!-- Breadcrumb & Header -->
+<div class="mb-lg">
+<nav class="flex items-center gap-xs mb-xs">
+<span class="text-label-md text-[#8A93A8]">Panel</span>
+<span class="material-symbols-outlined text-sm text-[#8A93A8]">chevron_right</span>
+<span class="text-label-md text-[#8A93A8]">Cotizador</span>
+<span class="material-symbols-outlined text-sm text-[#8A93A8]">chevron_right</span>
+<span class="text-label-md text-primary font-semibold">Configuración</span>
+</nav>
+<h2 class="font-display-lg text-display-lg text-primary mb-1">Configuración del Cotizador</h2>
+<p class="text-body-md text-[#8A93A8]">Define los valores que se usan para calcular el costo de envío</p>
+</div>
+<!-- Alert Banner -->
+<div class="bg-alert-bg border border-alert-border border-l-4 border-l-alert-green rounded-lg p-md mb-lg">
+<div class="flex items-center gap-sm mb-1">
+<span class="material-symbols-outlined text-alert-green text-lg" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="text-body-sm text-[#085041] font-bold">Los cambios se aplican inmediatamente al cotizador público.</span>
+</div>
+<p class="text-label-md text-[#0F6E56] ml-7">Verifica los valores antes de guardar para no afectar las cotizaciones de los clientes.</p>
+</div>
+<div class="flex flex-col lg:flex-row gap-lg items-start">
+<!-- Main Config Card -->
+<section class="bg-white border border-[#E2E6EE] rounded-[16px] p-xl w-full max-w-[560px] custom-shadow">
+<div class="flex justify-between items-start mb-xl">
+<div>
+<h3 class="font-display-md text-display-md text-primary">Tarifas de envío</h3>
+<p class="text-body-sm text-[#8A93A8]">Aplica a todos los productos con valor menor a $200</p>
+</div>
+<span class="bg-[#E6F1FB] text-[#0C447C] px-3 py-1 rounded-full text-label-sm font-bold uppercase tracking-wide">Embarque · Courier</span>
+</div>
+<!-- Field 1: Flete por kilo -->
+<div class="mb-lg">
+<div class="flex items-center gap-xs mb-sm">
+<label class="text-body-md font-bold text-primary">Flete por kilogramo</label>
+<span class="material-symbols-outlined text-sm text-outline cursor-help">info</span>
+</div>
+<div class="h-14 border-[1.5px] border-[#E2E6EE] rounded-[10px] flex overflow-hidden focus-within:border-primary transition-all">
+<div class="w-20 bg-[#F4F6FA] flex items-center justify-center border-r border-[#E2E6EE]">
+<span class="font-bold text-primary">$ / kg</span>
+</div>
+<input class="flex-grow px-md text-display-md font-bold text-primary border-none focus:ring-0" step="0.50" type="number" value="10.00"/>
+<div class="px-md flex items-center justify-center">
+<span class="text-label-md text-[#8A93A8]">por kilogramo</span>
+</div>
+</div>
+<div class="bg-[#EEEDFE] mt-base p-md rounded-lg border-l-4 border-[#4e5c92]">
+<p class="text-body-sm text-primary-container leading-tight">
+<span class="font-bold">Ejemplo de cálculo:</span> Producto pesa 1.3 kg → se cobran 2 kg → Flete = 2 × $10 = $20.00
+                            </p>
+</div>
+</div>
+<!-- Field 2: Desaduanaje -->
+<div class="mb-xl">
+<div class="flex items-center gap-xs mb-sm">
+<label class="text-body-md font-bold text-primary">Desaduanaje</label>
+<span class="material-symbols-outlined text-sm text-outline cursor-help">info</span>
+</div>
+<div class="h-14 border-[1.5px] border-[#E2E6EE] rounded-[10px] flex overflow-hidden focus-within:border-primary transition-all">
+<div class="w-14 bg-[#F4F6FA] flex items-center justify-center border-r border-[#E2E6EE]">
+<span class="font-bold text-primary">$</span>
+</div>
+<input class="flex-grow px-md text-display-md font-bold text-primary border-none focus:ring-0" step="0.10" type="number" value="9.00"/>
+<div class="px-md flex items-center justify-center">
+<span class="text-label-md text-[#8A93A8]">por pedido</span>
+</div>
+</div>
+<div class="bg-[#F4F6FA] mt-base p-sm rounded-lg">
+<p class="text-body-sm text-on-surface-variant">El desaduanaje es un costo fijo que se cobra una sola vez sin importar el peso.</p>
+</div>
+</div>
+<!-- Preview Section -->
+<div class="pt-lg border-t border-outline-variant">
+<h4 class="text-body-sm font-bold text-primary mb-md">Vista previa del resumen que verá el cliente</h4>
+<div class="bg-[#F4F6FA] rounded-[10px] p-md space-y-2">
+<div class="flex justify-between text-body-sm">
+<span class="text-on-surface-variant">Peso cobrado:</span>
+<span class="font-semibold text-primary">2 kg <span class="text-xs text-[#1D9E75]">(↑ redondeado)</span></span>
+</div>
+<div class="flex justify-between text-body-sm">
+<span class="text-on-surface-variant">Flete:</span>
+<span class="font-semibold text-primary">2 × $10.00 = $20.00</span>
+</div>
+<div class="flex justify-between text-body-sm">
+<span class="text-on-surface-variant">Desaduanaje:</span>
+<span class="font-semibold text-primary">$9.00</span>
+</div>
+<div class="pt-sm border-t border-outline-variant mt-sm">
+<div class="flex justify-between items-center">
+<span class="text-body-md font-bold text-primary">Total USD:</span>
+<span class="text-display-md font-bold text-primary">$29.00</span>
+</div>
+<div class="flex justify-between items-center mt-xs">
+<span class="text-label-md text-on-surface-variant">TOTAL SOLES:</span>
+<span class="text-display-xl font-black text-brand-gold">S/ 98.60</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Rule Reminder & Side Info -->
+<div class="flex-grow space-y-md w-full lg:max-w-xs">
+<section class="bg-white border border-[#E2E6EE] rounded-[16px] p-md custom-shadow">
+<div class="flex items-center gap-sm mb-md">
+<span class="material-symbols-outlined text-primary">help_center</span>
+<h3 class="text-body-md font-bold text-primary">¿Cómo funciona el cotizador?</h3>
+</div>
+<div class="space-y-md">
+<div class="p-sm bg-[#E1F5EE] border-l-4 border-l-alert-green rounded-r-lg">
+<p class="text-body-sm font-bold text-[#085041] mb-xs">&lt; $200</p>
+<p class="text-label-md text-[#0F6E56]">Calcula el costo automáticamente: flete + desaduanaje.</p>
+</div>
+<div class="p-sm bg-error-container border-l-4 border-l-error rounded-r-lg">
+<p class="text-body-sm font-bold text-error mb-xs">&gt; $200</p>
+<p class="text-label-md text-on-error-container">Deriva al cliente a WhatsApp con un asesor (Carga Especial).</p>
+</div>
+</div>
+</section>
+<div class="rounded-[16px] overflow-hidden relative h-48 border border-[#E2E6EE]">
+<img alt="Logistics background" class="w-full h-full object-cover opacity-80" data-alt="A clean, professional warehouse environment with organized cargo containers and logistics personnel in high-visibility vests working in a high-key, bright light setting. The overall mood is efficient and industrial yet modern, aligning with the navy and white corporate colors of Orión Logistic. Deep focus on the scale and precision of international transport operations." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDRjJFJ57o1sjAcCfDns9M8QRDBhfA1oHSDB16MvNuJsQ5e3z1k4M2Yvl_kKKLeLSXcAhZI058_aXxCcmKeDEq4zMrlWzu-bm0UMWw_USNpzfEsh3ibO0JQvV3xWDWo7zos_TvIGFRniGQBmJDIWPLAwWcSPXyhe5zXexfDo8n5UWPKcXxqRjXrcC8EEYRkm5wiRWRRGxnq408RbS_u-u9CluCUNq8VdhSsOaauNs6LZQemVkLiRr_cAn6uN6nlt6uoNhH-tOqUDw"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/80 to-transparent flex flex-col justify-end p-md">
+<p class="text-white text-label-md font-bold">Logística Internacional Orión</p>
+<p class="text-white/80 text-[10px]">Actualización de tarifas 2024</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Sticky Footer Bar -->
+<footer class="fixed bottom-0 left-[240px] right-0 bg-white border-t border-outline-variant p-md flex items-center justify-between z-50">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-alert-green" style="font-variation-settings: 'FILL' 1;">sync</span>
+<p class="text-label-md text-on-surface-variant">Los cambios se reflejarán de inmediato en el cotizador público.</p>
+</div>
+<div class="flex items-center gap-lg">
+<button class="text-primary hover:underline font-semibold text-body-sm transition-all transition-all-fast">Restaurar valores</button>
+<button class="bg-primary text-white px-xl py-sm rounded-lg font-bold text-body-md hover:bg-[#0a1b41] active:scale-95 transition-all shadow-md">
+                Guardar cambios
+            </button>
+</div>
+</footer>
+<script>
+        // Micro-interactions for inputs
+        const inputs = document.querySelectorAll('input[type="number"]');
+        inputs.forEach(input => {
+            input.addEventListener('focus', () => {
+                input.parentElement.classList.add('shadow-[0_0_0_2px_rgba(27,42,94,0.1)]');
+            });
+            input.addEventListener('blur', () => {
+                input.parentElement.classList.remove('shadow-[0_0_0_2px_rgba(27,42,94,0.1)]');
+            });
+        });
+    </script>
+</body></html>

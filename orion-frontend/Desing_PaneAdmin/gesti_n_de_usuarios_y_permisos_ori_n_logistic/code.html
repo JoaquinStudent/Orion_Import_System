@@ -1,0 +1,287 @@
+<!DOCTYPE html><html lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Usuarios y Permisos — Orión Logistic</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface": "#fbf8fe",
+                        "surface-dim": "#dbd9de",
+                        "surface-bright": "#fbf8fe",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-low": "#f5f3f8",
+                        "surface-container": "#efedf2",
+                        "surface-container-high": "#e9e7ec",
+                        "surface-container-highest": "#e4e1e7",
+                        "on-surface": "#1b1b1f",
+                        "on-surface-variant": "#45464f",
+                        "inverse-surface": "#303034",
+                        "inverse-on-surface": "#f2f0f5",
+                        "outline": "#767680",
+                        "outline-variant": "#c6c5d1",
+                        "surface-tint": "#4e5c92",
+                        "primary": "#021449",
+                        "on-primary": "#ffffff",
+                        "primary-container": "#1b2a5e",
+                        "on-primary-container": "#8593cd",
+                        "inverse-primary": "#b7c4ff",
+                        "secondary": "#735c00",
+                        "on-secondary": "#ffffff",
+                        "secondary-container": "#fed65b",
+                        "on-secondary-container": "#745c00",
+                        "tertiary": "#2c1200",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-container": "#4b2300",
+                        "on-tertiary-container": "#c5885b",
+                        "error": "#ba1a1a",
+                        "on-error": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "on-error-container": "#93000a",
+                        "primary-fixed": "#dce1ff",
+                        "primary-fixed-dim": "#b7c4ff",
+                        "on-primary-fixed": "#05164b",
+                        "on-primary-fixed-variant": "#354479",
+                        "secondary-fixed": "#ffe088",
+                        "secondary-fixed-dim": "#e9c349",
+                        "on-secondary-fixed": "#241a00",
+                        "on-secondary-fixed-variant": "#574500",
+                        "tertiary-fixed": "#ffdcc5",
+                        "tertiary-fixed-dim": "#fcb887",
+                        "on-tertiary-fixed": "#301400",
+                        "on-tertiary-fixed-variant": "#6a3b15",
+                        "background": "#fbf8fe"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.5rem",
+                        "sm": "0.25rem",
+                        "md": "0.75rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "base": "4px",
+                        "xs": "4px",
+                        "sm": "8px",
+                        "md": "16px",
+                        "lg": "24px",
+                        "xl": "32px",
+                        "container-margin": "24px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "display-xl": ["Inter", "sans-serif"],
+                        "display-lg": ["Inter", "sans-serif"],
+                        "display-md": ["Inter", "sans-serif"],
+                        "body-md": ["Inter", "sans-serif"],
+                        "body-sm": ["Inter", "sans-serif"],
+                        "label-md": ["Inter", "sans-serif"],
+                        "label-sm": ["Inter", "sans-serif"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-surface-container-low text-on-surface min-h-screen relative overflow-x-hidden">
+<!-- Layout Root -->
+<div class="relative flex h-auto min-h-screen w-full flex-row bg-surface-container-low group/design-root">
+<!-- Shared Sidebar (Strict Application) -->
+<div class="flex h-full min-h-screen w-64 flex-col justify-between bg-surface border-r border-surface-container-highest shrink-0 py-4 fixed z-40">
+<div class="flex flex-col gap-4">
+<div class="flex gap-3 px-4">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 bg-primary-container text-on-primary flex items-center justify-center font-bold">
+                    OL
+                </div>
+<div class="flex flex-col">
+<h1 class="text-on-surface text-base font-medium leading-normal">Orión Logistic</h1>
+<p class="text-on-surface-variant text-sm font-normal leading-normal">Administrador</p>
+</div>
+</div>
+<div class="flex flex-col gap-2 mt-4">
+<div class="flex items-center gap-3 px-7 py-2 cursor-pointer hover:bg-surface-container transition-colors">
+<div class="text-on-surface-variant flex items-center" data-icon="house">
+<span class="material-symbols-outlined text-[24px]">house</span>
+</div>
+<p class="text-on-surface-variant text-sm font-medium leading-normal">Inicio</p>
+</div>
+<div class="flex items-center gap-3 px-7 py-2 cursor-pointer hover:bg-surface-container transition-colors">
+<div class="text-on-surface-variant flex items-center" data-icon="local_shipping">
+<span class="material-symbols-outlined text-[24px]">local_shipping</span>
+</div>
+<p class="text-on-surface-variant text-sm font-medium leading-normal">Pedidos</p>
+</div>
+<div class="flex items-center gap-3 px-7 py-2 cursor-pointer hover:bg-surface-container transition-colors">
+<div class="text-on-surface-variant flex items-center" data-icon="account_balance_wallet">
+<span class="material-symbols-outlined text-[24px]">account_balance_wallet</span>
+</div>
+<p class="text-on-surface-variant text-sm font-medium leading-normal">Finanzas</p>
+</div>
+<div class="flex items-center gap-3 px-7 py-2 cursor-pointer hover:bg-surface-container transition-colors">
+<div class="text-on-surface-variant flex items-center" data-icon="calculate">
+<span class="material-symbols-outlined text-[24px]">calculate</span>
+</div>
+<p class="text-on-surface-variant text-sm font-medium leading-normal">Cotizador</p>
+</div>
+<div class="flex items-center gap-3 px-7 py-2 bg-primary-container/10 rounded-r-full mr-4 border-l-4 border-primary-container">
+<div class="text-primary-container flex items-center" data-icon="settings" data-weight="fill" style="font-variation-settings: 'FILL' 1;">
+<span class="material-symbols-outlined text-[24px]">settings</span>
+</div>
+<p class="text-primary-container text-sm font-semibold leading-normal">Configuración</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Main Content Area -->
+<div class="flex flex-col flex-1 ml-64 min-w-0">
+<!-- Shared TopAppBar -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-surface-container-highest bg-surface px-10 py-3 sticky top-0 z-30">
+<div class="flex items-center gap-4 text-on-surface">
+<!-- Branding Icon -->
+<div class="size-6 text-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">widgets</span>
+</div>
+<h2 class="text-on-surface text-[18px] font-semibold leading-tight tracking-[-0.015em]">Orión Logistic</h2>
+</div>
+<div class="flex flex-1 justify-end gap-6 items-center">
+<button class="flex items-center justify-center rounded-full size-10 bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors">
+<div class="text-on-surface flex items-center" data-icon="notifications">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+</div>
+</button>
+<div class="bg-primary-container text-on-primary flex items-center justify-center aspect-square rounded-full size-10 font-bold text-sm shadow-sm">
+                    JQ
+                </div>
+</div>
+</header>
+<!-- Page Content -->
+<main class="flex-1 p-container-margin xl:px-xl max-w-[1280px] w-full mx-auto pb-20">
+<!-- Page Header -->
+<div class="flex flex-wrap items-center justify-between gap-4 mb-8">
+<div class="flex flex-col gap-1">
+<h1 class="text-[22px] font-semibold text-primary-container tracking-tight leading-tight">Usuarios del sistema</h1>
+<p class="text-[14px] text-outline font-normal">Gestiona el acceso y permisos de tu equipo</p>
+</div>
+<button class="flex items-center justify-center gap-2 px-4 py-2 bg-primary-container text-on-primary rounded font-medium text-[14px] hover:bg-primary transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[18px]">add</span>
+                    Agregar empleado
+                </button>
+</div>
+<!-- Cards Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-gutter mb-10">
+<!-- Card 1: Admin -->
+<div class="bg-surface border border-surface-container-highest rounded p-5 flex flex-col gap-4 shadow-[0_2px_8px_rgba(0,0,0,0.02)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)] transition-shadow">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-3">
+<div class="size-12 rounded-full bg-primary-container text-on-primary flex items-center justify-center font-bold text-lg">
+                                JQ
+                            </div>
+<div class="flex flex-col">
+<span class="text-[14px] font-semibold text-on-surface">Joaquín Rodríguez</span>
+<span class="text-[13px] text-outline">joaquin@orionlogistic.com</span>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-between pt-2">
+<div class="flex items-center gap-2">
+<span class="bg-secondary-container text-on-secondary-container text-[11px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full">Admin · Dueño</span>
+<span class="flex items-center gap-1 text-[12px] font-medium text-[#166534] bg-[#dcfce7] px-2 py-0.5 rounded-full">
+<span class="size-1.5 rounded-full bg-[#166534]"></span> Activo
+                            </span>
+</div>
+</div>
+<div class="mt-auto pt-4 border-t border-surface-container">
+<p class="text-[12px] italic text-outline">Permisos completos — no editables</p>
+</div>
+</div>
+<!-- Card 2: Employee -->
+<div class="bg-surface border border-primary-fixed rounded p-5 flex flex-col gap-4 shadow-[0_2px_8px_rgba(0,0,0,0.02)] ring-1 ring-primary-fixed-dim/50">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-3">
+<div class="size-12 rounded-full bg-[#378ADD] text-on-primary flex items-center justify-center font-bold text-lg">
+                                JS
+                            </div>
+<div class="flex flex-col">
+<span class="text-[14px] font-semibold text-on-surface">José Salinas</span>
+<span class="text-[13px] text-outline">jose@orionlogistic.com</span>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-between pt-2">
+<div class="flex items-center gap-2">
+<span class="bg-surface-variant text-on-surface-variant text-[11px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full">Empleado</span>
+<span class="flex items-center gap-1 text-[12px] font-medium text-[#166534] bg-[#dcfce7] px-2 py-0.5 rounded-full">
+<span class="size-1.5 rounded-full bg-[#166534]"></span> Activo
+                            </span>
+</div>
+</div>
+<div class="mt-auto pt-4 border-t border-surface-container flex items-center justify-between">
+<button class="text-[13px] font-medium text-primary-container hover:text-primary transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">edit</span> Editar permisos
+                        </button>
+<button class="text-[13px] font-medium text-error hover:text-on-error-container transition-colors">
+                            Desactivar
+                        </button>
+</div>
+</div>
+<!-- Card 3: Add New -->
+<div class="border-2 border-dashed border-outline-variant rounded bg-surface-container-low/50 p-5 flex flex-col items-center justify-center gap-3 hover:bg-surface-container-low transition-colors cursor-pointer min-h-[200px]">
+<div class="size-10 rounded-full bg-surface border border-outline-variant flex items-center justify-center text-outline">
+<span class="material-symbols-outlined text-[24px]">person_add</span>
+</div>
+<span class="text-[14px] font-medium text-on-surface-variant">Agregar empleado</span>
+<button class="mt-2 px-4 py-1.5 border border-primary-container text-primary-container rounded text-[13px] font-medium hover:bg-primary-container hover:text-on-primary transition-colors">
+                        + Nuevo
+                    </button>
+</div>
+</div>
+<!-- Configuration Section: WhatsApp -->
+<div class="max-w-2xl bg-surface border border-surface-container-highest rounded p-6 shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
+<div class="flex items-center gap-3 mb-4">
+<div class="size-8 rounded bg-[#25D366]/10 text-[#25D366] flex items-center justify-center">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">chat</span>
+</div>
+<div>
+<h3 class="text-[16px] font-semibold text-on-surface">N° de WhatsApp de atención al cliente</h3>
+<p class="text-[13px] text-outline mt-0.5">Este número aparecerá visible en la app pública para que tus clientes te contacten.</p>
+</div>
+</div>
+<div class="flex flex-col sm:flex-row items-end gap-4 mt-6">
+<div class="flex-1 w-full flex flex-col gap-1.5">
+<label class="text-[12px] font-medium text-on-surface-variant">Número telefónico</label>
+<div class="flex relative rounded overflow-hidden border border-outline-variant focus-within:border-primary-container focus-within:ring-1 focus-within:ring-primary-container transition-all">
+<div class="flex items-center gap-2 px-3 bg-surface-container border-r border-outline-variant">
+<span class="text-[16px]">🇵🇪</span>
+<span class="text-[14px] font-medium text-on-surface-variant">+51</span>
+</div>
+<input class="flex-1 px-3 py-2 text-[14px] font-medium text-on-surface bg-surface outline-none border-none ring-0" type="text" value="999 999 999">
+</div>
+</div>
+<button class="px-5 py-2 bg-primary-container text-on-primary rounded font-medium text-[14px] hover:bg-primary transition-colors w-full sm:w-auto h-[38px]">
+                        Guardar número
+                    </button>
+</div>
+<div class="mt-4 flex items-center gap-2 p-3 bg-surface-container-low rounded border border-surface-container-highest">
+<span class="material-symbols-outlined text-[16px] text-outline">info</span>
+<p class="text-[12px] text-on-surface-variant"><strong>Aparece en:</strong> Landing page · Cotizador · Rastreador de pedidos</p>
+</div>
+</div>
+</main>
+</div>
+<!-- Right Slide-in Panel (Permissions for José Salinas) -->
+<!-- Note: In a real app this would be toggled via JS. Added fixed positioning and shadow for the active state overlay look. -->
+
+</div>
+
+
+</body></html>

@@ -1,0 +1,259 @@
+<!DOCTYPE html><html lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Admin Login - Orión Logistic</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-container-low": "#f5f3f8",
+                      "on-tertiary-fixed-variant": "#6a3b15",
+                      "tertiary-fixed": "#ffdcc5",
+                      "surface": "#fbf8fe",
+                      "secondary-fixed": "#ffe088",
+                      "on-primary": "#ffffff",
+                      "surface-bright": "#fbf8fe",
+                      "inverse-surface": "#303034",
+                      "outline": "#767680",
+                      "primary-fixed-dim": "#b7c4ff",
+                      "surface-tint": "#4e5c92",
+                      "on-background": "#1b1b1f",
+                      "error-container": "#ffdad6",
+                      "secondary-container": "#fed65b",
+                      "surface-variant": "#e4e1e7",
+                      "surface-container-lowest": "#ffffff",
+                      "primary-fixed": "#dce1ff",
+                      "on-tertiary-container": "#c5885b",
+                      "on-surface": "#1b1b1f",
+                      "tertiary": "#2c1200",
+                      "on-primary-fixed-variant": "#354479",
+                      "secondary-fixed-dim": "#e9c349",
+                      "on-secondary-container": "#745c00",
+                      "inverse-on-surface": "#f2f0f5",
+                      "surface-dim": "#dbd9de",
+                      "on-secondary": "#ffffff",
+                      "on-error": "#ffffff",
+                      "tertiary-container": "#4b2300",
+                      "on-surface-variant": "#45464f",
+                      "on-secondary-fixed": "#241a00",
+                      "on-secondary-fixed-variant": "#574500",
+                      "outline-variant": "#c6c5d1",
+                      "surface-container": "#efedf2",
+                      "on-primary-fixed": "#05164b",
+                      "on-primary-container": "#8593cd",
+                      "on-tertiary-fixed": "#301400",
+                      "secondary": "#735c00",
+                      "surface-container-high": "#e9e7ec",
+                      "error": "#ba1a1a",
+                      "surface-container-highest": "#e4e1e7",
+                      "on-error-container": "#93000a",
+                      "primary-container": "#1b2a5e",
+                      "inverse-primary": "#b7c4ff",
+                      "background": "#fbf8fe",
+                      "primary": "#021449",
+                      "tertiary-fixed-dim": "#fcb887",
+                      "on-tertiary": "#ffffff"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "xs": "4px",
+                      "xl": "32px",
+                      "md": "16px",
+                      "lg": "24px",
+                      "base": "4px",
+                      "container-margin": "24px",
+                      "sm": "8px",
+                      "gutter": "16px"
+              },
+              "fontFamily": {
+                      "body-sm": [
+                              "Inter"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ],
+                      "label-sm": [
+                              "Inter"
+                      ],
+                      "label-md": [
+                              "Inter"
+                      ],
+                      "display-xl": [
+                              "Inter"
+                      ],
+                      "display-md": [
+                              "Inter"
+                      ],
+                      "display-lg": [
+                              "Inter"
+                      ]
+              },
+              "fontSize": {
+                      "body-sm": [
+                              "13px",
+                              {
+                                      "lineHeight": "18px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "body-md": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "label-sm": [
+                              "11px",
+                              {
+                                      "lineHeight": "14px",
+                                      "letterSpacing": "0.03em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "label-md": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "letterSpacing": "0.01em",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "display-xl": [
+                              "28px",
+                              {
+                                      "lineHeight": "36px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "display-md": [
+                              "18px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "display-lg": [
+                              "22px",
+                              {
+                                      "lineHeight": "28px",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-surface font-body-md text-on-surface antialiased min-h-screen flex flex-col md:flex-row">
+<!-- Left Panel: Brand & Stats -->
+<div class="hidden md:flex flex-col justify-center items-center w-1/2 bg-primary-container text-on-primary p-xl relative overflow-hidden">
+<!-- Optional Background Graphic/Pattern -->
+<div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image: radial-gradient(circle at 50% 50%, #ffffff 1px, transparent 1px); background-size: 24px 24px;"></div>
+<div class="z-10 text-center max-w-md">
+<!-- Brand Logo Area -->
+<div class="mb-lg flex flex-col items-center">
+<span class="material-symbols-outlined text-[64px] text-on-primary mb-sm" style="font-variation-settings: 'FILL' 1;">explore</span>
+<h1 class="text-display-xl font-display-xl">
+<span class="text-on-primary">Orión</span>
+<span class="text-[#D4AF37]">Logistic</span>
+</h1>
+</div>
+<p class="text-body-md font-body-md text-primary-fixed-dim mb-xl text-center leading-relaxed">
+                Gestión logística integral y seguimiento de paquetes a nivel nacional. Conectando negocios con soluciones eficientes y seguras.
+            </p>
+<!-- Stats Grid -->
+<div class="grid grid-cols-3 gap-md w-full border-t border-on-primary/20 pt-lg">
+<div class="flex flex-col items-center">
+<span class="material-symbols-outlined text-secondary-container mb-xs">inventory_2</span>
+<span class="text-display-md font-display-md text-on-primary">+1000</span>
+<span class="text-label-sm font-label-sm text-primary-fixed-dim uppercase tracking-wider">Órdenes/Mes</span>
+</div>
+<div class="flex flex-col items-center">
+<span class="material-symbols-outlined text-secondary-container mb-xs">schedule</span>
+<span class="text-display-md font-display-md text-on-primary">6-12</span>
+<span class="text-label-sm font-label-sm text-primary-fixed-dim uppercase tracking-wider">Días de entrega</span>
+</div>
+<div class="flex flex-col items-center">
+<span class="material-symbols-outlined text-secondary-container mb-xs">warehouse</span>
+<span class="text-display-md font-display-md text-on-primary">3</span>
+<span class="text-label-sm font-label-sm text-primary-fixed-dim uppercase tracking-wider">Almacenes</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Panel: Login Form -->
+<div class="w-full md:w-1/2 flex justify-center items-center bg-surface-container-low p-md min-h-screen">
+<div class="w-full max-w-[400px] bg-surface-container-lowest rounded-lg border border-outline-variant p-xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] relative z-10">
+<!-- Mobile Brand Header (Visible only on small screens) -->
+<div class="md:hidden flex flex-col items-center mb-lg">
+<span class="material-symbols-outlined text-[48px] text-primary mb-sm" style="font-variation-settings: 'FILL' 1;">explore</span>
+<h1 class="text-display-lg font-display-lg">
+<span class="text-primary">Orión</span>
+<span class="text-secondary-container">Logistic</span>
+</h1>
+</div>
+<div class="text-center mb-xl">
+<h2 class="text-display-lg font-display-lg text-on-surface mb-xs">Bienvenido de vuelta</h2>
+<p class="text-body-md font-body-md text-on-surface-variant">Ingresa tus credenciales para acceder al panel de administración.</p>
+</div>
+<form class="space-y-lg">
+<!-- Email Input -->
+<div class="flex flex-col">
+<label class="text-label-md font-label-md text-primary mb-xs" for="email">Correo Electrónico</label>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-sm flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-outline">mail</span>
+</div>
+<input class="w-full pl-xl pr-sm py-sm text-body-md font-body-md text-on-surface bg-surface-container-lowest border border-outline-variant rounded-DEFAULT focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" id="email" placeholder="ejemplo@orionlogistic.com" type="email" value="joaquin@orionlogistic.com">
+</div>
+</div>
+<!-- Password Input -->
+<div class="flex flex-col">
+<label class="text-label-md font-label-md text-primary mb-xs flex justify-between" for="password">
+                        Contraseña
+                        <a class="text-primary font-body-sm hover:underline" href="#">¿Olvidaste tu contraseña?</a>
+</label>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-sm flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-outline">lock</span>
+</div>
+<input class="w-full pl-xl pr-xl py-sm text-body-md font-body-md text-on-surface bg-surface-container-lowest border border-outline-variant rounded-DEFAULT focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" id="password" type="password" value="••••••••">
+<button class="absolute inset-y-0 right-0 pr-sm flex items-center text-outline hover:text-primary transition-colors" type="button">
+<span class="material-symbols-outlined">visibility_off</span>
+</button>
+</div>
+</div>
+<!-- Submit Button -->
+<button class="w-full bg-primary text-on-primary py-sm rounded-DEFAULT text-body-md font-display-md font-semibold hover:bg-surface-tint transition-colors flex items-center justify-center gap-xs" type="submit">
+                    Iniciar sesión
+                    <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</form>
+<!-- Security Note -->
+<div class="mt-xl text-center flex items-center justify-center gap-xs text-on-surface-variant text-label-md font-label-md bg-surface-container rounded-DEFAULT p-sm border border-outline-variant/50">
+<span class="material-symbols-outlined text-[16px] text-primary">shield_locked</span>
+<span>Acceso seguro y encriptado. Uso exclusivo para administradores de Orión Logistic.</span>
+</div>
+</div>
+</div>
+</body></html>

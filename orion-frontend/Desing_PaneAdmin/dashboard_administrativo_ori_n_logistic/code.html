@@ -1,0 +1,407 @@
+<!DOCTYPE html><html class="light" lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Orión Logistic - Admin Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary": "#735c00",
+                    "tertiary-container": "#4b2300",
+                    "on-tertiary": "#ffffff",
+                    "tertiary-fixed-dim": "#fcb887",
+                    "on-secondary-fixed-variant": "#574500",
+                    "inverse-primary": "#b7c4ff",
+                    "surface-container-high": "#e9e7ec",
+                    "on-tertiary-container": "#c5885b",
+                    "inverse-surface": "#303034",
+                    "surface": "#fbf8fe",
+                    "surface-tint": "#4e5c92",
+                    "surface-variant": "#e4e1e7",
+                    "on-secondary-container": "#745c00",
+                    "on-secondary": "#ffffff",
+                    "outline-variant": "#c6c5d1",
+                    "secondary-fixed-dim": "#e9c349",
+                    "on-surface-variant": "#45464f",
+                    "on-error": "#ffffff",
+                    "surface-container": "#efedf2",
+                    "secondary-fixed": "#ffe088",
+                    "tertiary": "#2c1200",
+                    "surface-container-low": "#f5f3f8",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-bright": "#fbf8fe",
+                    "primary-container": "#1b2a5e",
+                    "primary-fixed-dim": "#b7c4ff",
+                    "on-error-container": "#93000a",
+                    "on-primary-fixed": "#05164b",
+                    "on-tertiary-fixed-variant": "#6a3b15",
+                    "error": "#ba1a1a",
+                    "primary-fixed": "#dce1ff",
+                    "on-primary-fixed-variant": "#354479",
+                    "on-primary-container": "#8593cd",
+                    "on-primary": "#ffffff",
+                    "background": "#fbf8fe",
+                    "outline": "#767680",
+                    "on-background": "#1b1b1f",
+                    "surface-dim": "#dbd9de",
+                    "error-container": "#ffdad6",
+                    "surface-container-highest": "#e4e1e7",
+                    "on-tertiary-fixed": "#301400",
+                    "on-surface": "#1b1b1f",
+                    "secondary-container": "#fed65b",
+                    "inverse-on-surface": "#f2f0f5",
+                    "on-secondary-fixed": "#241a00",
+                    "tertiary-fixed": "#ffdcc5",
+                    "primary": "#021449"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "sm": "8px",
+                    "base": "4px",
+                    "xs": "4px",
+                    "md": "16px",
+                    "gutter": "16px",
+                    "xl": "32px",
+                    "container-margin": "24px",
+                    "lg": "24px"
+            },
+            "fontFamily": {
+                    "label-md": ["Inter"],
+                    "display-lg": ["Inter"],
+                    "body-md": ["Inter"],
+                    "display-md": ["Inter"],
+                    "label-sm": ["Inter"],
+                    "display-xl": ["Inter"],
+                    "body-sm": ["Inter"]
+            },
+            "fontSize": {
+                    "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                    "display-lg": ["22px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "display-md": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                    "label-sm": ["11px", {"lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "600"}],
+                    "display-xl": ["28px", {"lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-sm": ["13px", {"lineHeight": "18px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+      body { font-family: 'Inter', sans-serif; }
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .scroll-hide::-webkit-scrollbar { display: none; }
+      .scroll-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-[#F4F6FA] text-on-surface">
+<!-- SIDEBAR -->
+<aside class="w-[240px] h-screen fixed left-0 top-0 bg-primary dark:bg-primary-container flex flex-col p-md z-50">
+<!-- Logo -->
+<div class="mb-xl flex items-center gap-sm">
+<div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-primary font-bold">package_2</span>
+</div>
+<div class="flex flex-col">
+<span class="font-display-md text-display-md font-bold text-white leading-tight">Orión Logistic</span>
+<span class="text-[10px] text-primary-fixed-dim uppercase tracking-widest font-bold">Admin Panel</span>
+</div>
+</div>
+<!-- Navigation -->
+<nav class="flex-1 flex flex-col gap-xs">
+<a class="flex items-center gap-md px-md py-sm bg-white/10 text-on-secondary-container rounded-lg font-semibold border-l-4 border-[#D4AF37] transition-all" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-body-md text-body-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm text-primary-fixed-dim hover:bg-primary-fixed-variant/10 hover:text-white rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">package_2</span>
+<span class="font-body-md text-body-md">Pedidos</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm text-primary-fixed-dim hover:bg-primary-fixed-variant/10 hover:text-white rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">assignment</span>
+<span class="font-body-md text-body-md">Tablero de estados</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm text-primary-fixed-dim hover:bg-primary-fixed-variant/10 hover:text-white rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span class="font-body-md text-body-md">Finanzas</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm text-primary-fixed-dim hover:bg-primary-fixed-variant/10 hover:text-white rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">calculate</span>
+<span class="font-body-md text-body-md">Cotizador</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm text-primary-fixed-dim hover:bg-primary-fixed-variant/10 hover:text-white rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-body-md text-body-md">Configuración</span>
+</a>
+</nav>
+<!-- Sidebar Bottom User -->
+<div class="mt-auto pt-md border-t border-white/10 flex items-center justify-between">
+<div class="flex items-center gap-sm">
+<div class="w-8 h-8 rounded-full bg-primary-fixed text-primary flex items-center justify-center font-bold text-xs">
+                    JQ
+                </div>
+<div class="flex flex-col">
+<span class="text-white font-semibold text-[13px]">Joaquín</span>
+<span class="text-primary-fixed-dim text-[11px]">Admin</span>
+</div>
+</div>
+<button class="text-primary-fixed-dim hover:text-white transition-colors">
+<span class="material-symbols-outlined">logout</span>
+</button>
+</div>
+</aside>
+<!-- TOP BAR -->
+<header class="fixed top-0 right-0 left-[240px] h-16 bg-surface-container-lowest dark:bg-surface-dim shadow-sm border-b border-outline-variant/30 z-40 flex justify-between items-center px-lg">
+<h1 class="font-display-lg text-display-lg font-bold text-primary">Buenos días, Joaquín 👋</h1>
+<div class="flex items-center gap-lg">
+<div class="flex items-center gap-xs text-on-surface-variant font-label-md text-label-md">
+<span class="material-symbols-outlined text-[18px]">calendar_today</span>
+<span class="">Sábado, 13 Jun 2025</span>
+</div>
+<div class="relative cursor-pointer hover:bg-surface-container-high p-xs rounded-full transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+<span class="absolute top-1 right-1 w-2 h-2 bg-error rounded-full"></span>
+</div>
+<div class="w-px h-6 bg-outline-variant/30"></div>
+<div class="w-10 h-10 rounded-full bg-surface-container overflow-hidden border border-outline-variant">
+<img alt="Joaquín Admin Profile" class="w-full h-full object-cover" data-alt="A professional headshot of a corporate male administrator with a friendly expression. He is wearing a minimalist dark navy business casual shirt, set against a clean, soft-lit professional studio background that matches the corporate modern aesthetic of the Orión Logistic brand. The lighting is bright and high-key, conveying trust and reliability." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDkEigRNS631uqkIu28UFxYKWF5UTgsFDEJdVxKSb8jpMkP6oqASAVW0rzuRDCr2MPKTYTlNwi1dlO_wNvAsrhxIGBtvzH99zH-egSk6ef-kX3NegRswBmdpY0fqUNF4VpG9Hug6swjI8_s2qnj22MVYEPyICpLfOCANPO_w_gLdrYmhkui-rPePq6wH9y_EVlZURKDufS0hjhsf1OSuj1Eb4-44N5rCu3-1OvfEhpEAA8fxwaCGbHINWJNoqMDubO-v-XYrQ8nYg">
+</div>
+</div>
+</header>
+<!-- MAIN CONTENT -->
+<main class="ml-[240px] pt-24 px-lg pb-xl min-h-screen">
+<!-- KPI Row -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter mb-lg">
+<!-- Card 1 -->
+<div class="bg-surface-container-lowest p-md rounded-xl shadow-sm border-b-4 border-[#D4AF37] relative overflow-hidden group">
+<div class="flex justify-between items-start mb-sm">
+<span class="text-on-surface-variant font-label-md text-label-md uppercase tracking-wide">Pedidos hoy</span>
+<span class="material-symbols-outlined text-[#D4AF37]">summarize</span>
+</div>
+<div class="flex items-baseline gap-sm mb-xs">
+<span class="text-display-xl font-display-xl font-bold text-primary">12</span>
+</div>
+<p class="text-[12px] flex items-center gap-xs text-green-600 font-semibold">
+<span class="material-symbols-outlined text-[14px]">trending_up</span>
+                    3 más que ayer
+                </p>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface-container-lowest p-md rounded-xl shadow-sm border-b-4 border-[#EF9F27] relative overflow-hidden">
+<div class="flex justify-between items-start mb-sm">
+<span class="text-on-surface-variant font-label-md text-label-md uppercase tracking-wide">En tránsito</span>
+<span class="material-symbols-outlined text-[#EF9F27]">local_shipping</span>
+</div>
+<div class="flex items-baseline gap-sm mb-xs">
+<span class="text-display-xl font-display-xl font-bold text-primary">47</span>
+</div>
+<p class="text-[12px] text-on-surface-variant">pedidos en camino</p>
+</div>
+<!-- Card 3 -->
+<div class="bg-surface-container-lowest p-md rounded-xl shadow-sm border-b-4 border-[#7F77DD] relative overflow-hidden">
+<div class="flex justify-between items-start mb-sm">
+<span class="text-on-surface-variant font-label-md text-label-md uppercase tracking-wide">En aduana</span>
+<span class="material-symbols-outlined text-[#7F77DD]">gavel</span>
+</div>
+<div class="flex items-baseline gap-sm mb-xs">
+<span class="text-display-xl font-display-xl font-bold text-primary">23</span>
+</div>
+<p class="text-[12px] text-on-surface-variant">pendientes de revisión</p>
+</div>
+<!-- Card 4 -->
+<div class="bg-surface-container-lowest p-md rounded-xl shadow-sm border-b-4 border-[#1D9E75] relative overflow-hidden">
+<div class="flex justify-between items-start mb-sm">
+<span class="text-on-surface-variant font-label-md text-label-md uppercase tracking-wide">Entregados este mes</span>
+<span class="material-symbols-outlined text-[#1D9E75]">check_circle</span>
+</div>
+<div class="flex items-baseline gap-sm mb-xs">
+<span class="text-display-xl font-display-xl font-bold text-primary">312</span>
+</div>
+<p class="text-[12px] text-on-surface-variant">de ~1,000 esperados</p>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-10 gap-gutter">
+<!-- Table Section (60%) -->
+<div class="lg:col-span-6 bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant/30 overflow-hidden flex flex-col">
+<div class="p-md flex justify-between items-center border-b border-outline-variant/20">
+<h2 class="font-display-md text-display-md font-bold text-primary">Últimos pedidos</h2>
+<a class="text-[#D4AF37] font-semibold text-body-sm hover:underline flex items-center gap-xs transition-all" href="#">
+                        Ver todos <span class="material-symbols-outlined text-[16px]">arrow_right_alt</span>
+</a>
+</div>
+<div class="overflow-x-auto scroll-hide">
+<table class="w-full text-left">
+<thead class="bg-surface-container-low text-on-surface-variant font-label-md text-label-md">
+<tr>
+<th class="px-md py-sm font-semibold">N° Tracking</th>
+<th class="px-md py-sm font-semibold">Titular</th>
+<th class="px-md py-sm font-semibold">Producto</th><th class="px-md py-sm font-semibold">Comunidad</th>
+<th class="px-md py-sm font-semibold text-center">Estado</th>
+<th class="px-md py-sm font-semibold text-right">Monto</th>
+<th class="px-md py-sm font-semibold text-center">WhatsApp</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10 text-body-md font-body-md">
+<tr class="hover:bg-surface-container transition-colors group" style="opacity: 1; transform: translateY(0px); transition: 0.4s ease-out;">
+<td class="px-md py-md font-semibold text-primary">TRK-001234</td>
+<td class="px-md py-md">Carlos Pérez</td>
+<td class="px-md py-md">iPhone 15 Pro</td><td class="px-md py-md">Comunidad Norte</td>
+<td class="px-md py-md text-center">
+<span class="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold uppercase">Recibido</span>
+</td>
+<td class="px-md py-md text-right font-bold">$40.00</td>
+<td class="px-md py-md text-center">
+<button class="text-green-600 hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">chat</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container transition-colors" style="opacity: 1; transform: translateY(0px); transition: 0.4s ease-out;">
+<td class="px-md py-md font-semibold text-primary">TRK-001233</td>
+<td class="px-md py-md">Ana Torres</td>
+<td class="px-md py-md">MacBook Air</td><td class="px-md py-md">Comunidad Sur</td>
+<td class="px-md py-md text-center">
+<span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-bold uppercase">En tránsito</span>
+</td>
+<td class="px-md py-md text-right font-bold">$78.00</td>
+<td class="px-md py-md text-center">
+<button class="text-green-600 hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">chat</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container transition-colors" style="opacity: 1; transform: translateY(0px); transition: 0.4s ease-out;">
+<td class="px-md py-md font-semibold text-primary">TRK-001232</td>
+<td class="px-md py-md">Luis Quispe</td>
+<td class="px-md py-md">iPhone 16</td><td class="px-md py-md">Comunidad Centro</td>
+<td class="px-md py-md text-center">
+<span class="px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 text-[10px] font-bold uppercase">En aduana</span>
+</td>
+<td class="px-md py-md text-right font-bold">$60.00</td>
+<td class="px-md py-md text-center">
+<button class="text-green-600 hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">chat</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container transition-colors" style="opacity: 1; transform: translateY(0px); transition: 0.4s ease-out;">
+<td class="px-md py-md font-semibold text-primary">TRK-001231</td>
+<td class="px-md py-md">María Silva</td>
+<td class="px-md py-md">iPad Pro</td><td class="px-md py-md">Comunidad Norte</td>
+<td class="px-md py-md text-center">
+<span class="px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-[10px] font-bold uppercase">Entregado</span>
+</td>
+<td class="px-md py-md text-right font-bold">$93.00</td>
+<td class="px-md py-md text-center">
+<button class="text-green-600 hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">chat</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container transition-colors" style="opacity: 1; transform: translateY(0px); transition: 0.4s ease-out;">
+<td class="px-md py-md font-semibold text-primary">TRK-001230</td>
+<td class="px-md py-md">Jorge Mamani</td>
+<td class="px-md py-md">Otro producto</td><td class="px-md py-md">Comunidad Sur</td>
+<td class="px-md py-md text-center">
+<span class="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold uppercase">Recibido</span>
+</td>
+<td class="px-md py-md text-right font-bold">$45.00</td>
+<td class="px-md py-md text-center">
+<button class="text-green-600 hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">chat</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Stats and Actions (40%) -->
+<div class="lg:col-span-4 flex flex-col gap-gutter">
+<!-- Income Card -->
+<div class="bg-surface-container-lowest p-lg rounded-xl shadow-sm border border-outline-variant/30">
+<div class="flex justify-between items-start mb-base">
+<span class="text-on-surface-variant font-label-md text-label-md uppercase tracking-wide">Ingresos este mes</span>
+<span class="material-symbols-outlined text-secondary">trending_up</span>
+</div>
+<div class="flex flex-col gap-xs mb-md">
+<h3 class="text-display-xl font-display-xl font-bold text-[#D4AF37]">$ 4,280.00</h3>
+<p class="text-body-sm text-green-600 font-semibold flex items-center gap-xs">
+<span class="material-symbols-outlined text-[14px]">arrow_upward</span>
+                            12% vs mes anterior
+                        </p>
+</div>
+<!-- Mini Chart Visualization -->
+<div class="flex items-end justify-between h-20 gap-2 px-2 mt-4">
+<div class="w-full bg-primary rounded-t-sm h-[40%]" title="Lun"></div>
+<div class="w-full bg-primary rounded-t-sm h-[60%]" title="Mar"></div>
+<div class="w-full bg-primary rounded-t-sm h-[35%]" title="Mie"></div>
+<div class="w-full bg-primary rounded-t-sm h-[80%]" title="Jue"></div>
+<div class="w-full bg-primary rounded-t-sm h-[55%]" title="Vie"></div>
+<div class="w-full bg-primary rounded-t-sm h-[70%]" title="Sab"></div>
+<div class="w-full bg-[#D4AF37] rounded-t-sm h-[95%]" title="Hoy"></div>
+</div>
+<div class="flex justify-between mt-2 text-[10px] text-on-surface-variant font-bold uppercase tracking-tighter">
+<span class="">L</span><span class="">M</span><span class="">M</span><span class="">J</span><span class="">V</span><span class="">S</span><span class="text-[#D4AF37]">D</span>
+</div>
+</div>
+<!-- Quick Actions Card -->
+<div class="bg-surface-container-lowest p-lg rounded-xl shadow-sm border border-outline-variant/30">
+<h3 class="font-display-md text-display-md font-bold text-primary mb-md">Acciones rápidas</h3>
+<div class="flex flex-col gap-sm">
+<button class="w-full flex items-center justify-center gap-sm bg-primary text-white py-3 rounded-lg font-bold hover:bg-primary-container transition-all active:scale-95 shadow-sm">
+<span class="material-symbols-outlined">add_circle</span>
+                            Nuevo pedido
+                        </button>
+<button class="w-full flex items-center justify-center gap-sm bg-[#1D9E75]/10 text-[#1D9E75] py-3 rounded-lg font-bold hover:bg-[#1D9E75]/20 transition-all active:scale-95 border border-[#1D9E75]/20">
+<span class="material-symbols-outlined">description</span>
+                            Exportar Excel
+                        </button>
+<button class="w-full flex items-center justify-center gap-sm bg-white text-on-surface-variant py-3 rounded-lg font-bold hover:bg-surface-container-low transition-all active:scale-95 border border-outline-variant">
+<span class="material-symbols-outlined">grid_view</span>
+                            Ver tablero
+                        </button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<script>
+        // Micro-interactions and subtle effects
+        document.addEventListener('DOMContentLoaded', () => {
+            const tableRows = document.querySelectorAll('tbody tr');
+            tableRows.forEach((row, index) => {
+                row.style.opacity = '0';
+                row.style.transform = 'translateY(10px)';
+                setTimeout(() => {
+                    row.style.transition = 'all 0.4s ease-out';
+                    row.style.opacity = '1';
+                    row.style.transform = 'translateY(0)';
+                }, 100 + (index * 50));
+            });
+
+            // Smooth scaling for buttons
+            const buttons = document.querySelectorAll('button');
+            buttons.forEach(btn => {
+                btn.addEventListener('mousedown', () => btn.classList.add('scale-95'));
+                btn.addEventListener('mouseup', () => btn.classList.remove('scale-95'));
+                btn.addEventListener('mouseleave', () => btn.classList.remove('scale-95'));
+            });
+        });
+    </script>
+
+
+</body></html>
