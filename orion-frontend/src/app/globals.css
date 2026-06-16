@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/**
+ * Variables del design system (canales RGB para permitir opacidad: bg-primary/80).
+ * Mapeadas a la paleta Orión Logistic (SDD doc 06).
+ */
+@layer base {
+  :root {
+    --background: 251 248 254; /* surface #FBF8FE */
+    --foreground: 27 27 31; /* on-surface #1B1B1F */
+
+    --card: 255 255 255; /* #FFFFFF */
+    --card-foreground: 27 27 31;
+
+    --popover: 255 255 255;
+    --popover-foreground: 27 27 31;
+
+    --primary: 27 42 94; /* navy #1B2A5E */
+    --primary-foreground: 255 255 255;
+
+    --secondary: 245 243 248; /* surface-container-low #F5F3F8 */
+    --secondary-foreground: 27 42 94;
+
+    --muted: 245 243 248;
+    --muted-foreground: 69 70 79; /* on-surface-variant #45464F */
+
+    --accent: 239 237 242; /* surface-container #EFEDF2 */
+    --accent-foreground: 27 42 94;
+
+    --destructive: 186 26 26; /* error #BA1A1A */
+    --destructive-foreground: 255 255 255;
+
+    --border: 198 197 209; /* outline-variant #C6C5D1 */
+    --input: 198 197 209;
+    --ring: 27 42 94; /* navy focus */
+
+    --radius: 0.5rem; /* 8px */
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
