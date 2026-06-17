@@ -184,12 +184,17 @@ export default function LoginPage() {
                   <FormItem>
                     <FormLabel className="flex items-center justify-between text-primary">
                       Contraseña
-                      <a
-                        href="#"
+                      <button
+                        type="button"
+                        onClick={() =>
+                          toast.info(
+                            "Contacta a un administrador para restablecer tu contraseña."
+                          )
+                        }
                         className="text-xs font-normal text-primary hover:underline"
                       >
                         ¿Olvidaste tu contraseña?
-                      </a>
+                      </button>
                     </FormLabel>
                     <FormControl>
                       <div className="relative">

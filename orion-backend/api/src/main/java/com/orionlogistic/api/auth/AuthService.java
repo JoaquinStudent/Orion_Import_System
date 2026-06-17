@@ -39,7 +39,9 @@ public class AuthService {
                 new LoginResponse.UsuarioDto(
                         usuario.getId(),
                         usuario.getNombre(),
+                        usuario.getEmail(),
                         usuario.getRol(),
+                        usuario.getAvatarColor(),
                         usuario.getPasswordTemporal()
                 ));
     }
