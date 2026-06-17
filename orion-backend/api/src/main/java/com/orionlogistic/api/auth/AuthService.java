@@ -3,6 +3,7 @@ package com.orionlogistic.api.auth;
 import com.orionlogistic.api.auth.dto.CambiarPasswordRequest;
 import com.orionlogistic.api.auth.dto.LoginRequest;
 import com.orionlogistic.api.auth.dto.LoginResponse;
+import com.orionlogistic.api.common.UnauthorizedException;
 import com.orionlogistic.api.usuarios.Usuario;
 import com.orionlogistic.api.usuarios.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,14 +22,14 @@ public class AuthService {
         Usuario usuario = usuarioRepository
                 .findByEmail(req.getEmail().toLowerCase())
                 .orElseThrow(() ->
-                        new RuntimeException("Credenciales inválidas"));
+                        new UnauthorizedException("Credenciales inválidas"));
 
         if (!usuario.getActivo()) {
-            throw new RuntimeException("Usuario desactivado");
+            throw new UnauthorizedException("Usuario desactivado");
         }
 
         if (!passwordEncoder.matches(req.getPassword(), usuario.getPasswordHash())) {
-            throw new RuntimeException("Credenciales inválidas");
+            throw new UnauthorizedException("Credenciales inválidas");
         }
 
         String token = jwtService.generateToken(
