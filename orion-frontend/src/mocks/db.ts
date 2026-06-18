@@ -132,3 +132,16 @@ export const nextId = {
   pedido: () => nextPedidoId++,
   producto: () => nextProductoId++,
 };
+
+/**
+ * Configuración del cotizador y del negocio (Sprint 3). Mutable: el PUT del
+ * admin la modifica. Sembrada con los valores de `setup_supabase.sql`.
+ */
+export const config = {
+  flete_por_kilo: 10,
+  desaduanaje: 9,
+  umbral_asesor: 200,
+  whatsapp_atencion: "+51999999999",
+  nombre_negocio: "Orión Logistic",
+  tipo_cambio: 3.4,
+};
