@@ -75,6 +75,38 @@ App: http://localhost:3000 · Login: http://localhost:3000/admin/login
 
 ---
 
+## 🔁 Cambiar de mocks (MSW) a backend real
+
+Mientras el backend de un sprint no exista, el front trabaja con **mocks MSW**
+(datos falsos en memoria, en `orion-frontend/src/mocks/`). Para usar el backend
+real basta un flag.
+
+**El flag:** `NEXT_PUBLIC_API_MOCK` en `orion-frontend/.env.local`.
+- `true` → usa los mocks (no necesita backend).
+- `false` → pega al backend real (`NEXT_PUBLIC_API_URL`, por defecto `http://localhost:8080/api/v1`).
+
+> ⚠️ Las variables `NEXT_PUBLIC_*` se leen al **arrancar** `next dev`. Si cambiás
+> el `.env.local`, hay que **reiniciar** el server.
+
+**Pasos para pasar a real:**
+1. Tener el **backend corriendo** en `:8080` y con los endpoints de ese sprint ya construidos (si no existen, las pantallas fallarán).
+2. En `orion-frontend/.env.local` poner `NEXT_PUBLIC_API_MOCK=false` (o arrancar con `NEXT_PUBLIC_API_MOCK=false npm run dev`).
+3. Reiniciar `npm run dev`.
+
+**Qué esperar al cambiar:**
+- Los **datos de prueba de los mocks desaparecen** (los 6 pedidos eran falsos). La tabla `pedidos` real arranca vacía; los pedidos se crean desde la app y **persisten** en Supabase.
+- Los **5 estados** sí están (sembrados por `setup_supabase.sql`).
+
+**Checklist de integración (cuando se conecta un backend nuevo):**
+- [ ] El JSON del back respeta el contrato (`orion-backend/files/05b_contrato_sprint2.md`): snake_case y sobre `ApiResponse` (`{success, data, message}` / `{success:false, error, code}`).
+- [ ] El login real incluye `permisos` (para gatear módulos en el front).
+- [ ] El interceptor de axios (`src/lib/api.ts`) maneja el **403** además del 401.
+- [ ] CORS del back permite `http://localhost:3000` (ya resuelto en Sprint 1).
+
+**Volver a mocks:** `NEXT_PUBLIC_API_MOCK=true` y reiniciar.
+
+---
+
 ## 🔑 Credenciales de prueba
 - **Email:** `joaquin@orionlogistic.com`
 - **Password:** `admin123` (estado de fábrica del seed)
