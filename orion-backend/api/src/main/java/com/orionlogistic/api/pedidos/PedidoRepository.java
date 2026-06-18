@@ -6,10 +6,16 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 public interface PedidoRepository extends JpaRepository<Pedido, Long> {
 
     /** ¿Hay pedidos asignados a este estado? (chequeo ESTADO_EN_USO al borrar). */
     boolean existsByEstadoId(Long estadoId);
+
+    /** Pedidos creados dentro de un rango (para el resumen de finanzas). */
+    List<Pedido> findByCreadoEnBetween(LocalDateTime desde, LocalDateTime hasta);
 
     boolean existsByNumOrden(String numOrden);
 
