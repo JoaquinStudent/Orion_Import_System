@@ -18,8 +18,11 @@ export function PublicNavbar() {
           <Button asChild variant="ghost" size="sm">
             <Link href="/cotizar">Cotizar</Link>
           </Button>
+          <Button asChild variant="ghost" size="sm">
+            <Link href="/rastrear">Rastrear</Link>
+          </Button>
           <Button asChild size="sm">
-            <Link href="/admin/login">Acceso al panel</Link>
+            <Link href="/admin/login">Acceso</Link>
           </Button>
         </div>
       </nav>

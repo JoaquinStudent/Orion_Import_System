@@ -1,13 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Calculator, Loader2, ArrowRight, MessageCircle, RotateCcw } from "lucide-react";
+import {
+  Calculator,
+  Loader2,
+  ArrowRight,
+  ArrowUp,
+  MessageCircle,
+  RotateCcw,
+  CheckCircle2,
+  AlertTriangle,
+} from "lucide-react";
 
-import { calcularCotizacion } from "@/lib/services/cotizador";
+import {
+  calcularCotizacion,
+  obtenerConfigCotizador,
+  obtenerTipoCambio,
+} from "@/lib/services/cotizador";
 import { getApiErrorMessage } from "@/lib/api";
 import { formatUSD, whatsappLink } from "@/lib/format";
 import type { CotizacionResult } from "@/types/cotizador";
@@ -43,12 +56,25 @@ const penFormatter = new Intl.NumberFormat("es-PE", {
 
 export default function CotizarPage() {
   const [result, setResult] = useState<CotizacionResult | null>(null);
+  const [tipoCambio, setTipoCambio] = useState<number | null>(null);
+  const [umbral, setUmbral] = useState(200);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: { valor_usd: "", peso_kg: "" },
   });
   const { isSubmitting } = form.formState;
+
+  // Tipo de cambio en vivo + umbral del asesor (para el hint dinámico).
+  useEffect(() => {
+    obtenerTipoCambio().then((tc) => setTipoCambio(tc.usd_pen)).catch(() => {});
+    obtenerConfigCotizador().then((c) => setUmbral(c.umbral_asesor)).catch(() => {});
+  }, []);
+
+  const valorNum = Number(form.watch("valor_usd"));
+  const pesoNum = Number(form.watch("peso_kg"));
+  const valorValido = form.watch("valor_usd") !== "" && !isNaN(valorNum) && valorNum > 0;
+  const pesoValido = form.watch("peso_kg") !== "" && !isNaN(pesoNum) && pesoNum > 0;
 
   async function onSubmit(values: FormValues) {
     try {
@@ -70,14 +96,20 @@ export default function CotizarPage() {
 
   return (
     <main className="container mx-auto max-w-xl px-4 py-12">
-      <div className="mb-8 text-center">
+      <div className="mb-6 text-center">
         <span className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-secondary text-primary">
           <Calculator className="h-6 w-6" />
         </span>
-        <h1 className="text-2xl font-bold text-primary">Cotizá tu envío</h1>
+        <h1 className="text-2xl font-bold text-primary">Cotizá tu próximo envío</h1>
         <p className="text-sm text-on-surface-variant">
-          Estimá el costo de importación según el valor y el peso de tu compra.
+          Ingresá los datos de tu producto y calculá el costo al instante.
         </p>
+        {tipoCambio !== null && (
+          <span className="mt-3 inline-flex items-center gap-2 rounded-full bg-surface-container px-3 py-1 text-xs text-on-surface-variant">
+            Dólar: {penFormatter.format(tipoCambio)} · en vivo
+            <span className="h-2 w-2 rounded-full bg-emerald-500" />
+          </span>
+        )}
       </div>
 
       {/* Paso 1: formulario */}
@@ -91,11 +123,23 @@ export default function CotizarPage() {
                   name="valor_usd"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Valor de la compra (USD)</FormLabel>
+                      <FormLabel>Valor del producto (USD)</FormLabel>
                       <FormControl>
                         <Input type="number" step="0.01" placeholder="Ej: 120" {...field} />
                       </FormControl>
                       <FormMessage />
+                      {valorValido &&
+                        (valorNum > umbral ? (
+                          <p className="flex items-center gap-1.5 text-xs font-medium text-amber-600">
+                            <AlertTriangle className="h-3.5 w-3.5" />
+                            Mayor a ${umbral} · te derivamos a un asesor
+                          </p>
+                        ) : (
+                          <p className="flex items-center gap-1.5 text-xs font-medium text-emerald-600">
+                            <CheckCircle2 className="h-3.5 w-3.5" />
+                            Menor a ${umbral} · aplica tarifa de embarque
+                          </p>
+                        ))}
                     </FormItem>
                   )}
                 />
@@ -104,7 +148,7 @@ export default function CotizarPage() {
                   name="peso_kg"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Peso aproximado (kg)</FormLabel>
+                      <FormLabel>Peso del producto (kg)</FormLabel>
                       <FormControl>
                         <Input type="number" step="0.1" placeholder="Ej: 1.5" {...field} />
                       </FormControl>
@@ -112,9 +156,28 @@ export default function CotizarPage() {
                     </FormItem>
                   )}
                 />
+
+                {/* Preview del redondeo de peso */}
+                {pesoValido && (
+                  <div className="rounded-lg bg-surface-container px-4 py-3 text-sm">
+                    <div className="flex items-center justify-between">
+                      <span className="text-on-surface-variant">
+                        Peso ingresado: <strong className="text-foreground">{pesoNum} kg</strong>
+                      </span>
+                      <span className="inline-flex items-center gap-1 font-semibold text-primary">
+                        Peso a cobrar: {Math.ceil(pesoNum)} kg
+                        <ArrowUp className="h-4 w-4" />
+                      </span>
+                    </div>
+                    <p className="mt-1 text-xs text-on-surface-muted">
+                      Siempre se redondea al siguiente kilogramo entero.
+                    </p>
+                  </div>
+                )}
+
                 <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
                   {isSubmitting ? <Loader2 className="animate-spin" /> : <ArrowRight />}
-                  Calcular
+                  Calcular costo de envío
                 </Button>
               </form>
             </Form>
