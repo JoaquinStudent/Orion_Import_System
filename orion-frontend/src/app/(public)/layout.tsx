@@ -1,9 +1,10 @@
 import { WhatsAppButton } from "@/components/cliente/WhatsAppButton";
+import { PublicNavbar } from "@/components/cliente/PublicNavbar";
+import { PublicFooter } from "@/components/cliente/PublicFooter";
 
 /**
- * Layout de la app pública (cliente).
- * En Sprint 1 solo monta el botón flotante de WhatsApp; la navbar/footer y las
- * pantallas (landing, cotizador, rastreador) llegan en sprints siguientes.
+ * Layout de la app pública (cliente): navbar + contenido + footer, con el
+ * botón flotante de WhatsApp en todas las pantallas (landing, cotizador…).
  */
 export default function PublicLayout({
   children,
@@ -11,8 +12,10 @@ export default function PublicLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-surface">
-      {children}
+    <div className="flex min-h-screen flex-col bg-surface">
+      <PublicNavbar />
+      <div className="flex-1">{children}</div>
+      <PublicFooter />
       <WhatsAppButton />
     </div>
   );
