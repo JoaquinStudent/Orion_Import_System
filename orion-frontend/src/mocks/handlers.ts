@@ -485,10 +485,84 @@ const finanzasHandlers = [
   }),
 ];
 
+/* ------------------------------------------------------------------ */
+/* Rastreo público (Sprint 4 back — acá mockeado)                     */
+/* ------------------------------------------------------------------ */
+
+function construirRastreo(p: Pedido) {
+  const ordenActual = estados.find((e) => e.id === p.estado.id)?.orden ?? 0;
+  const pasos = [...estados]
+    .sort((a, b) => a.orden - b.orden)
+    .map((e) => ({
+      nombre: e.nombre,
+      completado: e.orden < ordenActual,
+      activo: e.orden === ordenActual,
+    }));
+  const maxOrden = Math.max(...estados.map((e) => e.orden));
+  return {
+    titular: p.titular,
+    consignatario: p.consignatario ?? null,
+    comunidad: p.comunidad ?? null,
+    productos: p.productos.map((pr) => ({
+      cantidad: pr.cantidad,
+      producto: pr.producto,
+      marca: pr.marca ?? null,
+    })),
+    estado_actual: p.estado.nombre,
+    estados: pasos,
+    tipo_envio: p.tipo_envio,
+    puede_elegir_envio: ordenActual < maxOrden, // ya entregado → no elige
+  };
+}
+
+function buscarParaRastreo(tracking?: string, orden?: string) {
+  if (!tracking || !orden) return undefined;
+  return pedidos.find(
+    (p) =>
+      p.num_tracking.toLowerCase() === tracking.toLowerCase().trim() &&
+      p.num_orden.toLowerCase() === orden.toLowerCase().trim()
+  );
+}
+
+const rastreoHandlers = [
+  // POST /rastreo (público) — valida tracking + orden juntos
+  http.post(`${BASE}/rastreo`, async ({ request }) => {
+    const body = (await request.json()) as {
+      num_tracking?: string;
+      num_orden?: string;
+    };
+    const pedido = buscarParaRastreo(body.num_tracking, body.num_orden);
+    if (!pedido) {
+      return fail(
+        "No encontramos un pedido con esos datos. Verificá el tracking y la orden.",
+        "NO_ENCONTRADO",
+        404
+      );
+    }
+    return ok(construirRastreo(pedido));
+  }),
+
+  // PATCH /rastreo/tipo-envio (público) — el cliente elige cómo recibir
+  http.patch(`${BASE}/rastreo/tipo-envio`, async ({ request }) => {
+    const body = (await request.json()) as {
+      num_tracking?: string;
+      num_orden?: string;
+      tipo_envio?: Pedido["tipo_envio"];
+    };
+    const pedido = buscarParaRastreo(body.num_tracking, body.num_orden);
+    if (!pedido) {
+      return fail("Pedido no encontrado", "NO_ENCONTRADO", 404);
+    }
+    pedido.tipo_envio = body.tipo_envio ?? pedido.tipo_envio;
+    return ok(construirRastreo(pedido), "Tipo de envío confirmado");
+  }),
+];
+
 export const handlers = [
   ...authHandlers,
   ...pedidoHandlers,
   ...estadoHandlers,
   ...cotizadorHandlers,
   ...finanzasHandlers,
+  ...rastreoHandlers,
 ];
