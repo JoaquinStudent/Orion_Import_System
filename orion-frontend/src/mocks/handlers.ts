@@ -435,12 +435,31 @@ const cotizadorHandlers = [
 /* ------------------------------------------------------------------ */
 
 const finanzasHandlers = [
-  // GET /finanzas/resumen — deriva los ingresos de los pedidos sembrados
-  http.get(`${BASE}/finanzas/resumen`, () => {
+  // GET /finanzas/resumen — honra desde/hasta/periodo, igual que el backend real
+  http.get(`${BASE}/finanzas/resumen`, ({ request }) => {
+    const url = new URL(request.url);
+    const desde = url.searchParams.get("desde"); // yyyy-MM-dd
+    const hasta = url.searchParams.get("hasta");
+    const periodo = url.searchParams.get("periodo") ?? "mes";
+
+    const enRango = pedidos.filter((p) => {
+      const f = p.creado_en.slice(0, 10);
+      if (desde && f < desde) return false;
+      if (hasta && f > hasta) return false;
+      return true;
+    });
+
+    const clave = (iso: string) => {
+      const d = iso.slice(0, 10);
+      if (periodo === "dia") return d; // yyyy-MM-dd
+      if (periodo === "anio") return d.slice(0, 4); // yyyy
+      return d.slice(0, 7); // mes → yyyy-MM
+    };
+
     const porFecha = new Map<string, number>();
-    for (const p of pedidos) {
-      const fecha = p.creado_en.slice(0, 10);
-      porFecha.set(fecha, (porFecha.get(fecha) ?? 0) + p.costo_importacion_usd);
+    for (const p of enRango) {
+      const k = clave(p.creado_en);
+      porFecha.set(k, (porFecha.get(k) ?? 0) + p.costo_importacion_usd);
     }
     const serie = Array.from(porFecha.entries())
       .sort(([a], [b]) => a.localeCompare(b))
@@ -448,10 +467,10 @@ const finanzasHandlers = [
         fecha,
         ingreso_usd: Number(ingreso_usd.toFixed(2)),
       }));
-    const ingresoTotal = pedidos.reduce((s, p) => s + p.costo_importacion_usd, 0);
+    const ingresoTotal = enRango.reduce((s, p) => s + p.costo_importacion_usd, 0);
     return ok({
       ingreso_total_usd: Number(ingresoTotal.toFixed(2)),
-      total_pedidos: pedidos.length,
+      total_pedidos: enRango.length,
       serie,
     });
   }),
