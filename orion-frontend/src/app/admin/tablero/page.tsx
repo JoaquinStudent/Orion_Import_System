@@ -1,0 +1,165 @@
+"use client";
+
+import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { Loader2, Settings2 } from "lucide-react";
+
+import { obtenerTablero } from "@/lib/services/estados";
+import { cambiarEstadoPedido } from "@/lib/services/pedidos";
+import { getApiErrorMessage } from "@/lib/api";
+import { formatUSD } from "@/lib/format";
+import type { TableroColumna } from "@/types/pedido";
+import { Button } from "@/components/ui/button";
+
+export default function TableroPage() {
+  const router = useRouter();
+  const [columnas, setColumnas] = useState<TableroColumna[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [dragId, setDragId] = useState<number | null>(null);
+  const [overCol, setOverCol] = useState<number | null>(null);
+
+  const fetchTablero = useCallback(async () => {
+    setLoading(true);
+    try {
+      setColumnas(await obtenerTablero());
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, "No se pudo cargar el tablero"));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchTablero();
+  }, [fetchTablero]);
+
+  function handleDrop(estadoId: number) {
+    const pedidoId = dragId;
+    setOverCol(null);
+    setDragId(null);
+    if (pedidoId == null) return;
+
+    const origen = columnas.find((c) => c.pedidos.some((p) => p.id === pedidoId));
+    if (!origen || origen.id === estadoId) return;
+    const card = origen.pedidos.find((p) => p.id === pedidoId);
+    if (!card) return;
+
+    // Movimiento optimista: actualizo la UI y luego confirmo con el backend.
+    setColumnas((prev) =>
+      prev.map((c) => {
+        if (c.id === origen.id) {
+          return { ...c, pedidos: c.pedidos.filter((p) => p.id !== pedidoId) };
+        }
+        if (c.id === estadoId) {
+          return { ...c, pedidos: [...c.pedidos, card] };
+        }
+        return c;
+      })
+    );
+
+    cambiarEstadoPedido(pedidoId, estadoId).catch((error) => {
+      toast.error(getApiErrorMessage(error, "No se pudo mover el pedido"));
+      fetchTablero(); // revierte el optimismo recargando el estado real
+    });
+  }
+
+  if (loading) {
+    return (
+      <div className="flex justify-center py-24">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-primary">Tablero</h1>
+          <p className="text-sm text-on-surface-variant">
+            Arrastrá las tarjetas para cambiar el estado de un pedido.
+          </p>
+        </div>
+        <Button asChild variant="outline">
+          <Link href="/admin/tablero/estados">
+            <Settings2 />
+            Gestionar estados
+          </Link>
+        </Button>
+      </div>
+
+      <div className="flex gap-4 overflow-x-auto pb-4">
+        {columnas.map((col) => (
+          <div
+            key={col.id}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setOverCol(col.id);
+            }}
+            onDragLeave={() => setOverCol((c) => (c === col.id ? null : c))}
+            onDrop={(e) => {
+              e.preventDefault();
+              handleDrop(col.id);
+            }}
+            className={`flex w-72 shrink-0 flex-col rounded-xl border bg-surface-container-low transition-colors ${
+              overCol === col.id
+                ? "border-primary bg-secondary/40"
+                : "border-outline-variant"
+            }`}
+          >
+            {/* Cabecera de columna */}
+            <div className="flex items-center gap-2 border-b border-outline-variant px-3 py-2.5">
+              <span
+                className="h-3 w-3 rounded-full"
+                style={{ backgroundColor: col.color }}
+              />
+              <span className="font-semibold text-foreground">{col.nombre}</span>
+              <span className="ml-auto rounded-full bg-surface-container px-2 py-0.5 text-xs text-on-surface-variant">
+                {col.pedidos.length}
+              </span>
+            </div>
+
+            {/* Tarjetas */}
+            <div className="flex min-h-24 flex-1 flex-col gap-2 p-2">
+              {col.pedidos.length === 0 ? (
+                <p className="py-6 text-center text-xs text-on-surface-muted">
+                  Sin pedidos
+                </p>
+              ) : (
+                col.pedidos.map((p) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    draggable
+                    onDragStart={(e) => {
+                      setDragId(p.id);
+                      e.dataTransfer.effectAllowed = "move";
+                      e.dataTransfer.setData("text/plain", String(p.id));
+                    }}
+                    onDragEnd={() => setDragId(null)}
+                    onClick={() => router.push(`/admin/pedidos/${p.id}`)}
+                    className={`cursor-grab rounded-lg border border-outline-variant bg-white p-3 text-left shadow-sm transition active:cursor-grabbing hover:border-primary ${
+                      dragId === p.id ? "opacity-50" : ""
+                    }`}
+                  >
+                    <div className="text-sm font-medium text-foreground">
+                      {p.num_orden}
+                    </div>
+                    <div className="truncate text-xs text-on-surface-variant">
+                      {p.titular}
+                    </div>
+                    <div className="mt-1 text-xs font-medium text-primary">
+                      {formatUSD(p.costo_importacion_usd)}
+                    </div>
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}

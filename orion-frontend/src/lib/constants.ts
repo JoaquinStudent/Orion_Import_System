@@ -8,6 +8,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import type { Modulo } from "@/types/usuario";
+import type { TipoEnvio } from "@/types/pedido";
 
 /** Ítems de navegación del sidebar admin (SDD doc 06.3). */
 export interface NavItem {
@@ -39,6 +40,13 @@ export const ESTADO_BADGES: Record<string, { bg: string; text: string }> = {
   "En aduana": { bg: "#EEEDFE", text: "#3C3489" },
   "En almacén": { bg: "#E8EDF8", text: "#1B2A5E" },
   Entregado: { bg: "#E1F5EE", text: "#085041" },
+};
+
+/** Etiquetas legibles para el tipo de envío (valores del CHECK en BD). */
+export const TIPO_ENVIO_LABEL: Record<TipoEnvio, string> = {
+  almacen: "Almacén",
+  lima: "Lima",
+  shalom: "Shalom",
 };
 
 /** Iniciales para el avatar a partir del nombre completo. */
