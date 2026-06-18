@@ -25,6 +25,12 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.ok(data, "Inicio de sesión exitoso"));
     }
 
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponse<LoginResponse.UsuarioDto>> me(
+            @AuthenticationPrincipal Usuario usuario) {
+        return ResponseEntity.ok(ApiResponse.ok(authService.me(usuario.getId())));
+    }
+
     @PostMapping("/cambiar-password")
     public ResponseEntity<ApiResponse<Void>> cambiarPassword(
             @AuthenticationPrincipal Usuario usuario,
