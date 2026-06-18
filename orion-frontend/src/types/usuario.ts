@@ -14,7 +14,7 @@ export interface Permiso {
   puede_editar: boolean;
 }
 
-/** Usuario tal como lo devuelve POST /auth/login (doc 05.2). */
+/** Usuario tal como lo devuelve POST /auth/login (doc 05.2 / 05b). */
 export interface Usuario {
   id: number;
   nombre: string;
@@ -22,6 +22,11 @@ export interface Usuario {
   rol: Rol;
   avatar_color?: string;
   password_temporal: boolean;
+  /**
+   * Permisos por módulo (solo aplican a EMPLEADO). Para ADMIN llega vacío
+   * y se asume acceso total. Ver helpers en `@/lib/permisos`.
+   */
+  permisos?: Permiso[];
 }
 
 export interface LoginResponse {
