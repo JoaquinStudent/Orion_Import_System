@@ -1,7 +1,10 @@
 package com.orionlogistic.api.auth.dto;
 
+import com.orionlogistic.api.usuarios.dto.PermisoDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+
+import java.util.List;
 
 @Getter @AllArgsConstructor
 public class LoginResponse {
@@ -16,5 +19,7 @@ public class LoginResponse {
         private String rol;
         private String avatarColor;
         private boolean passwordTemporal;
+        /** Permisos por módulo (solo EMPLEADO). ADMIN → lista vacía (acceso total). */
+        private List<PermisoDto> permisos;
     }
 }

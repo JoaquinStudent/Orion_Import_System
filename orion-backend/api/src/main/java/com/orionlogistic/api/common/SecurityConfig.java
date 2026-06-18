@@ -22,6 +22,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
+    private final RestAuthHandlers restAuthHandlers;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -61,6 +62,12 @@ public class SecurityConfig {
                         // Todo lo demás requiere auth
                         .anyRequest().authenticated()
                 )
+                // 401/403 con el sobre ApiResponse en vez del rechazo "pelado".
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(
+                                restAuthHandlers.authenticationEntryPoint())
+                        .accessDeniedHandler(
+                                restAuthHandlers.accessDeniedHandler()))
                 .addFilterBefore(jwtAuthFilter,
                         UsernamePasswordAuthenticationFilter.class);
 
