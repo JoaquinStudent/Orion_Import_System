@@ -80,9 +80,10 @@ export const handlers = [
       );
     }
 
+    // El backend real responde ApiResponse<Void> → data:null. Lo reflejamos.
     return HttpResponse.json({
       success: true,
-      data: { password_temporal: false },
+      data: null,
       message: "Contraseña actualizada",
     });
   }),

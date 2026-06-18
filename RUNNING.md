@@ -1,0 +1,104 @@
+# Cómo correr Orión Logistic en local
+
+Monorepo con dos apps: **`orion-backend/`** (Spring Boot 3 + Supabase) y **`orion-frontend/`** (Next.js 14).
+La base de datos es **Supabase en la nube** (no hay Postgres local que levantar).
+
+## Requisitos
+- **JDK 21+** (Java 22 también funciona)
+- **Node.js 18+** y npm
+- Conexión a internet (para Supabase)
+
+---
+
+## 🟦 Backend — puerto 8080
+
+### 1. Credenciales (`.env`)
+El backend lee las variables desde `orion-backend/api/.env` (este archivo **no** está en git).
+La primera vez, copiá la plantilla y completá los valores:
+
+```bash
+# desde orion-backend/api/
+cp .env.example .env      # Windows: copy .env.example .env
+```
+
+Variables que van en el `.env` (pedíselas a un compañero o sacalas del panel de Supabase):
+```
+DATABASE_URL=jdbc:postgresql://<host>:<port>/postgres?user=<usuario>
+DATABASE_USERNAME=...
+DATABASE_PASSWORD=...
+JWT_SECRET=...            # mínimo 32 caracteres
+JWT_EXPIRATION=86400000
+EXCHANGE_API_KEY=...
+CORS_ALLOWED_ORIGINS=http://localhost:3000
+```
+
+> Alternativa: en vez del `.env` se pueden poner las mismas variables en *IntelliJ → Run → Edit Configurations → Environment variables*. Las variables del entorno **tienen prioridad** sobre el `.env`.
+>
+> El `.env` se busca tanto en `orion-backend/api/.env` como en `orion-backend/api/` relativo a la raíz, así que funciona sin importar el working directory de IntelliJ.
+
+### 2. Levantar
+
+**IntelliJ:** abrir el proyecto y darle ▶ a `ApiApplication`.
+
+**Terminal:**
+```bash
+cd orion-backend/api
+# macOS / Linux:
+./mvnw spring-boot:run
+# Windows (PowerShell):
+.\mvnw.cmd spring-boot:run
+```
+
+Listo cuando ves `Started ApiApplication`. Queda en:
+- API: http://localhost:8080/api/v1
+- Swagger: http://localhost:8080/api/v1/swagger-ui.html
+
+---
+
+## 🟩 Frontend — puerto 3000
+
+```bash
+cd orion-frontend
+npm install        # solo la primera vez
+
+# Opción A — contra el backend real (requiere el back corriendo):
+# macOS / Linux:
+NEXT_PUBLIC_API_MOCK=false npm run dev
+# Windows (PowerShell):
+$env:NEXT_PUBLIC_API_MOCK="false"; npm run dev
+
+# Opción B — con mocks MSW (NO necesita backend):
+npm run dev        # usa .env.local (NEXT_PUBLIC_API_MOCK=true por defecto)
+```
+
+App: http://localhost:3000 · Login: http://localhost:3000/admin/login
+
+---
+
+## 🔑 Credenciales de prueba
+- **Email:** `joaquin@orionlogistic.com`
+- **Password:** `admin123` (estado de fábrica del seed)
+- Si `password_temporal=true`, el primer login pide cambiar la contraseña (flujo normal).
+
+Para resetear el usuario al estado de fábrica, correr en el **SQL Editor de Supabase**:
+```sql
+UPDATE usuarios
+SET password_hash = '$2a$10$iYxuk20ASrzGrkdk5ThRXeIDRKZhP6aLlxJNBMxfypGGtEYEwX7rK',
+    password_temporal = true
+WHERE email = 'joaquin@orionlogistic.com';
+```
+
+El esquema completo de la BD se despliega con `orion-backend/files/setup_supabase.sql` (pegar en el SQL Editor de Supabase).
+
+---
+
+## 🛠️ Problemas comunes
+
+| Síntoma | Causa / solución |
+|---|---|
+| `Could not resolve placeholder 'JWT_SECRET'` | No hay `.env` (o faltan variables). Crear `orion-backend/api/.env` desde `.env.example`. |
+| `Port 8080 was already in use` | Ya hay un backend corriendo. macOS/Linux: `lsof -ti:8080 \| xargs kill -9`. Windows: `Get-NetTCPConnection -LocalPort 8080 \| Select -Expand OwningProcess \| ForEach { Stop-Process -Id $_ -Force }`. |
+| `Schema-validation: missing table [...]` | La BD no tiene el esquema. Correr `setup_supabase.sql` en Supabase. |
+| `"next" no se reconoce…` | Faltó `npm install` en `orion-frontend`. |
+| `Network Error` al cambiar contraseña | Era un bug de CORS (preflight). Ya está arreglado; asegurate de tener el backend actualizado de `testing`. |
+| `./mvnw: permission denied` (macOS/Linux) | `chmod +x mvnw` o usar `sh ./mvnw ...`. |
