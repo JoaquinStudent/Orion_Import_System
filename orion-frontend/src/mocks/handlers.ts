@@ -2,7 +2,7 @@ import { http, HttpResponse } from "msw";
 import type { Usuario } from "@/types/usuario";
 import type { EstadoInput } from "@/types/estado";
 import type { Pedido, PedidoInput, PedidoListItem } from "@/types/pedido";
-import { estados, nextId, pedidos, toEstadoRef } from "@/mocks/db";
+import { config, estados, nextId, pedidos, toEstadoRef } from "@/mocks/db";
 
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080/api/v1";
 
@@ -102,7 +102,10 @@ const authHandlers = [
   http.post(`${BASE}/auth/logout`, () => ok(null, "Sesión cerrada")),
 
   http.get(`${BASE}/config/publica`, () =>
-    ok({ whatsapp_atencion: "+51999999999", nombre_negocio: "Orión Logistic" })
+    ok({
+      whatsapp_atencion: config.whatsapp_atencion,
+      nombre_negocio: config.nombre_negocio,
+    })
   ),
 ];
 
@@ -357,4 +360,209 @@ const estadoHandlers = [
   }),
 ];
 
-export const handlers = [...authHandlers, ...pedidoHandlers, ...estadoHandlers];
+/* ------------------------------------------------------------------ */
+/* Cotizador (Sprint 3)                                               */
+/* ------------------------------------------------------------------ */
+
+const cotizadorHandlers = [
+  // GET /cotizador/config (público)
+  http.get(`${BASE}/cotizador/config`, () =>
+    ok({
+      flete_por_kilo: config.flete_por_kilo,
+      desaduanaje: config.desaduanaje,
+      umbral_asesor: config.umbral_asesor,
+      whatsapp_atencion: config.whatsapp_atencion,
+    })
+  ),
+
+  // GET /cotizador/tipo-cambio (público)
+  http.get(`${BASE}/cotizador/tipo-cambio`, () =>
+    ok({ usd_pen: config.tipo_cambio, actualizado: new Date().toISOString() })
+  ),
+
+  // POST /cotizador/calcular (público) — implementa la fórmula del doc 05.5
+  http.post(`${BASE}/cotizador/calcular`, async ({ request }) => {
+    const body = (await request.json()) as { valor_usd?: number; peso_kg?: number };
+    const valor = Number(body.valor_usd ?? 0);
+    const peso = Number(body.peso_kg ?? 0);
+
+    if (valor > config.umbral_asesor) {
+      return ok({
+        aplica_calculo: false,
+        mensaje: `Para envíos mayores a $${config.umbral_asesor}, contacta con un asesor`,
+        whatsapp_atencion: config.whatsapp_atencion,
+      });
+    }
+
+    const pesoCobrado = Math.ceil(peso);
+    const flete = pesoCobrado * config.flete_por_kilo;
+    const totalUsd = flete + config.desaduanaje;
+    return ok({
+      aplica_calculo: true,
+      valor_usd: valor,
+      peso_real_kg: peso,
+      peso_cobrado_kg: pesoCobrado,
+      flete_usd: flete,
+      desaduanaje_usd: config.desaduanaje,
+      total_usd: totalUsd,
+      tipo_cambio: config.tipo_cambio,
+      total_pen: Number((totalUsd * config.tipo_cambio).toFixed(2)),
+    });
+  }),
+
+  // PUT /admin/cotizador/config (admin)
+  http.put(`${BASE}/admin/cotizador/config`, async ({ request }) => {
+    const body = (await request.json()) as {
+      flete_por_kilo?: number;
+      desaduanaje?: number;
+    };
+    if (body.flete_por_kilo != null) config.flete_por_kilo = Number(body.flete_por_kilo);
+    if (body.desaduanaje != null) config.desaduanaje = Number(body.desaduanaje);
+    return ok(
+      {
+        flete_por_kilo: config.flete_por_kilo,
+        desaduanaje: config.desaduanaje,
+        umbral_asesor: config.umbral_asesor,
+        whatsapp_atencion: config.whatsapp_atencion,
+      },
+      "Configuración actualizada"
+    );
+  }),
+];
+
+/* ------------------------------------------------------------------ */
+/* Finanzas (Sprint 3)                                                */
+/* ------------------------------------------------------------------ */
+
+const finanzasHandlers = [
+  // GET /finanzas/resumen — honra desde/hasta/periodo, igual que el backend real
+  http.get(`${BASE}/finanzas/resumen`, ({ request }) => {
+    const url = new URL(request.url);
+    const desde = url.searchParams.get("desde"); // yyyy-MM-dd
+    const hasta = url.searchParams.get("hasta");
+    const periodo = url.searchParams.get("periodo") ?? "mes";
+
+    const enRango = pedidos.filter((p) => {
+      const f = p.creado_en.slice(0, 10);
+      if (desde && f < desde) return false;
+      if (hasta && f > hasta) return false;
+      return true;
+    });
+
+    const clave = (iso: string) => {
+      const d = iso.slice(0, 10);
+      if (periodo === "dia") return d; // yyyy-MM-dd
+      if (periodo === "anio") return d.slice(0, 4); // yyyy
+      return d.slice(0, 7); // mes → yyyy-MM
+    };
+
+    const porFecha = new Map<string, number>();
+    for (const p of enRango) {
+      const k = clave(p.creado_en);
+      porFecha.set(k, (porFecha.get(k) ?? 0) + p.costo_importacion_usd);
+    }
+    const serie = Array.from(porFecha.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([fecha, ingreso_usd]) => ({
+        fecha,
+        ingreso_usd: Number(ingreso_usd.toFixed(2)),
+      }));
+    const ingresoTotal = enRango.reduce((s, p) => s + p.costo_importacion_usd, 0);
+    return ok({
+      ingreso_total_usd: Number(ingresoTotal.toFixed(2)),
+      total_pedidos: enRango.length,
+      serie,
+    });
+  }),
+
+  // GET /finanzas/exportar — el backend real devuelve .xlsx; el mock un blob mínimo
+  http.get(`${BASE}/finanzas/exportar`, () => {
+    const csv = "fecha,ingreso_usd\n(mock) descarga simulada,0\n";
+    return new HttpResponse(csv, {
+      status: 200,
+      headers: { "Content-Type": "application/vnd.ms-excel" },
+    });
+  }),
+];
+
+/* ------------------------------------------------------------------ */
+/* Rastreo público (Sprint 4 back — acá mockeado)                     */
+/* ------------------------------------------------------------------ */
+
+function construirRastreo(p: Pedido) {
+  const ordenActual = estados.find((e) => e.id === p.estado.id)?.orden ?? 0;
+  const pasos = [...estados]
+    .sort((a, b) => a.orden - b.orden)
+    .map((e) => ({
+      nombre: e.nombre,
+      completado: e.orden < ordenActual,
+      activo: e.orden === ordenActual,
+    }));
+  const maxOrden = Math.max(...estados.map((e) => e.orden));
+  return {
+    titular: p.titular,
+    consignatario: p.consignatario ?? null,
+    comunidad: p.comunidad ?? null,
+    productos: p.productos.map((pr) => ({
+      cantidad: pr.cantidad,
+      producto: pr.producto,
+      marca: pr.marca ?? null,
+    })),
+    estado_actual: p.estado.nombre,
+    estados: pasos,
+    tipo_envio: p.tipo_envio,
+    puede_elegir_envio: ordenActual < maxOrden, // ya entregado → no elige
+  };
+}
+
+function buscarParaRastreo(tracking?: string, orden?: string) {
+  if (!tracking || !orden) return undefined;
+  return pedidos.find(
+    (p) =>
+      p.num_tracking.toLowerCase() === tracking.toLowerCase().trim() &&
+      p.num_orden.toLowerCase() === orden.toLowerCase().trim()
+  );
+}
+
+const rastreoHandlers = [
+  // POST /rastreo (público) — valida tracking + orden juntos
+  http.post(`${BASE}/rastreo`, async ({ request }) => {
+    const body = (await request.json()) as {
+      num_tracking?: string;
+      num_orden?: string;
+    };
+    const pedido = buscarParaRastreo(body.num_tracking, body.num_orden);
+    if (!pedido) {
+      return fail(
+        "No encontramos un pedido con esos datos. Verificá el tracking y la orden.",
+        "NO_ENCONTRADO",
+        404
+      );
+    }
+    return ok(construirRastreo(pedido));
+  }),
+
+  // PATCH /rastreo/tipo-envio (público) — el cliente elige cómo recibir
+  http.patch(`${BASE}/rastreo/tipo-envio`, async ({ request }) => {
+    const body = (await request.json()) as {
+      num_tracking?: string;
+      num_orden?: string;
+      tipo_envio?: Pedido["tipo_envio"];
+    };
+    const pedido = buscarParaRastreo(body.num_tracking, body.num_orden);
+    if (!pedido) {
+      return fail("Pedido no encontrado", "NO_ENCONTRADO", 404);
+    }
+    pedido.tipo_envio = body.tipo_envio ?? pedido.tipo_envio;
+    return ok(construirRastreo(pedido), "Tipo de envío confirmado");
+  }),
+];
+
+export const handlers = [
+  ...authHandlers,
+  ...pedidoHandlers,
+  ...estadoHandlers,
+  ...cotizadorHandlers,
+  ...finanzasHandlers,
+  ...rastreoHandlers,
+];

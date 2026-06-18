@@ -4,17 +4,22 @@ import com.orionlogistic.api.auth.dto.CambiarPasswordRequest;
 import com.orionlogistic.api.auth.dto.LoginRequest;
 import com.orionlogistic.api.auth.dto.LoginResponse;
 import com.orionlogistic.api.common.UnauthorizedException;
+import com.orionlogistic.api.usuarios.PermisoRepository;
 import com.orionlogistic.api.usuarios.Usuario;
 import com.orionlogistic.api.usuarios.UsuarioRepository;
+import com.orionlogistic.api.usuarios.dto.PermisoDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class AuthService {
 
     private final UsuarioRepository usuarioRepository;
+    private final PermisoRepository permisoRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
 
@@ -35,15 +40,34 @@ public class AuthService {
         String token = jwtService.generateToken(
                 usuario.getId(), usuario.getEmail(), usuario.getRol());
 
-        return new LoginResponse(token,
-                new LoginResponse.UsuarioDto(
-                        usuario.getId(),
-                        usuario.getNombre(),
-                        usuario.getEmail(),
-                        usuario.getRol(),
-                        usuario.getAvatarColor(),
-                        usuario.getPasswordTemporal()
-                ));
+        return new LoginResponse(token, construirUsuarioDto(usuario));
+    }
+
+    /** Datos del usuario autenticado para GET /auth/me (mismo shape que el login). */
+    public LoginResponse.UsuarioDto me(Long userId) {
+        Usuario usuario = usuarioRepository.findById(userId)
+                .orElseThrow(() -> new UnauthorizedException("Sesión inválida"));
+        return construirUsuarioDto(usuario);
+    }
+
+    /**
+     * Arma el UsuarioDto incluyendo sus permisos por módulo.
+     * ADMIN tiene acceso total implícito → permisos vacío (doc 05b).
+     */
+    private LoginResponse.UsuarioDto construirUsuarioDto(Usuario usuario) {
+        List<PermisoDto> permisos = "ADMIN".equals(usuario.getRol())
+                ? List.of()
+                : permisoRepository.findByUsuarioId(usuario.getId()).stream()
+                        .map(PermisoDto::from)
+                        .toList();
+        return new LoginResponse.UsuarioDto(
+                usuario.getId(),
+                usuario.getNombre(),
+                usuario.getEmail(),
+                usuario.getRol(),
+                usuario.getAvatarColor(),
+                usuario.getPasswordTemporal(),
+                permisos);
     }
 
     public void cambiarPassword(Long userId, CambiarPasswordRequest req) {

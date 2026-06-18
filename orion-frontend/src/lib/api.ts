@@ -1,11 +1,13 @@
 import axios, { AxiosError } from "axios";
+import { toast } from "sonner";
 import { getToken, clearSession } from "@/lib/auth";
 import type { ApiError } from "@/types/api";
 
 /**
  * Instancia Axios central (SDD doc 03.3 / 05).
  * - Inyecta el JWT en Authorization: Bearer <token>.
- * - Ante 401 limpia la sesión y redirige a /admin/login.
+ * - Ante 401 (o 403 sin sesión válida) limpia la sesión y va a /admin/login.
+ * - Ante 403 SIN_PERMISO (logueado pero sin permiso del módulo) avisa con toast.
  */
 export const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080/api/v1",
@@ -23,12 +25,22 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error: AxiosError<ApiError>) => {
-    if (error.response?.status === 401 && typeof window !== "undefined") {
-      clearSession();
+    if (typeof window !== "undefined") {
+      const status = error.response?.status;
+      const code = error.response?.data?.code;
       const path = window.location.pathname;
-      // Evita bucle si ya estamos en una pantalla de auth pública.
-      if (!path.startsWith("/admin/login")) {
-        window.location.href = "/admin/login";
+
+      // 403 SIN_PERMISO = autenticado pero sin permiso del módulo → solo avisar.
+      if (status === 403 && code === "SIN_PERMISO") {
+        toast.error(
+          error.response?.data?.error ?? "No tenés permiso para esta acción"
+        );
+      } else if (status === 401 || status === 403) {
+        // Sesión inválida/vencida (incluye el 403 "pelado" del backend sin token).
+        clearSession();
+        if (!path.startsWith("/admin/login")) {
+          window.location.href = "/admin/login";
+        }
       }
     }
     return Promise.reject(error);

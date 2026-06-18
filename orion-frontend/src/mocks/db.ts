@@ -120,15 +120,68 @@ export const pedidos: Pedido[] = [
     creado_en: "2026-06-15T14:20:00",
     actualizado_en: null,
   },
+  // --- Pedidos de demo extra (Sprint 3) para poblar el dashboard de finanzas:
+  //     fechas variadas a lo largo de 2026 + hoy/ayer, varios tipos de envío.
+  ...demo(7, "Mateo Rojas", "almacen", 45, 1, "2026-06-18T09:00:00"),
+  ...demo(8, "Renata Silva", "lima", 60, 2, "2026-06-18T16:30:00"),
+  ...demo(9, "Bruno Díaz", "shalom", 38, 3, "2026-06-17T12:10:00"),
+  ...demo(10, "Paula Vega", "almacen", 52, 5, "2026-06-05T10:00:00"),
+  ...demo(11, "Iván Mora", "lima", 70, 5, "2026-05-20T11:30:00"),
+  ...demo(12, "Sofía Núñez", "shalom", 33, 4, "2026-05-08T14:00:00"),
+  ...demo(13, "Tomás Vera", "almacen", 88, 5, "2026-04-15T09:45:00"),
+  ...demo(14, "Lara Pinto", "lima", 41, 5, "2026-03-10T13:20:00"),
+  ...demo(15, "Hugo Salas", "almacen", 120, 5, "2026-02-22T08:30:00"),
+  ...demo(16, "Nadia Cruz", "shalom", 64, 5, "2026-01-30T17:00:00"),
 ];
+
+/** Helper para sembrar pedidos de demo sin repetir todo el objeto. */
+function demo(
+  id: number,
+  titular: string,
+  tipoEnvio: Pedido["tipo_envio"],
+  costo: number,
+  estadoId: number,
+  creadoEn: string
+): Pedido[] {
+  return [
+    {
+      id,
+      titular,
+      num_orden: `ORD-00${1233 + id}`,
+      num_tracking: `TRK-00${1233 + id}`,
+      whatsapp: "+51999000000",
+      valor_usd: Math.round(costo * 0.7),
+      costo_importacion_usd: costo,
+      tipo_envio: tipoEnvio,
+      estado: ref(estadoId),
+      productos: [],
+      creado_por: { id: 1, nombre: "Joaquín" },
+      creado_en: creadoEn,
+      actualizado_en: null,
+    },
+  ];
+}
 
 /** Generadores de IDs incrementales (arrancan por encima de lo sembrado). */
 let nextEstadoId = 6;
-let nextPedidoId = 7;
+let nextPedidoId = 17;
 let nextProductoId = 8;
 
 export const nextId = {
   estado: () => nextEstadoId++,
   pedido: () => nextPedidoId++,
   producto: () => nextProductoId++,
+};
+
+/**
+ * Configuración del cotizador y del negocio (Sprint 3). Mutable: el PUT del
+ * admin la modifica. Sembrada con los valores de `setup_supabase.sql`.
+ */
+export const config = {
+  flete_por_kilo: 10,
+  desaduanaje: 9,
+  umbral_asesor: 200,
+  whatsapp_atencion: "+51999999999",
+  nombre_negocio: "Orión Logistic",
+  tipo_cambio: 3.4,
 };
