@@ -1,8 +1,16 @@
 package com.orionlogistic.api.common;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;
 
+/**
+ * Contrato de respuestas de la API (SDD doc 05.1).
+ * Éxito: { success: true, data, message? }
+ * Error: { success: false, error, code? }
+ * Los campos null se omiten del JSON para no mezclar ambas formas.
+ */
 @Getter
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ApiResponse<T> {
 
     private final boolean success;

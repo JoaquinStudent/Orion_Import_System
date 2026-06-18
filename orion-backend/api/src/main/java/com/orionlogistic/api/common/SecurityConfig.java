@@ -45,7 +45,11 @@ public class SecurityConfig {
                                 "/auth/login",
                                 "/cotizador/**",
                                 "/rastreo/**",
-                                "/config/publica"
+                                "/config/publica",
+                                // Documentación de la API (Swagger / OpenAPI)
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/v3/api-docs/**"
                         ).permitAll()
                         // Solo ADMIN
                         .requestMatchers("/usuarios/**", "/admin/**")

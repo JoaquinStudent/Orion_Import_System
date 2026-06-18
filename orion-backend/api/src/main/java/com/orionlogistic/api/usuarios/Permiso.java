@@ -21,8 +21,10 @@ public class Permiso {
     private String modulo;
 
     @Column(name = "puede_ver", nullable = false)
+    @Builder.Default
     private Boolean puedeVer = false;
 
     @Column(name = "puede_editar", nullable = false)
+    @Builder.Default
     private Boolean puedeEditar = false;
 }

@@ -29,9 +29,11 @@ public class Usuario {
     private String avatarColor;
 
     @Column(nullable = false)
+    @Builder.Default
     private Boolean activo = true;
 
     @Column(name = "password_temporal", nullable = false)
+    @Builder.Default
     private Boolean passwordTemporal = true;
 
     @Column(name = "creado_en")
