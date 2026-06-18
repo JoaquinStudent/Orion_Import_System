@@ -435,12 +435,31 @@ const cotizadorHandlers = [
 /* ------------------------------------------------------------------ */
 
 const finanzasHandlers = [
-  // GET /finanzas/resumen — deriva los ingresos de los pedidos sembrados
-  http.get(`${BASE}/finanzas/resumen`, () => {
+  // GET /finanzas/resumen — honra desde/hasta/periodo, igual que el backend real
+  http.get(`${BASE}/finanzas/resumen`, ({ request }) => {
+    const url = new URL(request.url);
+    const desde = url.searchParams.get("desde"); // yyyy-MM-dd
+    const hasta = url.searchParams.get("hasta");
+    const periodo = url.searchParams.get("periodo") ?? "mes";
+
+    const enRango = pedidos.filter((p) => {
+      const f = p.creado_en.slice(0, 10);
+      if (desde && f < desde) return false;
+      if (hasta && f > hasta) return false;
+      return true;
+    });
+
+    const clave = (iso: string) => {
+      const d = iso.slice(0, 10);
+      if (periodo === "dia") return d; // yyyy-MM-dd
+      if (periodo === "anio") return d.slice(0, 4); // yyyy
+      return d.slice(0, 7); // mes → yyyy-MM
+    };
+
     const porFecha = new Map<string, number>();
-    for (const p of pedidos) {
-      const fecha = p.creado_en.slice(0, 10);
-      porFecha.set(fecha, (porFecha.get(fecha) ?? 0) + p.costo_importacion_usd);
+    for (const p of enRango) {
+      const k = clave(p.creado_en);
+      porFecha.set(k, (porFecha.get(k) ?? 0) + p.costo_importacion_usd);
     }
     const serie = Array.from(porFecha.entries())
       .sort(([a], [b]) => a.localeCompare(b))
@@ -448,10 +467,10 @@ const finanzasHandlers = [
         fecha,
         ingreso_usd: Number(ingreso_usd.toFixed(2)),
       }));
-    const ingresoTotal = pedidos.reduce((s, p) => s + p.costo_importacion_usd, 0);
+    const ingresoTotal = enRango.reduce((s, p) => s + p.costo_importacion_usd, 0);
     return ok({
       ingreso_total_usd: Number(ingresoTotal.toFixed(2)),
-      total_pedidos: pedidos.length,
+      total_pedidos: enRango.length,
       serie,
     });
   }),
@@ -466,10 +485,84 @@ const finanzasHandlers = [
   }),
 ];
 
+/* ------------------------------------------------------------------ */
+/* Rastreo público (Sprint 4 back — acá mockeado)                     */
+/* ------------------------------------------------------------------ */
+
+function construirRastreo(p: Pedido) {
+  const ordenActual = estados.find((e) => e.id === p.estado.id)?.orden ?? 0;
+  const pasos = [...estados]
+    .sort((a, b) => a.orden - b.orden)
+    .map((e) => ({
+      nombre: e.nombre,
+      completado: e.orden < ordenActual,
+      activo: e.orden === ordenActual,
+    }));
+  const maxOrden = Math.max(...estados.map((e) => e.orden));
+  return {
+    titular: p.titular,
+    consignatario: p.consignatario ?? null,
+    comunidad: p.comunidad ?? null,
+    productos: p.productos.map((pr) => ({
+      cantidad: pr.cantidad,
+      producto: pr.producto,
+      marca: pr.marca ?? null,
+    })),
+    estado_actual: p.estado.nombre,
+    estados: pasos,
+    tipo_envio: p.tipo_envio,
+    puede_elegir_envio: ordenActual < maxOrden, // ya entregado → no elige
+  };
+}
+
+function buscarParaRastreo(tracking?: string, orden?: string) {
+  if (!tracking || !orden) return undefined;
+  return pedidos.find(
+    (p) =>
+      p.num_tracking.toLowerCase() === tracking.toLowerCase().trim() &&
+      p.num_orden.toLowerCase() === orden.toLowerCase().trim()
+  );
+}
+
+const rastreoHandlers = [
+  // POST /rastreo (público) — valida tracking + orden juntos
+  http.post(`${BASE}/rastreo`, async ({ request }) => {
+    const body = (await request.json()) as {
+      num_tracking?: string;
+      num_orden?: string;
+    };
+    const pedido = buscarParaRastreo(body.num_tracking, body.num_orden);
+    if (!pedido) {
+      return fail(
+        "No encontramos un pedido con esos datos. Verificá el tracking y la orden.",
+        "NO_ENCONTRADO",
+        404
+      );
+    }
+    return ok(construirRastreo(pedido));
+  }),
+
+  // PATCH /rastreo/tipo-envio (público) — el cliente elige cómo recibir
+  http.patch(`${BASE}/rastreo/tipo-envio`, async ({ request }) => {
+    const body = (await request.json()) as {
+      num_tracking?: string;
+      num_orden?: string;
+      tipo_envio?: Pedido["tipo_envio"];
+    };
+    const pedido = buscarParaRastreo(body.num_tracking, body.num_orden);
+    if (!pedido) {
+      return fail("Pedido no encontrado", "NO_ENCONTRADO", 404);
+    }
+    pedido.tipo_envio = body.tipo_envio ?? pedido.tipo_envio;
+    return ok(construirRastreo(pedido), "Tipo de envío confirmado");
+  }),
+];
+
 export const handlers = [
   ...authHandlers,
   ...pedidoHandlers,
   ...estadoHandlers,
   ...cotizadorHandlers,
   ...finanzasHandlers,
+  ...rastreoHandlers,
 ];
