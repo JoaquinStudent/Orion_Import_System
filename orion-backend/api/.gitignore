@@ -4,6 +4,11 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+### Credenciales / Env ###
+# Nunca subir el .env con valores reales; sí versionar la plantilla.
+.env
+!.env.example
+
 ### STS ###
 .apt_generated
 .classpath
