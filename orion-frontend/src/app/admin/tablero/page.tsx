@@ -159,7 +159,7 @@ export default function TableroPage() {
               e.preventDefault();
               handleDrop(col.id);
             }}
-            className={`flex w-72 shrink-0 flex-col rounded-xl border bg-surface-container-low transition-colors ${
+            className={`flex w-[80vw] max-w-xs shrink-0 flex-col rounded-xl border bg-surface-container-low transition-colors sm:w-72 ${
               overCol === col.id
                 ? "border-primary bg-secondary/40"
                 : "border-outline-variant"

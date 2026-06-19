@@ -115,7 +115,7 @@ export default function DetallePedidoPage() {
             Orden {pedido.num_orden}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button asChild variant="whatsapp" size="sm">
             <a href={whatsappLink(pedido.whatsapp, waMensaje)} target="_blank" rel="noopener noreferrer">
               <MessageCircle />

@@ -152,12 +152,12 @@ export default function CotizadorConfigPage() {
               </CardContent>
             </Card>
 
-            <div className="flex justify-end gap-3">
-              <Button type="button" variant="outline" onClick={restaurar} disabled={sinCambios || saving}>
+            <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+              <Button type="button" variant="outline" className="w-full sm:w-auto" onClick={restaurar} disabled={sinCambios || saving}>
                 <RotateCcw />
                 Restaurar valores
               </Button>
-              <Button type="submit" disabled={sinCambios || saving}>
+              <Button type="submit" className="w-full sm:w-auto" disabled={sinCambios || saving}>
                 {saving ? <Loader2 className="animate-spin" /> : <Save />}
                 Guardar cambios
               </Button>

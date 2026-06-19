@@ -6,22 +6,22 @@ import { Button } from "@/components/ui/button";
 export function PublicNavbar() {
   return (
     <header className="sticky top-0 z-40 border-b border-outline-variant bg-white/90 backdrop-blur">
-      <nav className="container mx-auto flex h-[72px] items-center justify-between px-4">
-        <Link href="/" className="flex items-center gap-2">
+      <nav className="container mx-auto flex h-16 items-center justify-between gap-2 px-4 sm:h-[72px]">
+        <Link href="/" className="flex shrink-0 items-center gap-2">
           <Image
             src="/logo-horizontal.svg"
             alt="Orión Logistic"
             width={280}
             height={73}
-            className="h-16 w-auto"
+            className="h-10 w-auto sm:h-16"
             priority
           />
         </Link>
-        <div className="flex items-center gap-3">
-          <Button asChild variant="ghost" size="lg" className="text-base">
+        <div className="flex items-center gap-2">
+          <Button asChild variant="ghost" size="sm" className="whitespace-nowrap sm:h-11 sm:px-5 sm:text-base">
             <Link href="/cotizar">Cotizar</Link>
           </Button>
-          <Button asChild size="lg" className="text-base">
+          <Button asChild size="sm" className="whitespace-nowrap sm:h-11 sm:px-5 sm:text-base">
             <Link href="/rastrear">Rastrear pedido</Link>
           </Button>
         </div>

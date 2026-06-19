@@ -126,7 +126,7 @@ export function UsuariosAdmin() {
                     ● {u.activo ? "Activo" : "Inactivo"}
                   </span>
                 </div>
-                <div className="mt-4 flex items-center gap-3 border-t border-outline-variant pt-3 text-sm">
+                <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-outline-variant pt-3 text-sm">
                   {u.rol === "ADMIN" ? (
                     <span className="text-xs italic text-on-surface-muted">
                       Permisos completos — no editables

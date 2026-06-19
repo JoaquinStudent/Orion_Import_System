@@ -181,7 +181,7 @@ export default function FinanzasPage() {
               <button
                 key={p.key}
                 onClick={() => setPeriodo(p.key)}
-                className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors sm:px-3 sm:text-sm ${
                   periodo === p.key
                     ? "bg-primary text-primary-foreground"
                     : "text-on-surface-variant hover:bg-secondary"

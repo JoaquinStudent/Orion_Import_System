@@ -161,7 +161,7 @@ export default function CotizarPage() {
                 {/* Preview del redondeo de peso */}
                 {pesoValido && (
                   <div className="rounded-lg bg-surface-container px-4 py-3 text-sm">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                       <span className="text-on-surface-variant">
                         Peso ingresado: <strong className="text-foreground">{pesoNum} kg</strong>
                       </span>
