@@ -50,8 +50,10 @@ public class FinanzasService {
         Map<String, BigDecimal> porFecha = new LinkedHashMap<>();
         BigDecimal total = BigDecimal.ZERO;
 
+        // Solo los pedidos con pago LIQUIDADO cuentan como ingreso.
         for (Pedido p : pedidos.stream()
                 .filter(p -> p.getCreadoEn() != null)
+                .filter(p -> "liquidado".equals(p.getEstadoPago()))
                 .sorted((a, b) -> a.getCreadoEn().compareTo(b.getCreadoEn()))
                 .toList()) {
             BigDecimal costo = p.getCostoImportacionUsd() != null

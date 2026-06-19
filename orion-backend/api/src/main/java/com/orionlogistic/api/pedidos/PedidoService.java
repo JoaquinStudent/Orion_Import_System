@@ -93,6 +93,14 @@ public class PedidoService {
     }
 
     @Transactional
+    public PedidoDetailResponse cambiarEstadoPago(Long id, String estadoPago, Usuario usuario) {
+        permisoChecker.exigirEditar(usuario, MODULO_PEDIDOS);
+        Pedido pedido = buscarPedido(id);
+        pedido.setEstadoPago(estadoPago);
+        return PedidoDetailResponse.from(pedidoRepository.save(pedido));
+    }
+
+    @Transactional
     public void eliminar(Long id, Usuario usuario) {
         permisoChecker.exigirEditar(usuario, MODULO_PEDIDOS);
         pedidoRepository.delete(buscarPedido(id));
