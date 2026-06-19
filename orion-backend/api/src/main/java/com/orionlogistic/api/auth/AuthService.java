@@ -3,7 +3,9 @@ package com.orionlogistic.api.auth;
 import com.orionlogistic.api.auth.dto.CambiarPasswordRequest;
 import com.orionlogistic.api.auth.dto.LoginRequest;
 import com.orionlogistic.api.auth.dto.LoginResponse;
+import com.orionlogistic.api.common.NotFoundException;
 import com.orionlogistic.api.common.UnauthorizedException;
+import com.orionlogistic.api.common.ValidationException;
 import com.orionlogistic.api.usuarios.PermisoRepository;
 import com.orionlogistic.api.usuarios.Usuario;
 import com.orionlogistic.api.usuarios.UsuarioRepository;
@@ -72,11 +74,13 @@ public class AuthService {
 
     public void cambiarPassword(Long userId, CambiarPasswordRequest req) {
         Usuario usuario = usuarioRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+                .orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
 
+        // 400 (no 401): un 401 haría que el interceptor del front cierre la
+        // sesión y expulse al usuario de la pantalla de cambio de contraseña.
         if (!passwordEncoder.matches(req.getPasswordActual(),
                 usuario.getPasswordHash())) {
-            throw new RuntimeException("La contraseña actual es incorrecta");
+            throw new ValidationException("La contraseña actual es incorrecta");
         }
 
         usuario.setPasswordHash(passwordEncoder.encode(req.getPasswordNueva()));
