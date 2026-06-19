@@ -1,5 +1,6 @@
 package com.orionlogistic.api.common;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -7,6 +8,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -57,11 +59,34 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error("Registro duplicado", "DUPLICADO"));
     }
 
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<ApiResponse<Void>> handleRuntime(RuntimeException e) {
+    /** Error de validación de negocio controlado → 400 (mensaje sí se muestra). */
+    @ExceptionHandler(ValidationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleValidationException(ValidationException e) {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(ApiResponse.error(e.getMessage(), "ERROR"));
+                .body(ApiResponse.error(e.getMessage(), "VALIDATION"));
+    }
+
+    /**
+     * RuntimeException no tipada: probablemente un fallo no previsto. Devolvemos
+     * un mensaje genérico (NO reflejamos {@code e.getMessage()} para no filtrar
+     * detalles internos) y registramos el detalle real en el log.
+     */
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ApiResponse<Void>> handleRuntime(RuntimeException e) {
+        log.error("RuntimeException no controlada", e);
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.error("Error interno", "ERROR_INTERNO"));
+    }
+
+    /** Red de seguridad final: cualquier excepción no contemplada → 500 genérico. */
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiResponse<Void>> handleGeneric(Exception e) {
+        log.error("Excepción no controlada", e);
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.error("Error interno", "ERROR_INTERNO"));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

@@ -2,6 +2,7 @@ package com.orionlogistic.api.rastreo.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -9,10 +10,10 @@ import lombok.Setter;
 @Getter @Setter
 public class ElegirEnvioRequest {
 
-    @NotBlank
+    @NotBlank @Size(max = 50)
     private String numTracking;
 
-    @NotBlank
+    @NotBlank @Size(max = 50)
     private String numOrden;
 
     @NotBlank

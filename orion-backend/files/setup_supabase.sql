@@ -145,6 +145,13 @@ ON CONFLICT (clave) DO UPDATE SET valor = EXCLUDED.valor;
 
 -- Script 10 — usuario administrador inicial
 -- password: admin123  (hash BCrypt strength 10, generado con spring-security-crypto)
+--
+-- ⚠️ SOLO PARA DESARROLLO LOCAL. Esta credencial es pública (está en el repo).
+-- NO usar este seed en producción: antes de exponer la app, crear el admin real
+-- con una contraseña fuerte y password_temporal=true, p. ej.:
+--   INSERT INTO usuarios (nombre, email, password_hash, rol, avatar_color, activo, password_temporal)
+--   VALUES ('<nombre>', '<email>', '<bcrypt-de-password-fuerte>', 'ADMIN', '#D4AF37', true, true);
+-- y borrar/desactivar el usuario joaquin@orionlogistic.com.
 INSERT INTO usuarios (
     nombre,
     email,

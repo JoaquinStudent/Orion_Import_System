@@ -75,8 +75,13 @@ src/
   mocks/             handlers + worker (MSW)
 ```
 
-## Estado (Sprint 1 ✅)
+## Estado (Sprint 4 — en curso)
 
-Setup, design system, login, layout admin (sidebar + topbar + guard), cambio de
-contraseña temporal y sesión JWT con mocks. Pendiente: pedidos/tablero (S2),
-finanzas/cotizador/landing (S3), rastreador/usuarios/deploy (S4).
+- **Sprint 1 ✅** Setup, design system, login, layout admin (sidebar + topbar + guard),
+  cambio de contraseña temporal y sesión JWT.
+- **Sprint 2 ✅** Pedidos (lista/filtros/detalle/CRUD), tablero kanban, estados, roles/permisos.
+- **Sprint 3 ✅** Finanzas, cotizador (público + config), landing y rastreador público.
+- **Sprint 4 (en curso)** Comunidades, estado de pago, tipo de envío, dashboard con KPIs.
+  Pendiente front: consumir los endpoints server-side de dashboard/finanzas y `/auth/me`,
+  filtrar sidebar por permisos, pase responsive y deploy. Ver **`INTEGRACION_FRONT.md`**
+  (qué adoptar del backend del Sprint 4) y `files/05c_contrato_sprint4.md` (contrato).

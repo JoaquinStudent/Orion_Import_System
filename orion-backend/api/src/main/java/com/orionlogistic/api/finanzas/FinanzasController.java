@@ -1,6 +1,7 @@
 package com.orionlogistic.api.finanzas;
 
 import com.orionlogistic.api.common.ApiResponse;
+import com.orionlogistic.api.finanzas.dto.FinanzasKpisResponse;
 import com.orionlogistic.api.finanzas.dto.FinanzasResumenResponse;
 import com.orionlogistic.api.usuarios.Usuario;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,12 @@ public class FinanzasController {
             @AuthenticationPrincipal Usuario usuario) {
         return ResponseEntity.ok(
                 ApiResponse.ok(finanzasService.resumen(periodo, desde, hasta, usuario)));
+    }
+
+    @GetMapping("/kpis")
+    public ResponseEntity<ApiResponse<FinanzasKpisResponse>> kpis(
+            @AuthenticationPrincipal Usuario usuario) {
+        return ResponseEntity.ok(ApiResponse.ok(finanzasService.kpis(usuario)));
     }
 
     @GetMapping("/exportar")

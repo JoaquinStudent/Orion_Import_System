@@ -24,7 +24,7 @@ public class CrearUsuarioRequest {
     @Pattern(regexp = "ADMIN|EMPLEADO", message = "debe ser ADMIN o EMPLEADO")
     private String rol;
 
-    @NotBlank @Size(min = 6, max = 100)
+    @NotBlank @Size(min = 8, max = 100)
     private String passwordTemporal;
 
     @Size(max = 7)

@@ -98,10 +98,17 @@ real basta un flag.
 - Los **5 estados** sí están (sembrados por `setup_supabase.sql`).
 
 **Checklist de integración (cuando se conecta un backend nuevo):**
-- [ ] El JSON del back respeta el contrato (`orion-backend/files/05b_contrato_sprint2.md`): snake_case y sobre `ApiResponse` (`{success, data, message}` / `{success:false, error, code}`).
+- [ ] El JSON del back respeta el contrato (`orion-backend/files/05b_contrato_sprint2.md` + `05c_contrato_sprint4.md`): snake_case y sobre `ApiResponse` (`{success, data, message}` / `{success:false, error, code}`).
 - [ ] El login real incluye `permisos` (para gatear módulos en el front).
 - [ ] El interceptor de axios (`src/lib/api.ts`) maneja el **403** además del 401.
 - [ ] CORS del back permite `http://localhost:3000` (ya resuelto en Sprint 1).
+
+**Sprint 4 — cambios de contrato a tener en cuenta (ver `orion-frontend/INTEGRACION_FRONT.md`):**
+- [ ] Errores ahora con envelope: **401 `AUTH_INVALID`**, **403 `SIN_PERMISO`** (toast, no logout), contraseña actual incorrecta → **400 `VALIDATION`** (no 401), inesperados → **500 `ERROR_INTERNO`**.
+- [ ] Dashboard usa **`GET /dashboard/resumen`** (permiso `pedidos.ver`) en vez de derivar KPIs de `listarPedidos({size:200})`.
+- [ ] Finanzas usa **`GET /finanzas/kpis`** + el nuevo `desglose_tipo_envio` de `GET /finanzas/resumen`.
+- [ ] El panel refresca permisos con **`GET /auth/me`** al entrar.
+- [ ] Password mínima **8** al crear usuario (antes 6).
 
 **Volver a mocks:** `NEXT_PUBLIC_API_MOCK=true` y reiniciar.
 
@@ -109,8 +116,14 @@ real basta un flag.
 
 ## 🔑 Credenciales de prueba
 - **Email:** `joaquin@orionlogistic.com`
-- **Password:** `admin123` (estado de fábrica del seed)
+- **Password:** `joaquin123` (contraseña actual en la BD de desarrollo)
 - Si `password_temporal=true`, el primer login pide cambiar la contraseña (flujo normal).
+- El **seed de fábrica** original es `admin123`; el reset de abajo deja el usuario en ese estado.
+
+> ⚠️ **Solo para desarrollo local.** Esta credencial es pública (está en el repo). En
+> producción **no** uses este seed: creá un admin real con contraseña fuerte y
+> `password_temporal=true`, y desactivá/borrá `joaquin@orionlogistic.com`
+> (ver nota en `orion-backend/files/setup_supabase.sql`).
 
 Para resetear el usuario al estado de fábrica, correr en el **SQL Editor de Supabase**:
 ```sql
