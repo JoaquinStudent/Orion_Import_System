@@ -247,4 +247,5 @@ export const config = {
   whatsapp_atencion: "+51999999999",
   nombre_negocio: "Orión Logistic",
   tipo_cambio: 3.4,
+  dias_archivo_entregados: 7,
 };

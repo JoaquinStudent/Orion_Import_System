@@ -4,14 +4,17 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Loader2, Settings2 } from "lucide-react";
+import { Archive, Loader2, Settings2 } from "lucide-react";
 
 import { obtenerTablero } from "@/lib/services/estados";
-import { cambiarEstadoPedido } from "@/lib/services/pedidos";
+import { cambiarEstadoPedido, cambiarCostoImportacion } from "@/lib/services/pedidos";
 import { getApiErrorMessage } from "@/lib/api";
 import { formatUSD } from "@/lib/format";
-import type { TableroColumna } from "@/types/pedido";
+import type { TableroColumna, TableroPedidoCard } from "@/types/pedido";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+
+type CostoModal = { pedidoId: number; estadoId: number; card: TableroPedidoCard };
 
 export default function TableroPage() {
   const router = useRouter();
@@ -19,7 +22,11 @@ export default function TableroPage() {
   const [loading, setLoading] = useState(true);
   const [dragId, setDragId] = useState<number | null>(null);
   const [overCol, setOverCol] = useState<number | null>(null);
+  const [costoModal, setCostoModal] = useState<CostoModal | null>(null);
+  const [costoInput, setCostoInput] = useState("");
+  const [savingCosto, setSavingCosto] = useState(false);
 
+  // El backend ya excluye los entregados archivados; se consultan en /admin/tablero/archivados.
   const fetchTablero = useCallback(async () => {
     setLoading(true);
     try {
@@ -35,6 +42,26 @@ export default function TableroPage() {
     fetchTablero();
   }, [fetchTablero]);
 
+  // Movimiento optimista + confirmación con el backend.
+  const moverPedido = useCallback(
+    (pedidoId: number, estadoId: number, card: TableroPedidoCard) => {
+      setColumnas((prev) =>
+        prev.map((c) => {
+          if (c.pedidos.some((p) => p.id === pedidoId)) {
+            return { ...c, pedidos: c.pedidos.filter((p) => p.id !== pedidoId) };
+          }
+          if (c.id === estadoId) return { ...c, pedidos: [...c.pedidos, card] };
+          return c;
+        })
+      );
+      cambiarEstadoPedido(pedidoId, estadoId).catch((error) => {
+        toast.error(getApiErrorMessage(error, "No se pudo mover el pedido"));
+        fetchTablero(); // revierte recargando el estado real
+      });
+    },
+    [fetchTablero]
+  );
+
   function handleDrop(estadoId: number) {
     const pedidoId = dragId;
     setOverCol(null);
@@ -46,23 +73,46 @@ export default function TableroPage() {
     const card = origen.pedidos.find((p) => p.id === pedidoId);
     if (!card) return;
 
-    // Movimiento optimista: actualizo la UI y luego confirmo con el backend.
-    setColumnas((prev) =>
-      prev.map((c) => {
-        if (c.id === origen.id) {
-          return { ...c, pedidos: c.pedidos.filter((p) => p.id !== pedidoId) };
-        }
-        if (c.id === estadoId) {
-          return { ...c, pedidos: [...c.pedidos, card] };
-        }
-        return c;
-      })
-    );
+    // El estado final es la última columna; el penúltimo, la anteúltima.
+    const finalId = columnas[columnas.length - 1]?.id;
+    const penultId = columnas[columnas.length - 2]?.id;
 
-    cambiarEstadoPedido(pedidoId, estadoId).catch((error) => {
-      toast.error(getApiErrorMessage(error, "No se pudo mover el pedido"));
-      fetchTablero(); // revierte el optimismo recargando el estado real
-    });
+    // No se puede entregar un pedido cuyo pago no está liquidado.
+    if (estadoId === finalId && card.estado_pago !== "liquidado") {
+      toast.error("Liquidá el pago antes de marcar el pedido como entregado.");
+      return;
+    }
+
+    // Al penúltimo estado se exige cargar el costo de importación.
+    if (estadoId === penultId && card.costo_importacion_usd <= 0) {
+      setCostoModal({ pedidoId, estadoId, card });
+      setCostoInput("");
+      return;
+    }
+
+    moverPedido(pedidoId, estadoId, card);
+  }
+
+  async function confirmarCosto() {
+    if (!costoModal) return;
+    const costo = Number(costoInput);
+    if (!costoInput || isNaN(costo) || costo <= 0) {
+      toast.error("Ingresá un costo de importación válido.");
+      return;
+    }
+    setSavingCosto(true);
+    try {
+      await cambiarCostoImportacion(costoModal.pedidoId, costo);
+      moverPedido(costoModal.pedidoId, costoModal.estadoId, {
+        ...costoModal.card,
+        costo_importacion_usd: costo,
+      });
+      setCostoModal(null);
+    } catch (e) {
+      toast.error(getApiErrorMessage(e, "No se pudo guardar el costo"));
+    } finally {
+      setSavingCosto(false);
+    }
   }
 
   if (loading) {
@@ -82,12 +132,20 @@ export default function TableroPage() {
             Arrastrá las tarjetas para cambiar el estado de un pedido.
           </p>
         </div>
-        <Button asChild variant="outline">
-          <Link href="/admin/tablero/estados">
-            <Settings2 />
-            Gestionar estados
-          </Link>
-        </Button>
+        <div className="flex gap-2">
+          <Button asChild variant="outline">
+            <Link href="/admin/tablero/archivados">
+              <Archive />
+              Ver archivados
+            </Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/admin/tablero/estados">
+              <Settings2 />
+              Gestionar estados
+            </Link>
+          </Button>
+        </div>
       </div>
 
       <div className="flex gap-4 overflow-x-auto pb-4">
@@ -145,13 +203,15 @@ export default function TableroPage() {
                     }`}
                   >
                     <div className="text-sm font-medium text-foreground">
-                      {p.num_orden}
+                      {p.num_tracking}
                     </div>
                     <div className="truncate text-xs text-on-surface-variant">
                       {p.titular}
                     </div>
                     <div className="mt-1 text-xs font-medium text-primary">
-                      {formatUSD(p.costo_importacion_usd)}
+                      {p.costo_importacion_usd > 0
+                        ? formatUSD(p.costo_importacion_usd)
+                        : "Sin costo"}
                     </div>
                   </button>
                 ))
@@ -160,6 +220,49 @@ export default function TableroPage() {
           </div>
         ))}
       </div>
+
+      {/* Modal: capturar costo de importación al pasar al penúltimo estado */}
+      {costoModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          onClick={() => !savingCosto && setCostoModal(null)}
+        >
+          <div
+            className="w-full max-w-sm space-y-4 rounded-xl bg-white p-5 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div>
+              <h2 className="text-lg font-bold text-primary">Costo de importación</h2>
+              <p className="text-sm text-on-surface-variant">
+                Cargá el costo de <strong>{costoModal.card.num_tracking}</strong> para
+                avanzar a este estado.
+              </p>
+            </div>
+            <Input
+              type="number"
+              step="0.01"
+              autoFocus
+              placeholder="0.00"
+              value={costoInput}
+              onChange={(e) => setCostoInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && confirmarCosto()}
+            />
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setCostoModal(null)}
+                disabled={savingCosto}
+              >
+                Cancelar
+              </Button>
+              <Button onClick={confirmarCosto} disabled={savingCosto}>
+                {savingCosto && <Loader2 className="animate-spin" />}
+                Guardar y mover
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

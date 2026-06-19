@@ -51,8 +51,7 @@ const schema = z.object({
     .refine((v) => v === "" || (!isNaN(Number(v)) && Number(v) >= 0), "Monto inválido"),
   costo_importacion_usd: z
     .string()
-    .min(1, "Obligatorio")
-    .refine((v) => !isNaN(Number(v)) && Number(v) > 0, "Debe ser mayor a 0"),
+    .refine((v) => v === "" || (!isNaN(Number(v)) && Number(v) >= 0), "Monto inválido"),
   tipo_envio: z.enum(["", "almacen", "lima", "shalom"]),
   estado_id: z.string(),
   productos: z.array(productoSchema),
@@ -92,7 +91,9 @@ function toFormValues(pedido?: Pedido): FormValues {
     num_tracking: pedido.num_tracking,
     whatsapp: pedido.whatsapp,
     valor_usd: String(pedido.valor_usd),
-    costo_importacion_usd: String(pedido.costo_importacion_usd),
+    costo_importacion_usd: pedido.costo_importacion_usd
+      ? String(pedido.costo_importacion_usd)
+      : "",
     tipo_envio: pedido.tipo_envio ?? "",
     estado_id: String(pedido.estado.id),
     productos: pedido.productos.length
@@ -156,7 +157,9 @@ export function PedidoForm({ pedido, mode, onSubmit, cancelHref }: PedidoFormPro
       num_tracking: values.num_tracking.trim(),
       whatsapp: values.whatsapp.trim(),
       valor_usd: values.valor_usd ? Number(values.valor_usd) : 0,
-      costo_importacion_usd: Number(values.costo_importacion_usd),
+      costo_importacion_usd: values.costo_importacion_usd
+        ? Number(values.costo_importacion_usd)
+        : null,
       tipo_envio: values.tipo_envio || null,
       estado_id: values.estado_id ? Number(values.estado_id) : undefined,
       productos: values.productos.map((p) => ({
@@ -238,8 +241,8 @@ export function PedidoForm({ pedido, mode, onSubmit, cancelHref }: PedidoFormPro
             <TextField
               control={form.control}
               name="costo_importacion_usd"
-              label="Costo de importación (USD) *"
-              placeholder="0.00"
+              label="Costo de importación (USD)"
+              placeholder="Se carga al llegar al almacén"
               type="number"
             />
 

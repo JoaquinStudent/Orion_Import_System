@@ -53,6 +53,17 @@ export async function cambiarEstadoPedido(
   return data.data;
 }
 
+/** PATCH /pedidos/{id}/costo — fija el costo de importación (se carga al llegar al almacén). */
+export async function cambiarCostoImportacion(
+  id: number,
+  costoUsd: number
+): Promise<Pedido> {
+  const { data } = await api.patch<ApiResponse<Pedido>>(`/pedidos/${id}/costo`, {
+    costo_importacion_usd: costoUsd,
+  });
+  return data.data;
+}
+
 /** PATCH /pedidos/{id}/pago — cambia el estado de pago de la importación. */
 export async function cambiarEstadoPago(
   id: number,

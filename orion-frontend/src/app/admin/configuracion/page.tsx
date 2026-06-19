@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { UsuariosAdmin } from "@/components/usuarios/UsuariosAdmin";
 import { WhatsappConfig } from "@/components/config/WhatsappConfig";
+import { ArchivoConfig } from "@/components/config/ArchivoConfig";
 
 export default function ConfiguracionPage() {
   const { usuario, loading: authLoading } = useAuth();
@@ -118,6 +119,9 @@ export default function ConfiguracionPage() {
 
       {/* WhatsApp de atención */}
       <WhatsappConfig />
+
+      {/* Archivado de entregados */}
+      <ArchivoConfig />
 
       {/* Comunidades */}
       <div>

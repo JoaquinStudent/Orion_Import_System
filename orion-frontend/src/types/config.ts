@@ -2,4 +2,6 @@
 export interface ConfigPublica {
   whatsapp_atencion: string;
   nombre_negocio: string;
+  /** Días tras la entrega para archivar un pedido del tablero (visual). */
+  dias_archivo_entregados?: number;
 }

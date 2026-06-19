@@ -118,11 +118,11 @@ export default function DetallePedidoPage() {
         </Button>
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold text-primary">{pedido.num_orden}</h1>
+            <h1 className="text-2xl font-bold text-primary">{pedido.num_tracking}</h1>
             <EstadoBadge estado={pedido.estado} />
           </div>
           <p className="text-sm text-on-surface-variant">
-            Tracking {pedido.num_tracking}
+            Orden {pedido.num_orden}
           </p>
         </div>
         <div className="flex gap-2">

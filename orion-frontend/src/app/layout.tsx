@@ -12,9 +12,19 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"
+  ),
   title: "Orión Logistic — Importaciones desde EE.UU.",
   description:
     "Sistema de gestión de importaciones y courier internacional de Orión Logistic.",
+  icons: { icon: "/logo-icon.svg" },
+  openGraph: {
+    title: "Orión Logistic — Importaciones desde EE.UU.",
+    description:
+      "Importamos tus compras de Estados Unidos hasta tu puerta, con seguimiento en cada etapa.",
+    images: ["/logo.svg"],
+  },
 };
 
 export default function RootLayout({

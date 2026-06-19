@@ -117,6 +117,7 @@ const authHandlers = [
     ok({
       whatsapp_atencion: config.whatsapp_atencion,
       nombre_negocio: config.nombre_negocio,
+      dias_archivo_entregados: config.dias_archivo_entregados,
     })
   ),
 ];
@@ -131,12 +132,25 @@ const pedidoHandlers = [
     const url = new URL(request.url);
     const estadoId = url.searchParams.get("estado_id");
     const search = (url.searchParams.get("search") ?? "").toLowerCase().trim();
+    const archivados = url.searchParams.get("archivados") === "true";
     const page = Number(url.searchParams.get("page") ?? 0);
     const size = Number(url.searchParams.get("size") ?? 20);
 
     let filtrados = [...pedidos];
     if (estadoId) {
       filtrados = filtrados.filter((p) => p.estado.id === Number(estadoId));
+    }
+    if (archivados) {
+      // Entregados (estado final) cuya entrega supera los días configurados.
+      const finalOrden = Math.max(...estados.map((e) => e.orden));
+      const limite = Date.now() - config.dias_archivo_entregados * 86400000;
+      filtrados = filtrados.filter((p) => {
+        const est = estados.find((e) => e.id === p.estado.id);
+        return (
+          est?.orden === finalOrden &&
+          new Date(p.actualizado_en ?? p.creado_en).getTime() < limite
+        );
+      });
     }
     if (search) {
       filtrados = filtrados.filter(
@@ -171,13 +185,7 @@ const pedidoHandlers = [
   http.post(`${BASE}/pedidos`, async ({ request }) => {
     const body = (await request.json()) as PedidoInput;
 
-    if (
-      !body.titular ||
-      !body.num_orden ||
-      !body.num_tracking ||
-      !body.whatsapp ||
-      body.costo_importacion_usd == null
-    ) {
+    if (!body.titular || !body.num_orden || !body.num_tracking || !body.whatsapp) {
       return fail("Faltan campos obligatorios", "VALIDATION", 400);
     }
     if (
@@ -208,7 +216,7 @@ const pedidoHandlers = [
       whatsapp: body.whatsapp,
       firma: body.firma,
       valor_usd: body.valor_usd ?? 0,
-      costo_importacion_usd: body.costo_importacion_usd,
+      costo_importacion_usd: body.costo_importacion_usd ?? 0,
       tipo_envio: body.tipo_envio ?? null,
       estado: toEstadoRef(estado),
       estado_pago: "pendiente",
@@ -258,7 +266,7 @@ const pedidoHandlers = [
       whatsapp: body.whatsapp,
       firma: body.firma,
       valor_usd: body.valor_usd ?? 0,
-      costo_importacion_usd: body.costo_importacion_usd,
+      costo_importacion_usd: body.costo_importacion_usd ?? 0,
       tipo_envio: body.tipo_envio ?? null,
       estado: estadoFull ? toEstadoRef(estadoFull) : pedidos[idx].estado,
       productos: (body.productos ?? []).map((pr) => ({
@@ -280,9 +288,35 @@ const pedidoHandlers = [
     const estado = estados.find((e) => e.id === body.estado_id);
     if (!estado) return fail("Estado inexistente", "VALIDATION", 400);
 
+    // Reglas de negocio: el último estado es el "final" y el anterior, el "penúltimo".
+    const ordenes = [...estados.map((e) => e.orden)].sort((a, b) => b - a);
+    const finalOrden = ordenes[0];
+    const penultimoOrden = ordenes[1];
+    if (estado.orden === penultimoOrden && pedido.costo_importacion_usd <= 0) {
+      return fail("Cargá el costo de importación antes de avanzar", "VALIDATION", 400);
+    }
+    if (estado.orden === finalOrden && pedido.estado_pago !== "liquidado") {
+      return fail("Liquidá el pago antes de marcar el pedido como entregado", "VALIDATION", 400);
+    }
+
     pedido.estado = toEstadoRef(estado);
     pedido.actualizado_en = new Date().toISOString();
     return ok(pedido, "Estado actualizado");
+  }),
+
+  // PATCH /pedidos/{id}/costo — fija el costo de importación
+  http.patch(`${BASE}/pedidos/:id/costo`, async ({ params, request }) => {
+    const pedido = pedidos.find((p) => p.id === Number(params.id));
+    if (!pedido) return fail("Pedido no encontrado", "NO_ENCONTRADO", 404);
+
+    const body = (await request.json()) as { costo_importacion_usd?: number };
+    const costo = Number(body.costo_importacion_usd);
+    if (isNaN(costo) || costo <= 0) {
+      return fail("Costo de importación inválido", "VALIDATION", 400);
+    }
+    pedido.costo_importacion_usd = costo;
+    pedido.actualizado_en = new Date().toISOString();
+    return ok(pedido, "Costo de importación actualizado");
   }),
 
   // PATCH /pedidos/{id}/pago — estado de pago de la importación
@@ -319,7 +353,19 @@ const estadoHandlers = [
   ),
 
   // GET /tablero — columnas con sus pedidos
-  http.get(`${BASE}/tablero`, () => {
+  http.get(`${BASE}/tablero`, ({ request }) => {
+    const incluirArchivados =
+      new URL(request.url).searchParams.get("incluir_archivados") === "true";
+    const finalOrden = Math.max(...estados.map((e) => e.orden));
+    const limite = Date.now() - config.dias_archivo_entregados * 86400000;
+
+    // ponytail: sin `entregado_en` en el mock usamos actualizado_en ?? creado_en como proxy.
+    const archivado = (p: Pedido) => {
+      const est = estados.find((e) => e.id === p.estado.id);
+      if (!est || est.orden !== finalOrden) return false;
+      return new Date(p.actualizado_en ?? p.creado_en).getTime() < limite;
+    };
+
     const columnas = [...estados]
       .sort((a, b) => a.orden - b.orden)
       .map((e) => ({
@@ -328,11 +374,14 @@ const estadoHandlers = [
         color: e.color,
         pedidos: pedidos
           .filter((p) => p.estado.id === e.id)
+          .filter((p) => incluirArchivados || !archivado(p))
           .map((p) => ({
             id: p.id,
             num_orden: p.num_orden,
+            num_tracking: p.num_tracking,
             titular: p.titular,
             costo_importacion_usd: p.costo_importacion_usd,
+            estado_pago: p.estado_pago,
           })),
       }));
     return ok(columnas);
@@ -785,11 +834,18 @@ const usuarioHandlers = [
     const body = (await request.json()) as {
       whatsapp_atencion?: string;
       nombre_negocio?: string;
+      dias_archivo_entregados?: number;
     };
     if (body.whatsapp_atencion != null) config.whatsapp_atencion = body.whatsapp_atencion;
     if (body.nombre_negocio != null) config.nombre_negocio = body.nombre_negocio;
+    if (body.dias_archivo_entregados != null)
+      config.dias_archivo_entregados = Number(body.dias_archivo_entregados);
     return ok(
-      { whatsapp_atencion: config.whatsapp_atencion, nombre_negocio: config.nombre_negocio },
+      {
+        whatsapp_atencion: config.whatsapp_atencion,
+        nombre_negocio: config.nombre_negocio,
+        dias_archivo_entregados: config.dias_archivo_entregados,
+      },
       "Configuración actualizada"
     );
   }),
