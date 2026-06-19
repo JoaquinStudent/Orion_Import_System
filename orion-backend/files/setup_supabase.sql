@@ -108,6 +108,10 @@ CREATE INDEX idx_pedidos_tracking ON pedidos(num_tracking);
 CREATE INDEX idx_pedidos_orden    ON pedidos(num_orden);
 CREATE INDEX idx_pedidos_estado   ON pedidos(estado_id);
 CREATE INDEX idx_pedidos_fecha    ON pedidos(creado_en);
+-- Archivado de entregados (tablero y GET /pedidos?archivados=true)
+CREATE INDEX idx_pedidos_estado_entregado ON pedidos(estado_id, entregado_en);
+-- Finanzas: sumas de ingresos liquidados por rango de fecha
+CREATE INDEX idx_pedidos_pago_fecha       ON pedidos(estado_pago, creado_en);
 
 -- ---------- Bloque 3.5: seguridad (Row Level Security) ----------
 
