@@ -1,6 +1,7 @@
 import { api } from "@/lib/api";
 import type { ApiResponse } from "@/types/api";
 import type {
+  EstadoPago,
   Paginated,
   Pedido,
   PedidoInput,
@@ -49,6 +50,17 @@ export async function cambiarEstadoPedido(
     `/pedidos/${id}/estado`,
     { estado_id: estadoId }
   );
+  return data.data;
+}
+
+/** PATCH /pedidos/{id}/pago — cambia el estado de pago de la importación. */
+export async function cambiarEstadoPago(
+  id: number,
+  estadoPago: EstadoPago
+): Promise<Pedido> {
+  const { data } = await api.patch<ApiResponse<Pedido>>(`/pedidos/${id}/pago`, {
+    estado_pago: estadoPago,
+  });
   return data.data;
 }
 

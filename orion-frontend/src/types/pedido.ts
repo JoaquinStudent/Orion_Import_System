@@ -3,6 +3,9 @@ import type { EstadoRef } from "@/types/estado";
 /** Tipo de envío permitido (CHECK en BD: almacen | lima | shalom). */
 export type TipoEnvio = "almacen" | "lima" | "shalom";
 
+/** Estado del pago de la importación. Solo "liquidado" cuenta como ingreso. */
+export type EstadoPago = "pendiente" | "liquidado";
+
 /** Línea de producto de un pedido. */
 export interface Producto {
   id: number;
@@ -29,6 +32,7 @@ export interface PedidoListItem {
   costo_importacion_usd: number;
   tipo_envio: TipoEnvio | null;
   estado: EstadoRef;
+  estado_pago: EstadoPago;
   creado_en: string;
 }
 
@@ -46,6 +50,7 @@ export interface Pedido {
   costo_importacion_usd: number;
   tipo_envio: TipoEnvio | null;
   estado: EstadoRef;
+  estado_pago: EstadoPago;
   productos: Producto[];
   creado_por?: { id: number; nombre: string };
   creado_en: string;

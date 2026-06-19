@@ -3,6 +3,7 @@ package com.orionlogistic.api.pedidos;
 import com.orionlogistic.api.common.ApiResponse;
 import com.orionlogistic.api.common.PageResponse;
 import com.orionlogistic.api.pedidos.dto.CambiarEstadoRequest;
+import com.orionlogistic.api.pedidos.dto.CambiarPagoRequest;
 import com.orionlogistic.api.pedidos.dto.PedidoDetailResponse;
 import com.orionlogistic.api.pedidos.dto.PedidoListItemResponse;
 import com.orionlogistic.api.pedidos.dto.PedidoRequest;
@@ -66,6 +67,16 @@ public class PedidoController {
         PedidoDetailResponse data =
                 pedidoService.cambiarEstado(id, req.getEstadoId(), usuario);
         return ResponseEntity.ok(ApiResponse.ok(data, "Estado actualizado"));
+    }
+
+    @PatchMapping("/{id}/pago")
+    public ResponseEntity<ApiResponse<PedidoDetailResponse>> cambiarPago(
+            @PathVariable Long id,
+            @Valid @RequestBody CambiarPagoRequest req,
+            @AuthenticationPrincipal Usuario usuario) {
+        PedidoDetailResponse data =
+                pedidoService.cambiarEstadoPago(id, req.getEstadoPago(), usuario);
+        return ResponseEntity.ok(ApiResponse.ok(data, "Estado de pago actualizado"));
     }
 
     @DeleteMapping("/{id}")

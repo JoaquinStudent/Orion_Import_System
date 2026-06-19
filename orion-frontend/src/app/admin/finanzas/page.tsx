@@ -10,6 +10,7 @@ import {
   TrendingUp,
   TrendingDown,
   ArrowRight,
+  CheckCircle2,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -22,7 +23,7 @@ import {
 } from "recharts";
 
 import { obtenerResumen, exportarExcel } from "@/lib/services/finanzas";
-import { listarPedidos } from "@/lib/services/pedidos";
+import { listarPedidos, cambiarEstadoPago } from "@/lib/services/pedidos";
 import { getApiErrorMessage } from "@/lib/api";
 import { formatUSD, formatFecha } from "@/lib/format";
 import { TIPO_ENVIO_LABEL } from "@/lib/constants";
@@ -33,6 +34,7 @@ import type { PedidoListItem, TipoEnvio } from "@/types/pedido";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EstadoBadge } from "@/components/pedidos/EstadoBadge";
+import { PagoBadge } from "@/components/pedidos/PagoBadge";
 
 /* ---------- helpers de fecha y rango ---------- */
 type Periodo = "hoy" | "semana" | "mes" | "anio";
@@ -75,8 +77,11 @@ function enRango(p: PedidoListItem, desde: string, hasta: string): boolean {
   return f >= desde && f <= hasta;
 }
 
+// Solo los pedidos con pago LIQUIDADO cuentan como ingreso.
 const sumar = (lista: PedidoListItem[]) =>
-  lista.reduce((s, p) => s + p.costo_importacion_usd, 0);
+  lista
+    .filter((p) => p.estado_pago === "liquidado")
+    .reduce((s, p) => s + p.costo_importacion_usd, 0);
 
 /* ---------- página ---------- */
 export default function FinanzasPage() {
@@ -88,6 +93,7 @@ export default function FinanzasPage() {
   const [loading, setLoading] = useState(true);
   const [periodo, setPeriodo] = useState<Periodo>("mes");
   const [exportando, setExportando] = useState(false);
+  const [liquidandoId, setLiquidandoId] = useState<number | null>(null);
 
   // Carga inicial: todos los pedidos (fuente de KPIs, tabla y desglose).
   useEffect(() => {
@@ -134,6 +140,7 @@ export default function FinanzasPage() {
     // Mejor mes del año (por ingresos).
     const porMes = new Map<number, number>();
     for (const p of delAnio) {
+      if (p.estado_pago !== "liquidado") continue;
       const m = Number(p.creado_en.slice(5, 7)) - 1;
       porMes.set(m, (porMes.get(m) ?? 0) + p.costo_importacion_usd);
     }
@@ -190,6 +197,23 @@ export default function FinanzasPage() {
       toast.error(getApiErrorMessage(e, "No se pudo exportar"));
     } finally {
       setExportando(false);
+    }
+  }
+
+  // Liquidar el pago de un pedido desde la tabla (recién ahí cuenta como ingreso).
+  async function liquidar(p: PedidoListItem) {
+    setLiquidandoId(p.id);
+    try {
+      await cambiarEstadoPago(p.id, "liquidado");
+      setPedidos((prev) =>
+        prev.map((x) => (x.id === p.id ? { ...x, estado_pago: "liquidado" } : x))
+      );
+      fetchSerie(); // el ingreso del gráfico se recalcula
+      toast.success(`Pago de ${p.num_orden} liquidado`);
+    } catch (e) {
+      toast.error(getApiErrorMessage(e, "No se pudo liquidar"));
+    } finally {
+      setLiquidandoId(null);
     }
   }
 
@@ -356,18 +380,19 @@ export default function FinanzasPage() {
                       <th className="px-4 py-2 text-right font-medium">Valor</th>
                       <th className="px-4 py-2 text-right font-medium">Costo</th>
                       <th className="px-4 py-2 font-medium">Estado</th>
+                      <th className="px-4 py-2 font-medium">Pago</th>
                     </tr>
                   </thead>
                   <tbody>
                     {loading ? (
                       <tr>
-                        <td colSpan={6} className="px-4 py-10 text-center">
+                        <td colSpan={7} className="px-4 py-10 text-center">
                           <Loader2 className="mx-auto h-5 w-5 animate-spin text-primary" />
                         </td>
                       </tr>
                     ) : detalle.length === 0 ? (
                       <tr>
-                        <td colSpan={6} className="px-4 py-10 text-center text-on-surface-muted">
+                        <td colSpan={7} className="px-4 py-10 text-center text-on-surface-muted">
                           Sin ingresos registrados.
                         </td>
                       </tr>
@@ -390,6 +415,26 @@ export default function FinanzasPage() {
                           </td>
                           <td className="px-4 py-2.5">
                             <EstadoBadge estado={p.estado} />
+                          </td>
+                          <td className="px-4 py-2.5">
+                            {p.estado_pago === "liquidado" ? (
+                              <PagoBadge estado="liquidado" />
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => liquidar(p)}
+                                disabled={liquidandoId === p.id}
+                                className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-700 transition-colors hover:bg-amber-200 disabled:opacity-50"
+                                title="Marcar como liquidado"
+                              >
+                                {liquidandoId === p.id ? (
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                ) : (
+                                  <CheckCircle2 className="h-3 w-3" />
+                                )}
+                                Liquidar
+                              </button>
+                            )}
                           </td>
                         </tr>
                       ))
