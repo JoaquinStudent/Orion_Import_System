@@ -17,6 +17,8 @@ import type { Comunidad } from "@/types/comunidad";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { UsuariosAdmin } from "@/components/usuarios/UsuariosAdmin";
+import { WhatsappConfig } from "@/components/config/WhatsappConfig";
 
 export default function ConfiguracionPage() {
   const { usuario, loading: authLoading } = useAuth();
@@ -103,11 +105,25 @@ export default function ConfiguracionPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <div className="mx-auto max-w-4xl space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-primary">Configuración</h1>
         <p className="text-sm text-on-surface-variant">
-          Catálogo de comunidades que se usan al registrar un pedido.
+          Gestioná el acceso del equipo, el WhatsApp de atención y las comunidades.
+        </p>
+      </div>
+
+      {/* Usuarios del sistema */}
+      <UsuariosAdmin />
+
+      {/* WhatsApp de atención */}
+      <WhatsappConfig />
+
+      {/* Comunidades */}
+      <div>
+        <h2 className="mb-1 text-base font-semibold text-foreground">Comunidades</h2>
+        <p className="mb-3 text-sm text-on-surface-variant">
+          Catálogo que se usa al registrar un pedido.
         </p>
       </div>
 

@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface PedidoRepository extends JpaRepository<Pedido, Long> {
 
@@ -16,6 +17,9 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
 
     /** Pedidos creados dentro de un rango (para el resumen de finanzas). */
     List<Pedido> findByCreadoEnBetween(LocalDateTime desde, LocalDateTime hasta);
+
+    /** Rastreo público: valida tracking + orden juntos. */
+    Optional<Pedido> findByNumTrackingAndNumOrden(String numTracking, String numOrden);
 
     boolean existsByNumOrden(String numOrden);
 

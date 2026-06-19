@@ -2,7 +2,8 @@ import { http, HttpResponse } from "msw";
 import type { Usuario } from "@/types/usuario";
 import type { EstadoInput } from "@/types/estado";
 import type { Pedido, PedidoInput, PedidoListItem } from "@/types/pedido";
-import { comunidades, config, estados, nextId, pedidos, toEstadoRef } from "@/mocks/db";
+import { comunidades, config, estados, nextId, pedidos, toEstadoRef, usuarios } from "@/mocks/db";
+import type { Permiso, Rol } from "@/types/usuario";
 
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080/api/v1";
 
@@ -627,6 +628,86 @@ const comunidadHandlers = [
   }),
 ];
 
+/* ------------------------------------------------------------------ */
+/* Usuarios y permisos (solo ADMIN) + config general                  */
+/* ------------------------------------------------------------------ */
+
+function toUsuarioAdmin(u: (typeof usuarios)[number]) {
+  return {
+    id: u.id,
+    nombre: u.nombre,
+    email: u.email,
+    rol: u.rol,
+    avatar_color: u.avatar_color,
+    activo: u.activo,
+    permisos: u.permisos,
+  };
+}
+
+const usuarioHandlers = [
+  // GET /usuarios
+  http.get(`${BASE}/usuarios`, () => ok(usuarios.map(toUsuarioAdmin))),
+
+  // POST /usuarios — alta de empleado
+  http.post(`${BASE}/usuarios`, async ({ request }) => {
+    const body = (await request.json()) as {
+      nombre?: string;
+      email?: string;
+      rol?: Rol;
+      avatar_color?: string;
+    };
+    if (!body.nombre || !body.email) {
+      return fail("Nombre y email son obligatorios", "VALIDATION", 400);
+    }
+    if (usuarios.some((u) => u.email.toLowerCase() === body.email!.toLowerCase())) {
+      return fail("Ya existe un usuario con ese email", "DUPLICADO", 409);
+    }
+    const nuevo = {
+      id: nextId.usuario(),
+      nombre: body.nombre,
+      email: body.email.toLowerCase(),
+      rol: (body.rol ?? "EMPLEADO") as Rol,
+      avatar_color: body.avatar_color ?? "#1B2A5E",
+      activo: true,
+      permisos: [] as Permiso[],
+    };
+    usuarios.push(nuevo);
+    return ok(toUsuarioAdmin(nuevo), "Usuario creado", 201);
+  }),
+
+  // PUT /usuarios/{id}/permisos
+  http.put(`${BASE}/usuarios/:id/permisos`, async ({ params, request }) => {
+    const u = usuarios.find((x) => x.id === Number(params.id));
+    if (!u) return fail("Usuario no encontrado", "NO_ENCONTRADO", 404);
+    const body = (await request.json()) as { permisos?: Permiso[] };
+    u.permisos = body.permisos ?? [];
+    return ok(null, "Permisos actualizados");
+  }),
+
+  // PATCH /usuarios/{id}/estado
+  http.patch(`${BASE}/usuarios/:id/estado`, async ({ params, request }) => {
+    const u = usuarios.find((x) => x.id === Number(params.id));
+    if (!u) return fail("Usuario no encontrado", "NO_ENCONTRADO", 404);
+    const body = (await request.json()) as { activo?: boolean };
+    u.activo = Boolean(body.activo);
+    return ok(toUsuarioAdmin(u), "Estado actualizado");
+  }),
+
+  // PUT /admin/config — config general (WhatsApp de atención, nombre)
+  http.put(`${BASE}/admin/config`, async ({ request }) => {
+    const body = (await request.json()) as {
+      whatsapp_atencion?: string;
+      nombre_negocio?: string;
+    };
+    if (body.whatsapp_atencion != null) config.whatsapp_atencion = body.whatsapp_atencion;
+    if (body.nombre_negocio != null) config.nombre_negocio = body.nombre_negocio;
+    return ok(
+      { whatsapp_atencion: config.whatsapp_atencion, nombre_negocio: config.nombre_negocio },
+      "Configuración actualizada"
+    );
+  }),
+];
+
 export const handlers = [
   ...authHandlers,
   ...pedidoHandlers,
@@ -635,4 +716,5 @@ export const handlers = [
   ...finanzasHandlers,
   ...rastreoHandlers,
   ...comunidadHandlers,
+  ...usuarioHandlers,
 ];

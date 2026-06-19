@@ -33,3 +33,24 @@ export interface LoginResponse {
   token: string;
   usuario: Usuario;
 }
+
+/** Usuario en el listado de administración (GET /usuarios). */
+export interface UsuarioAdmin {
+  id: number;
+  nombre: string;
+  email: string;
+  rol: Rol;
+  avatar_color?: string;
+  activo: boolean;
+  /** Permisos por módulo (para precargar el drawer de permisos). */
+  permisos?: Permiso[];
+}
+
+/** Alta de empleado (POST /usuarios). `password_temporal` es la clave inicial. */
+export interface CrearUsuarioInput {
+  nombre: string;
+  email: string;
+  rol: Rol;
+  password_temporal: string;
+  avatar_color?: string;
+}

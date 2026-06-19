@@ -1,6 +1,7 @@
 import type { Estado, EstadoRef } from "@/types/estado";
 import type { EstadoPago, Pedido } from "@/types/pedido";
 import type { Comunidad } from "@/types/comunidad";
+import type { Permiso, Rol } from "@/types/usuario";
 
 /**
  * "Base de datos" en memoria para los mocks MSW.
@@ -182,17 +183,57 @@ function demo(
   ];
 }
 
+/** Usuarios del sistema (gestión admin). Incluye permisos por módulo. */
+export interface UsuarioMock {
+  id: number;
+  nombre: string;
+  email: string;
+  rol: Rol;
+  avatar_color: string;
+  activo: boolean;
+  permisos: Permiso[];
+}
+
+export const usuarios: UsuarioMock[] = [
+  {
+    id: 1,
+    nombre: "Joaquín Rodríguez",
+    email: "joaquin@orionlogistic.com",
+    rol: "ADMIN",
+    avatar_color: "#D4AF37",
+    activo: true,
+    permisos: [], // ADMIN → acceso total implícito
+  },
+  {
+    id: 2,
+    nombre: "José Salinas",
+    email: "jose@orionlogistic.com",
+    rol: "EMPLEADO",
+    avatar_color: "#1B2A5E",
+    activo: true,
+    permisos: [
+      { modulo: "pedidos", puede_ver: true, puede_editar: true },
+      { modulo: "tablero", puede_ver: true, puede_editar: true },
+      { modulo: "finanzas", puede_ver: false, puede_editar: false },
+      { modulo: "cotizador", puede_ver: true, puede_editar: false },
+      { modulo: "configuracion", puede_ver: false, puede_editar: false },
+    ],
+  },
+];
+
 /** Generadores de IDs incrementales (arrancan por encima de lo sembrado). */
 let nextEstadoId = 6;
 let nextPedidoId = 17;
 let nextProductoId = 8;
 let nextComunidadId = 4;
+let nextUsuarioId = 3;
 
 export const nextId = {
   estado: () => nextEstadoId++,
   pedido: () => nextPedidoId++,
   producto: () => nextProductoId++,
   comunidad: () => nextComunidadId++,
+  usuario: () => nextUsuarioId++,
 };
 
 /**
