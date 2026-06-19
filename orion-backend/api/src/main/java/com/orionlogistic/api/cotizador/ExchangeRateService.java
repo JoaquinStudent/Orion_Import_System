@@ -1,6 +1,7 @@
 package com.orionlogistic.api.cotizador;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -14,6 +15,7 @@ import java.time.Instant;
  * Refresca como mucho cada {@link #TTL}; si la API falla (o no hay key) usa un
  * valor de fallback configurable para que el cotizador nunca se rompa.
  */
+@Slf4j
 @Service
 public class ExchangeRateService {
 
@@ -56,8 +58,13 @@ public class ExchangeRateService {
         } catch (Exception e) {
             // Si nunca tuvimos un valor, caemos al fallback; si teníamos uno viejo, lo mantenemos.
             if (rate == null) {
+                log.warn("ExchangeRate-API no disponible; usando fallback USD/PEN={}: {}",
+                        fallback, e.getMessage());
                 rate = fallback;
                 fetchedAt = Instant.now();
+            } else {
+                log.warn("ExchangeRate-API no disponible; manteniendo último valor USD/PEN={}: {}",
+                        rate, e.getMessage());
             }
         }
     }
