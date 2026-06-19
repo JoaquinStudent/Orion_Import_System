@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
-import { clearSession, getUsuario } from "@/lib/auth";
+import { clearSession, getUsuario, setUsuario as persistUsuario } from "@/lib/auth";
+import { obtenerMe } from "@/lib/services/usuarios";
 import type { Usuario } from "@/types/usuario";
 
 /**
@@ -16,8 +17,19 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setUsuario(getUsuario());
+    const cacheado = getUsuario();
+    setUsuario(cacheado);
     setLoading(false);
+    // Refresca permisos contra el backend (la cookie del login queda stale si un
+    // ADMIN cambia permisos). Fallo silencioso: el interceptor ya maneja el 401.
+    if (cacheado) {
+      obtenerMe()
+        .then((fresco) => {
+          persistUsuario(fresco);
+          setUsuario(fresco);
+        })
+        .catch(() => {});
+    }
   }, []);
 
   const logout = useCallback(async () => {

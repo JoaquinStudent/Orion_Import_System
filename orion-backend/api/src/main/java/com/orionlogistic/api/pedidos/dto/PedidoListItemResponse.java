@@ -20,6 +20,7 @@ public class PedidoListItemResponse {
     private BigDecimal costoImportacionUsd;
     private String tipoEnvio;
     private EstadoRefDto estado;
+    private String estadoPago;
     private LocalDateTime creadoEn;
 
     public static PedidoListItemResponse from(Pedido p) {
@@ -33,6 +34,7 @@ public class PedidoListItemResponse {
                 p.getCostoImportacionUsd(),
                 p.getTipoEnvio(),
                 EstadoRefDto.from(p.getEstado()),
+                p.getEstadoPago(),
                 p.getCreadoEn());
     }
 }

@@ -40,7 +40,7 @@ CREATE TABLE usuarios (
     avatar_color      VARCHAR(7)   DEFAULT '#1B2A5E',
     activo            BOOLEAN      DEFAULT true,
     password_temporal BOOLEAN      DEFAULT true,
-    creado_en         TIMESTAMP    DEFAULT now()
+    creado_en         TIMESTAMPTZ  DEFAULT now()
 );
 
 -- ---------- Bloque 2: tablas con FK ----------
@@ -70,12 +70,25 @@ CREATE TABLE pedidos (
     firma                 VARCHAR(150),
     valor_usd             NUMERIC(10,2)  DEFAULT 0,
     costo_importacion_usd NUMERIC(10,2)  NOT NULL,
-    estado_id             BIGINT         REFERENCES estados(id),
+    estado_id             BIGINT         REFERENCES estados(id) ON DELETE SET NULL,
     tipo_envio            VARCHAR(30)    CHECK (tipo_envio IN ('almacen','lima','shalom')),
-    creado_por            BIGINT         REFERENCES usuarios(id),
-    creado_en             TIMESTAMP      DEFAULT now(),
-    actualizado_en        TIMESTAMP
+    estado_pago           VARCHAR(20)    NOT NULL DEFAULT 'pendiente'
+                                         CHECK (estado_pago IN ('pendiente','liquidado')),
+    creado_por            BIGINT         REFERENCES usuarios(id) ON DELETE SET NULL,
+    creado_en             TIMESTAMPTZ    DEFAULT now(),
+    actualizado_en        TIMESTAMPTZ
 );
+
+-- Catálogo de comunidades (combobox del alta de pedido)
+DROP TABLE IF EXISTS comunidades CASCADE;
+CREATE TABLE comunidades (
+    id     BIGSERIAL    PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL UNIQUE,
+    activo BOOLEAN      DEFAULT true
+);
+INSERT INTO comunidades (nombre) VALUES
+    ('Comunidad Norte'), ('Comunidad Centro'), ('Comunidad Sur')
+ON CONFLICT (nombre) DO NOTHING;
 
 -- Script 06 — productos (FK → pedidos)
 DROP TABLE IF EXISTS productos CASCADE;
@@ -94,6 +107,21 @@ CREATE INDEX idx_pedidos_tracking ON pedidos(num_tracking);
 CREATE INDEX idx_pedidos_orden    ON pedidos(num_orden);
 CREATE INDEX idx_pedidos_estado   ON pedidos(estado_id);
 CREATE INDEX idx_pedidos_fecha    ON pedidos(creado_en);
+
+-- ---------- Bloque 3.5: seguridad (Row Level Security) ----------
+
+-- Habilita RLS en todas las tablas. SIN políticas permisivas, queda default-deny:
+-- la API REST/anon de Supabase (PostgREST) no puede leer ni escribir nada
+-- (importante: usuarios.password_hash deja de ser accesible vía anon key).
+-- El backend Java se conecta con el rol owner/service_role, que BYPASEA RLS,
+-- así que mantiene acceso total. Si algún día el front llama a Supabase con la
+-- anon key, agregar políticas explícitas por tabla aquí.
+ALTER TABLE estados       ENABLE ROW LEVEL SECURITY;
+ALTER TABLE configuracion ENABLE ROW LEVEL SECURITY;
+ALTER TABLE usuarios      ENABLE ROW LEVEL SECURITY;
+ALTER TABLE permisos      ENABLE ROW LEVEL SECURITY;
+ALTER TABLE pedidos       ENABLE ROW LEVEL SECURITY;
+ALTER TABLE productos     ENABLE ROW LEVEL SECURITY;
 
 -- ---------- Bloque 4: datos iniciales (seed) ----------
 
@@ -117,6 +145,13 @@ ON CONFLICT (clave) DO UPDATE SET valor = EXCLUDED.valor;
 
 -- Script 10 — usuario administrador inicial
 -- password: admin123  (hash BCrypt strength 10, generado con spring-security-crypto)
+--
+-- ⚠️ SOLO PARA DESARROLLO LOCAL. Esta credencial es pública (está en el repo).
+-- NO usar este seed en producción: antes de exponer la app, crear el admin real
+-- con una contraseña fuerte y password_temporal=true, p. ej.:
+--   INSERT INTO usuarios (nombre, email, password_hash, rol, avatar_color, activo, password_temporal)
+--   VALUES ('<nombre>', '<email>', '<bcrypt-de-password-fuerte>', 'ADMIN', '#D4AF37', true, true);
+-- y borrar/desactivar el usuario joaquin@orionlogistic.com.
 INSERT INTO usuarios (
     nombre,
     email,

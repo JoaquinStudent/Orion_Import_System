@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { LogOut, Compass } from "lucide-react";
+import { LogOut } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { NAV_ITEMS, getIniciales } from "@/lib/constants";
+import { puedeVer } from "@/lib/permisos";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import type { Usuario } from "@/types/usuario";
 
@@ -27,16 +29,22 @@ export function SidebarNav({
   return (
     <div className="flex h-full w-full flex-col bg-navy text-white">
       {/* Logo / marca */}
-      <div className="flex items-center gap-2 px-6 py-5">
-        <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gold text-navy">
-          <Compass className="h-5 w-5" />
-        </span>
-        <span className="text-lg font-bold tracking-tight">Orión Logistic</span>
+      <div className="px-5 py-5">
+        <Image
+          src="/logo-horizontal-white.svg"
+          alt="Orión Logistic"
+          width={220}
+          height={56}
+          className="h-14 w-auto"
+          priority
+        />
       </div>
 
       {/* Navegación */}
       <nav className="flex-1 space-y-1 px-3 py-2">
-        {NAV_ITEMS.map((item) => {
+        {NAV_ITEMS.filter(
+          (item) => !item.modulo || puedeVer(usuario, item.modulo)
+        ).map((item) => {
           const active =
             pathname === item.href || pathname.startsWith(`${item.href}/`);
           const Icon = item.icon;

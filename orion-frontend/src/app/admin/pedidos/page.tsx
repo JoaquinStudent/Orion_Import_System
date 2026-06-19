@@ -126,7 +126,7 @@ export default function PedidosPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-outline-variant bg-surface-container text-left text-xs uppercase tracking-wide text-on-surface-variant">
-                <th className="px-4 py-3 font-medium">Orden / Tracking</th>
+                <th className="px-4 py-3 font-medium">Tracking / Orden</th>
                 <th className="px-4 py-3 font-medium">Titular</th>
                 <th className="px-4 py-3 font-medium">Estado</th>
                 <th className="px-4 py-3 font-medium">Envío</th>
@@ -156,8 +156,8 @@ export default function PedidosPage() {
                     className="border-b border-outline-variant/60 last:border-0 hover:bg-surface-container-low"
                   >
                     <td className="px-4 py-3">
-                      <div className="font-medium text-foreground">{p.num_orden}</div>
-                      <div className="text-xs text-on-surface-muted">{p.num_tracking}</div>
+                      <div className="font-medium text-foreground">{p.num_tracking}</div>
+                      <div className="text-xs text-on-surface-muted">{p.num_orden}</div>
                     </td>
                     <td className="px-4 py-3 text-foreground">{p.titular}</td>
                     <td className="px-4 py-3">

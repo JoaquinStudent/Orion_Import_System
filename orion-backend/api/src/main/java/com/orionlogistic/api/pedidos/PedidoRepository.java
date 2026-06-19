@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface PedidoRepository extends JpaRepository<Pedido, Long> {
 
@@ -16,6 +17,24 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
 
     /** Pedidos creados dentro de un rango (para el resumen de finanzas). */
     List<Pedido> findByCreadoEnBetween(LocalDateTime desde, LocalDateTime hasta);
+
+    /* ---- Conteos para el resumen del dashboard (GET /dashboard/resumen) ---- */
+
+    /** Pedidos creados en un rango (p. ej. "hoy"). */
+    long countByCreadoEnBetween(LocalDateTime desde, LocalDateTime hasta);
+
+    /** Pedidos en un estado dado (por nombre del estado). */
+    long countByEstadoNombre(String nombre);
+
+    /** Pedidos en un estado dado y creados dentro de un rango (p. ej. entregados del mes). */
+    long countByEstadoNombreAndCreadoEnBetween(
+            String nombre, LocalDateTime desde, LocalDateTime hasta);
+
+    /** Los 6 pedidos más recientes (tarjeta "Últimos pedidos" del dashboard). */
+    List<Pedido> findTop6ByOrderByCreadoEnDesc();
+
+    /** Rastreo público: valida tracking + orden juntos. */
+    Optional<Pedido> findByNumTrackingAndNumOrden(String numTracking, String numOrden);
 
     boolean existsByNumOrden(String numOrden);
 

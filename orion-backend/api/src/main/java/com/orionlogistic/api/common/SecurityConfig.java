@@ -1,5 +1,6 @@
 package com.orionlogistic.api.common;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.orionlogistic.api.auth.JwtAuthFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -22,6 +23,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
+    private final ObjectMapper objectMapper;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -61,6 +63,13 @@ public class SecurityConfig {
                         // Todo lo demás requiere auth
                         .anyRequest().authenticated()
                 )
+                // Respuestas de auth/permiso conformes al contrato ApiResponse
+                // (antes Spring devolvía un 401/403 "pelado" sin envelope).
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(
+                                new RestAuthenticationEntryPoint(objectMapper))
+                        .accessDeniedHandler(
+                                new RestAccessDeniedHandler(objectMapper)))
                 .addFilterBefore(jwtAuthFilter,
                         UsernamePasswordAuthenticationFilter.class);
 

@@ -1,14 +1,17 @@
-import { Compass } from "lucide-react";
+import Image from "next/image";
 
 /** Footer de las páginas públicas. */
 export function PublicFooter() {
   return (
     <footer className="mt-16 border-t border-outline-variant bg-surface-container-low">
       <div className="container mx-auto flex flex-col items-center gap-2 px-4 py-8 text-center">
-        <div className="flex items-center gap-2">
-          <Compass className="h-5 w-5 text-primary" />
-          <span className="font-semibold text-primary">Orión Logistic</span>
-        </div>
+        <Image
+          src="/logo.svg"
+          alt="Orión Logistic"
+          width={188}
+          height={128}
+          className="h-32 w-auto"
+        />
         <p className="text-sm text-on-surface-variant">
           Importaciones desde EE.UU. con seguimiento de punta a punta.
         </p>

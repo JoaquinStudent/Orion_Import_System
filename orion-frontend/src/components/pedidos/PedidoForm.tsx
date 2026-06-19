@@ -11,9 +11,11 @@ import axios from "axios";
 import { Plus, Trash2, Loader2, Save } from "lucide-react";
 
 import { listarEstados } from "@/lib/services/estados";
+import { listarComunidades } from "@/lib/services/comunidades";
 import { getApiErrorMessage } from "@/lib/api";
 import { TIPO_ENVIO_LABEL } from "@/lib/constants";
 import type { Estado } from "@/types/estado";
+import type { Comunidad } from "@/types/comunidad";
 import type { Pedido, PedidoInput } from "@/types/pedido";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -49,8 +51,7 @@ const schema = z.object({
     .refine((v) => v === "" || (!isNaN(Number(v)) && Number(v) >= 0), "Monto inválido"),
   costo_importacion_usd: z
     .string()
-    .min(1, "Obligatorio")
-    .refine((v) => !isNaN(Number(v)) && Number(v) > 0, "Debe ser mayor a 0"),
+    .refine((v) => v === "" || (!isNaN(Number(v)) && Number(v) >= 0), "Monto inválido"),
   tipo_envio: z.enum(["", "almacen", "lima", "shalom"]),
   estado_id: z.string(),
   productos: z.array(productoSchema),
@@ -90,7 +91,9 @@ function toFormValues(pedido?: Pedido): FormValues {
     num_tracking: pedido.num_tracking,
     whatsapp: pedido.whatsapp,
     valor_usd: String(pedido.valor_usd),
-    costo_importacion_usd: String(pedido.costo_importacion_usd),
+    costo_importacion_usd: pedido.costo_importacion_usd
+      ? String(pedido.costo_importacion_usd)
+      : "",
     tipo_envio: pedido.tipo_envio ?? "",
     estado_id: String(pedido.estado.id),
     productos: pedido.productos.length
@@ -116,6 +119,7 @@ export interface PedidoFormProps {
 export function PedidoForm({ pedido, mode, onSubmit, cancelHref }: PedidoFormProps) {
   const router = useRouter();
   const [estados, setEstados] = useState<Estado[]>([]);
+  const [comunidades, setComunidades] = useState<Comunidad[]>([]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -140,6 +144,7 @@ export function PedidoForm({ pedido, mode, onSubmit, cancelHref }: PedidoFormPro
       .catch(() => {
         /* sin estados, el back asignará el de menor orden por defecto */
       });
+    listarComunidades().then(setComunidades).catch(() => {});
   }, [form]);
 
   async function handleSubmit(values: FormValues) {
@@ -152,7 +157,9 @@ export function PedidoForm({ pedido, mode, onSubmit, cancelHref }: PedidoFormPro
       num_tracking: values.num_tracking.trim(),
       whatsapp: values.whatsapp.trim(),
       valor_usd: values.valor_usd ? Number(values.valor_usd) : 0,
-      costo_importacion_usd: Number(values.costo_importacion_usd),
+      costo_importacion_usd: values.costo_importacion_usd
+        ? Number(values.costo_importacion_usd)
+        : null,
       tipo_envio: values.tipo_envio || null,
       estado_id: values.estado_id ? Number(values.estado_id) : undefined,
       productos: values.productos.map((p) => ({
@@ -189,7 +196,26 @@ export function PedidoForm({ pedido, mode, onSubmit, cancelHref }: PedidoFormPro
           </CardHeader>
           <CardContent className="grid gap-4 sm:grid-cols-2">
             <TextField control={form.control} name="titular" label="Titular *" placeholder="Nombre del titular" />
-            <TextField control={form.control} name="comunidad" label="Comunidad" placeholder="Comunidad (opcional)" />
+            <FormField
+              control={form.control}
+              name="comunidad"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Comunidad</FormLabel>
+                  <FormControl>
+                    <select {...field} className={selectClass}>
+                      <option value="">Sin especificar</option>
+                      {comunidades.map((c) => (
+                        <option key={c.id} value={c.nombre}>
+                          {c.nombre}
+                        </option>
+                      ))}
+                    </select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <TextField control={form.control} name="consignatario" label="Consignatario" placeholder="Quien recibe (opcional)" />
             <TextField control={form.control} name="firma" label="Firma" placeholder="Firma (opcional)" />
             <TextField control={form.control} name="whatsapp" label="WhatsApp *" placeholder="+51999999999" type="tel" />
@@ -215,8 +241,8 @@ export function PedidoForm({ pedido, mode, onSubmit, cancelHref }: PedidoFormPro
             <TextField
               control={form.control}
               name="costo_importacion_usd"
-              label="Costo de importación (USD) *"
-              placeholder="0.00"
+              label="Costo de importación (USD)"
+              placeholder="Se carga al llegar al almacén"
               type="number"
             />
 

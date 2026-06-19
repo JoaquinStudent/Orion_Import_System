@@ -9,9 +9,17 @@ export async function listarEstados(): Promise<Estado[]> {
   return data.data;
 }
 
-/** GET /tablero — columnas del kanban (estado + sus pedidos). */
-export async function obtenerTablero(): Promise<TableroColumna[]> {
-  const { data } = await api.get<ApiResponse<TableroColumna[]>>("/tablero");
+/**
+ * GET /tablero — columnas del kanban (estado + sus pedidos).
+ * Por defecto el backend oculta los entregados ya archivados (config
+ * `dias_archivo_entregados`); con `incluirArchivados` se traen todos.
+ */
+export async function obtenerTablero(
+  incluirArchivados = false
+): Promise<TableroColumna[]> {
+  const { data } = await api.get<ApiResponse<TableroColumna[]>>("/tablero", {
+    params: incluirArchivados ? { incluir_archivados: true } : undefined,
+  });
   return data.data;
 }
 

@@ -1,6 +1,6 @@
 import { api } from "@/lib/api";
 import type { ApiResponse } from "@/types/api";
-import type { FinanzasQuery, FinanzasResumen } from "@/types/finanzas";
+import type { FinanzasKpis, FinanzasQuery, FinanzasResumen } from "@/types/finanzas";
 
 /** GET /finanzas/resumen — admin (permiso finanzas.ver). */
 export async function obtenerResumen(
@@ -10,6 +10,12 @@ export async function obtenerResumen(
     "/finanzas/resumen",
     { params: query }
   );
+  return data.data;
+}
+
+/** GET /finanzas/kpis — tarjetas KPI server-side (permiso finanzas.ver). */
+export async function obtenerKpis(): Promise<FinanzasKpis> {
+  const { data } = await api.get<ApiResponse<FinanzasKpis>>("/finanzas/kpis");
   return data.data;
 }
 
