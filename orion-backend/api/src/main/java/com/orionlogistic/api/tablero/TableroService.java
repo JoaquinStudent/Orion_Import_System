@@ -4,7 +4,6 @@ import com.orionlogistic.api.common.PermisoChecker;
 import com.orionlogistic.api.configuracion.ConfiguracionService;
 import com.orionlogistic.api.estados.Estado;
 import com.orionlogistic.api.estados.EstadoRepository;
-import com.orionlogistic.api.pedidos.Pedido;
 import com.orionlogistic.api.pedidos.PedidoRepository;
 import com.orionlogistic.api.tablero.dto.TableroColumnaResponse;
 import com.orionlogistic.api.tablero.dto.TableroPedidoCardDto;
@@ -35,29 +34,22 @@ public class TableroService {
         permisoChecker.exigirVer(usuario, MODULO);
 
         // Excluir entregados archivados (estado final + entregado hace más de N días) para
-        // que la columna "Entregado" no crezca sin límite (doc 05d.4).
+        // que la columna "Entregado" no crezca sin límite (doc 05d.4). El filtro se hace en
+        // la BD (findParaTablero) para no traer a memoria los entregados viejos.
         Estado estadoFinal = estadoRepository.findFirstByOrderByOrdenDesc().orElse(null);
+        Long finalEstadoId = estadoFinal != null ? estadoFinal.getId() : null;
         LocalDateTime cutoff = LocalDateTime.now().minusDays(
                 configuracionService.getInt(ConfiguracionService.DIAS_ARCHIVO_ENTREGADOS, 7));
 
-        Map<Long, List<TableroPedidoCardDto>> porEstado = pedidoRepository.findAll().stream()
-                .filter(p -> p.getEstado() != null)
-                .filter(p -> !esArchivado(p, estadoFinal, cutoff))
-                .collect(Collectors.groupingBy(
-                        p -> p.getEstado().getId(),
-                        Collectors.mapping(TableroPedidoCardDto::from, Collectors.toList())));
+        Map<Long, List<TableroPedidoCardDto>> porEstado =
+                pedidoRepository.findParaTablero(finalEstadoId, cutoff).stream()
+                        .collect(Collectors.groupingBy(
+                                p -> p.getEstado().getId(),
+                                Collectors.mapping(TableroPedidoCardDto::from, Collectors.toList())));
 
         return estadoRepository.findAllByOrderByOrdenAsc().stream()
                 .map(e -> columna(e, porEstado))
                 .toList();
-    }
-
-    /** ¿El pedido está archivado? (en el estado final y entregado antes del cutoff). */
-    private boolean esArchivado(Pedido p, Estado estadoFinal, LocalDateTime cutoff) {
-        return estadoFinal != null
-                && estadoFinal.getId().equals(p.getEstado().getId())
-                && p.getEntregadoEn() != null
-                && p.getEntregadoEn().isBefore(cutoff);
     }
 
     private TableroColumnaResponse columna(

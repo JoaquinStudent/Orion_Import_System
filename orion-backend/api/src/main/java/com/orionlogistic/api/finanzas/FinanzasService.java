@@ -86,58 +86,34 @@ public class FinanzasService {
                 .toList();
     }
 
-    /** KPIs financieros del panel (ingresos liquidados por ventana + mejor mes del año). */
+    /**
+     * KPIs financieros del panel (ingresos liquidados por ventana + mejor mes del año).
+     * Las sumas/conteos se agregan en la BD (no se cargan listas a memoria) para que el
+     * cálculo no se degrade a medida que crece el histórico de pedidos.
+     */
     @Transactional(readOnly = true)
     public FinanzasKpisResponse kpis(Usuario usuario) {
         permisoChecker.exigirVer(usuario, MODULO);
 
         LocalDate hoy = LocalDate.now();
-        LocalDate ayer = hoy.minusDays(1);
-        LocalDate inicioMes = hoy.withDayOfMonth(1);
-        LocalDate inicioAnio = hoy.withDayOfYear(1);
+        LocalDateTime inicioHoy = hoy.atStartOfDay();
+        LocalDateTime finHoy = hoy.atTime(23, 59, 59);
+        LocalDateTime inicioAyer = hoy.minusDays(1).atStartOfDay();
+        LocalDateTime finAyer = hoy.minusDays(1).atTime(23, 59, 59);
+        LocalDateTime inicioMes = hoy.withDayOfMonth(1).atStartOfDay();
+        LocalDateTime inicioAnio = hoy.withDayOfYear(1).atStartOfDay();
 
-        List<Pedido> delAnio = pedidosEnRango(inicioAnio.toString(), hoy.toString());
-        List<Pedido> delMes = pedidosEnRango(inicioMes.toString(), hoy.toString());
-
-        BigDecimal ingresoHoy = ingresoLiquidadoEntre(delMes, hoy, hoy);
-        BigDecimal ingresoAyer = ingresoLiquidadoEntre(delMes, ayer, ayer);
-        BigDecimal ingresoMes = ingresoLiquidadoEntre(delMes, inicioMes, hoy);
-        BigDecimal ingresoAnio = ingresoLiquidadoEntre(delAnio, inicioAnio, hoy);
+        BigDecimal ingresoHoy = pedidoRepository.sumIngresoLiquidado(inicioHoy, finHoy);
+        BigDecimal ingresoAyer = pedidoRepository.sumIngresoLiquidado(inicioAyer, finAyer);
+        BigDecimal ingresoMes = pedidoRepository.sumIngresoLiquidado(inicioMes, finHoy);
+        BigDecimal ingresoAnio = pedidoRepository.sumIngresoLiquidado(inicioAnio, finHoy);
+        long pedidosMes = pedidoRepository.countByCreadoEnBetween(inicioMes, finHoy);
+        Integer mejorMes = pedidoRepository.mejorMes(inicioAnio, finHoy)
+                .stream().findFirst().orElse(null);
 
         return new FinanzasKpisResponse(
                 ingresoHoy, ingresoAyer, ingresoMes,
-                delMes.size(), ingresoAnio, mejorMesDelAnio(delAnio));
-    }
-
-    /** Suma de costos de los pedidos LIQUIDADOS cuya fecha de creación cae en [desde, hasta]. */
-    private BigDecimal ingresoLiquidadoEntre(List<Pedido> pedidos, LocalDate desde, LocalDate hasta) {
-        return pedidos.stream()
-                .filter(p -> p.getCreadoEn() != null)
-                .filter(p -> "liquidado".equals(p.getEstadoPago()))
-                .filter(p -> {
-                    LocalDate f = p.getCreadoEn().toLocalDate();
-                    return !f.isBefore(desde) && !f.isAfter(hasta);
-                })
-                .map(p -> p.getCostoImportacionUsd() != null
-                        ? p.getCostoImportacionUsd() : BigDecimal.ZERO)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
-
-    /** Mes (1-12) con mayor ingreso liquidado dentro de la lista, o null si no hay ingresos. */
-    private Integer mejorMesDelAnio(List<Pedido> delAnio) {
-        Map<Integer, BigDecimal> porMes = new LinkedHashMap<>();
-        for (Pedido p : delAnio) {
-            if (p.getCreadoEn() == null || !"liquidado".equals(p.getEstadoPago())) {
-                continue;
-            }
-            BigDecimal costo = p.getCostoImportacionUsd() != null
-                    ? p.getCostoImportacionUsd() : BigDecimal.ZERO;
-            porMes.merge(p.getCreadoEn().getMonthValue(), costo, BigDecimal::add);
-        }
-        return porMes.entrySet().stream()
-                .max(Map.Entry.comparingByValue())
-                .map(Map.Entry::getKey)
-                .orElse(null);
+                pedidosMes, ingresoAnio, mejorMes);
     }
 
     /** Reporte .xlsx de los pedidos del rango (dentro de la tx para el lazy del estado). */
