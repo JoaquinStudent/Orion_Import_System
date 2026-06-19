@@ -211,8 +211,8 @@ function CrearEmpleadoSheet({
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!nombre.trim() || !email.trim() || password.length < 6) {
-      toast.error("Completá nombre, email y una contraseña de al menos 6 caracteres");
+    if (!nombre.trim() || !email.trim() || password.length < 8) {
+      toast.error("Completá nombre, email y una contraseña de al menos 8 caracteres");
       return;
     }
     setSaving(true);
@@ -260,7 +260,7 @@ function CrearEmpleadoSheet({
                 type={verPass ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Mínimo 6 caracteres"
+                placeholder="Mínimo 8 caracteres"
                 className="pr-10"
               />
               <button type="button" onClick={() => setVerPass((v) => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-muted">

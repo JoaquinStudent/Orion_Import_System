@@ -75,6 +75,10 @@ const MOCK_USERS: Record<string, { password: string; usuario: Usuario }> = {
 const FAKE_JWT =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwibW9jayI6dHJ1ZX0.orion-mock-signature";
 
+// Quién está logueado en esta sesión del worker (lo usa GET /auth/me).
+// Se pierde al recargar la página (el worker reinicia) → fallback al ADMIN.
+let sesionActual: Usuario | null = null;
+
 const authHandlers = [
   http.post(`${BASE}/auth/login`, async ({ request }) => {
     const body = (await request.json()) as { email?: string; password?: string };
@@ -83,11 +87,17 @@ const authHandlers = [
     if (!entry || entry.password !== body.password) {
       return fail("Credenciales inválidas", "AUTH_INVALID", 401);
     }
+    sesionActual = entry.usuario;
     return ok(
       { token: FAKE_JWT, usuario: entry.usuario },
       "Inicio de sesión exitoso"
     );
   }),
+
+  // GET /auth/me — usuario autenticado (refresco de permisos).
+  http.get(`${BASE}/auth/me`, () =>
+    ok(sesionActual ?? MOCK_USERS["joaquin@orionlogistic.com"].usuario)
+  ),
 
   http.post(`${BASE}/auth/cambiar-password`, async ({ request }) => {
     const body = (await request.json()) as {
@@ -488,10 +498,61 @@ const finanzasHandlers = [
         ingreso_usd: Number(ingreso_usd.toFixed(2)),
       }));
     const ingresoTotal = liquidados.reduce((s, p) => s + p.costo_importacion_usd, 0);
+
+    // Desglose por tipo de envío (tipo_envio: null = "Sin asignar").
+    const tipos: (Pedido["tipo_envio"])[] = ["almacen", "lima", "shalom", null];
+    const desglose_tipo_envio = tipos
+      .map((t) => ({
+        tipo_envio: t,
+        cantidad: enRango.filter((p) => (p.tipo_envio ?? null) === t).length,
+      }))
+      .filter((x) => x.cantidad > 0);
+
     return ok({
       ingreso_total_usd: Number(ingresoTotal.toFixed(2)),
       total_pedidos: enRango.length,
       serie,
+      desglose_tipo_envio,
+    });
+  }),
+
+  // GET /finanzas/kpis — tarjetas KPI server-side. Ingresos = solo liquidado.
+  http.get(`${BASE}/finanzas/kpis`, () => {
+    const dia = (iso: string) => iso.slice(0, 10);
+    const hoyStr = new Date().toISOString().slice(0, 10);
+    const ayer = new Date();
+    ayer.setDate(ayer.getDate() - 1);
+    const ayerStr = ayer.toISOString().slice(0, 10);
+    const mesStr = hoyStr.slice(0, 7);
+    const anioStr = hoyStr.slice(0, 4);
+
+    const liquidados = pedidos.filter((p) => p.estado_pago === "liquidado");
+    const suma = (lista: Pedido[]) =>
+      lista.reduce((s, p) => s + p.costo_importacion_usd, 0);
+
+    // Mejor mes del año por ingreso liquidado.
+    const porMes = new Map<number, number>();
+    for (const p of liquidados) {
+      if (dia(p.creado_en).slice(0, 4) !== anioStr) continue;
+      const m = Number(p.creado_en.slice(5, 7));
+      porMes.set(m, (porMes.get(m) ?? 0) + p.costo_importacion_usd);
+    }
+    let mejor_mes: number | null = null;
+    let max = -1;
+    porMes.forEach((monto, m) => {
+      if (monto > max) {
+        max = monto;
+        mejor_mes = m;
+      }
+    });
+
+    return ok({
+      ingreso_hoy_usd: Number(suma(liquidados.filter((p) => dia(p.creado_en) === hoyStr)).toFixed(2)),
+      ingreso_ayer_usd: Number(suma(liquidados.filter((p) => dia(p.creado_en) === ayerStr)).toFixed(2)),
+      ingreso_mes_usd: Number(suma(liquidados.filter((p) => dia(p.creado_en).slice(0, 7) === mesStr)).toFixed(2)),
+      pedidos_mes: pedidos.filter((p) => dia(p.creado_en).slice(0, 7) === mesStr).length,
+      ingreso_anio_usd: Number(suma(liquidados.filter((p) => dia(p.creado_en).slice(0, 4) === anioStr)).toFixed(2)),
+      mejor_mes,
     });
   }),
 
@@ -501,6 +562,32 @@ const finanzasHandlers = [
     return new HttpResponse(csv, {
       status: 200,
       headers: { "Content-Type": "application/vnd.ms-excel" },
+    });
+  }),
+];
+
+/* ------------------------------------------------------------------ */
+/* Dashboard (Sprint 4)                                               */
+/* ------------------------------------------------------------------ */
+
+const dashboardHandlers = [
+  // GET /dashboard/resumen — KPIs + últimos pedidos (permiso pedidos.ver)
+  http.get(`${BASE}/dashboard/resumen`, () => {
+    const hoy = new Date().toISOString().slice(0, 10);
+    const mes = hoy.slice(0, 7);
+    const cuenta = (fn: (p: Pedido) => boolean) => pedidos.filter(fn).length;
+    const ultimos = [...pedidos]
+      .sort((a, b) => b.creado_en.localeCompare(a.creado_en))
+      .slice(0, 5)
+      .map(toListItem);
+    return ok({
+      pedidos_hoy: cuenta((p) => p.creado_en.slice(0, 10) === hoy),
+      en_transito: cuenta((p) => p.estado.nombre === "En tránsito"),
+      en_aduana: cuenta((p) => p.estado.nombre === "En aduana"),
+      entregados_mes: cuenta(
+        (p) => p.estado.nombre === "Entregado" && p.creado_en.slice(0, 7) === mes
+      ),
+      ultimos,
     });
   }),
 ];
@@ -714,6 +801,7 @@ export const handlers = [
   ...estadoHandlers,
   ...cotizadorHandlers,
   ...finanzasHandlers,
+  ...dashboardHandlers,
   ...rastreoHandlers,
   ...comunidadHandlers,
   ...usuarioHandlers,

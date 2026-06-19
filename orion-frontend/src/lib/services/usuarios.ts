@@ -1,6 +1,12 @@
 import { api } from "@/lib/api";
 import type { ApiResponse } from "@/types/api";
-import type { CrearUsuarioInput, Permiso, UsuarioAdmin } from "@/types/usuario";
+import type { CrearUsuarioInput, Permiso, Usuario, UsuarioAdmin } from "@/types/usuario";
+
+/** GET /auth/me — usuario autenticado, para refrescar permisos (mismo shape que el login). */
+export async function obtenerMe(): Promise<Usuario> {
+  const { data } = await api.get<ApiResponse<Usuario>>("/auth/me");
+  return data.data;
+}
 
 /** GET /usuarios — listado (solo ADMIN). */
 export async function listarUsuarios(): Promise<UsuarioAdmin[]> {
