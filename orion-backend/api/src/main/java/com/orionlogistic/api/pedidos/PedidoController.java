@@ -2,6 +2,7 @@ package com.orionlogistic.api.pedidos;
 
 import com.orionlogistic.api.common.ApiResponse;
 import com.orionlogistic.api.common.PageResponse;
+import com.orionlogistic.api.pedidos.dto.ActualizarCostoRequest;
 import com.orionlogistic.api.pedidos.dto.CambiarEstadoRequest;
 import com.orionlogistic.api.pedidos.dto.CambiarPagoRequest;
 import com.orionlogistic.api.pedidos.dto.PedidoDetailResponse;
@@ -26,11 +27,12 @@ public class PedidoController {
     public ResponseEntity<ApiResponse<PageResponse<PedidoListItemResponse>>> listar(
             @RequestParam(name = "estado_id", required = false) Long estadoId,
             @RequestParam(name = "search", required = false) String search,
+            @RequestParam(name = "archivados", defaultValue = "false") boolean archivados,
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "20") int size,
             @AuthenticationPrincipal Usuario usuario) {
         PageResponse<PedidoListItemResponse> data =
-                pedidoService.listar(estadoId, search, page, size, usuario);
+                pedidoService.listar(estadoId, search, archivados, page, size, usuario);
         return ResponseEntity.ok(ApiResponse.ok(data));
     }
 
@@ -67,6 +69,17 @@ public class PedidoController {
         PedidoDetailResponse data =
                 pedidoService.cambiarEstado(id, req.getEstadoId(), usuario);
         return ResponseEntity.ok(ApiResponse.ok(data, "Estado actualizado"));
+    }
+
+    @PatchMapping("/{id}/costo")
+    public ResponseEntity<ApiResponse<PedidoDetailResponse>> actualizarCosto(
+            @PathVariable Long id,
+            @Valid @RequestBody ActualizarCostoRequest req,
+            @AuthenticationPrincipal Usuario usuario) {
+        PedidoDetailResponse data =
+                pedidoService.actualizarCosto(id, req.getCostoImportacionUsd(), usuario);
+        return ResponseEntity.ok(
+                ApiResponse.ok(data, "Costo de importación actualizado"));
     }
 
     @PatchMapping("/{id}/pago")

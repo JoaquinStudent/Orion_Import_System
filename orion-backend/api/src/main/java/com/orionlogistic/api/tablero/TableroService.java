@@ -1,6 +1,7 @@
 package com.orionlogistic.api.tablero;
 
 import com.orionlogistic.api.common.PermisoChecker;
+import com.orionlogistic.api.configuracion.ConfiguracionService;
 import com.orionlogistic.api.estados.Estado;
 import com.orionlogistic.api.estados.EstadoRepository;
 import com.orionlogistic.api.pedidos.PedidoRepository;
@@ -11,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -24,17 +26,26 @@ public class TableroService {
     private final EstadoRepository estadoRepository;
     private final PedidoRepository pedidoRepository;
     private final PermisoChecker permisoChecker;
+    private final ConfiguracionService configuracionService;
 
     /** Kanban completo: estados ordenados, cada uno con sus pedidos resumidos. */
     @Transactional(readOnly = true)
     public List<TableroColumnaResponse> obtener(Usuario usuario) {
         permisoChecker.exigirVer(usuario, MODULO);
 
-        Map<Long, List<TableroPedidoCardDto>> porEstado = pedidoRepository.findAll().stream()
-                .filter(p -> p.getEstado() != null)
-                .collect(Collectors.groupingBy(
-                        p -> p.getEstado().getId(),
-                        Collectors.mapping(TableroPedidoCardDto::from, Collectors.toList())));
+        // Excluir entregados archivados (estado final + entregado hace más de N días) para
+        // que la columna "Entregado" no crezca sin límite (doc 05d.4). El filtro se hace en
+        // la BD (findParaTablero) para no traer a memoria los entregados viejos.
+        Estado estadoFinal = estadoRepository.findFirstByOrderByOrdenDesc().orElse(null);
+        Long finalEstadoId = estadoFinal != null ? estadoFinal.getId() : null;
+        LocalDateTime cutoff = LocalDateTime.now().minusDays(
+                configuracionService.getInt(ConfiguracionService.DIAS_ARCHIVO_ENTREGADOS, 7));
+
+        Map<Long, List<TableroPedidoCardDto>> porEstado =
+                pedidoRepository.findParaTablero(finalEstadoId, cutoff).stream()
+                        .collect(Collectors.groupingBy(
+                                p -> p.getEstado().getId(),
+                                Collectors.mapping(TableroPedidoCardDto::from, Collectors.toList())));
 
         return estadoRepository.findAllByOrderByOrdenAsc().stream()
                 .map(e -> columna(e, porEstado))
