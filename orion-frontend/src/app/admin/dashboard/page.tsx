@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
 import {
   Loader2,
   Package,
@@ -50,30 +51,26 @@ export default function DashboardPage() {
   const { usuario, loading: authLoading } = useAuth();
   const verPedidos = puedeVer(usuario, "pedidos");
   const verFinanzas = puedeVer(usuario, "finanzas");
-  const [data, setData] = useState<DashboardResumen | null>(null);
-  const [resumen, setResumen] = useState<FinanzasResumen | null>(null);
-  const [loading, setLoading] = useState(true);
   const [exportando, setExportando] = useState(false);
 
-  useEffect(() => {
-    if (authLoading) return;
-    const hoy = new Date();
-    const inicioMes = ymd(new Date(hoy.getFullYear(), hoy.getMonth(), 1));
-    // Cada llamada se gatea por permiso para no provocar 403 a un EMPLEADO.
-    Promise.all([
-      verPedidos ? obtenerDashboardResumen() : Promise.resolve(null),
-      verFinanzas
-        ? obtenerResumen({ periodo: "dia", desde: inicioMes, hasta: ymd(hoy) })
-        : Promise.resolve(null),
-    ])
-      .then(([d, r]) => {
-        setData(d);
-        setResumen(r);
-      })
-      .catch((e) => toast.error(getApiErrorMessage(e, "No se pudo cargar el dashboard")))
-      .finally(() => setLoading(false));
-  }, [authLoading, verPedidos, verFinanzas]);
+  const hoy = new Date();
+  const inicioMes = ymd(new Date(hoy.getFullYear(), hoy.getMonth(), 1));
 
+  // Cada query se gatea por permiso (enabled) para no provocar 403 a un EMPLEADO.
+  const dashboardQ = useQuery({
+    queryKey: ["dashboard-resumen"],
+    queryFn: obtenerDashboardResumen,
+    enabled: !authLoading && verPedidos,
+  });
+  const resumenQ = useQuery({
+    queryKey: ["finanzas", "resumen", "dashboard-mes"],
+    queryFn: () => obtenerResumen({ periodo: "dia", desde: inicioMes, hasta: ymd(hoy) }),
+    enabled: !authLoading && verFinanzas,
+  });
+
+  const data: DashboardResumen | null = dashboardQ.data ?? null;
+  const resumen: FinanzasResumen | null = resumenQ.data ?? null;
+  const loading = authLoading || dashboardQ.isLoading || resumenQ.isLoading;
   const ultimos = data?.ultimos ?? [];
 
   async function onExportar() {

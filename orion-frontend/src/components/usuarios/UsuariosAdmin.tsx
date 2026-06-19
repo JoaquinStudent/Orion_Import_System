@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Loader2,
   UserPlus,
@@ -18,7 +19,6 @@ import {
   actualizarPermisos,
   cambiarEstadoUsuario,
 } from "@/lib/services/usuarios";
-import { getApiErrorMessage } from "@/lib/api";
 import { getIniciales } from "@/lib/constants";
 import type { Modulo, Permiso, UsuarioAdmin } from "@/types/usuario";
 import { Button } from "@/components/ui/button";
@@ -61,37 +61,29 @@ function aPerms(permisos: Permiso[] = []): Perms {
 }
 
 export function UsuariosAdmin() {
-  const [usuarios, setUsuarios] = useState<UsuarioAdmin[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+  const usuariosQ = useQuery({ queryKey: ["usuarios"], queryFn: listarUsuarios });
+  const usuarios: UsuarioAdmin[] = usuariosQ.data ?? [];
+  const loading = usuariosQ.isLoading;
 
   // crear empleado
   const [crearOpen, setCrearOpen] = useState(false);
   // permisos
   const [editando, setEditando] = useState<UsuarioAdmin | null>(null);
 
-  const fetchUsuarios = useCallback(async () => {
-    setLoading(true);
-    try {
-      setUsuarios(await listarUsuarios());
-    } catch (e) {
-      toast.error(getApiErrorMessage(e, "No se pudieron cargar los usuarios"));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const invalidarUsuarios = () =>
+    queryClient.invalidateQueries({ queryKey: ["usuarios"] });
 
-  useEffect(() => {
-    fetchUsuarios();
-  }, [fetchUsuarios]);
-
-  async function onToggleEstado(u: UsuarioAdmin) {
-    try {
-      await cambiarEstadoUsuario(u.id, !u.activo);
+  const estadoMut = useMutation({
+    mutationFn: (u: UsuarioAdmin) => cambiarEstadoUsuario(u.id, !u.activo),
+    onSuccess: (_d, u) => {
       toast.success(u.activo ? "Empleado desactivado" : "Empleado activado");
-      fetchUsuarios();
-    } catch (e) {
-      toast.error(getApiErrorMessage(e, "No se pudo cambiar el estado"));
-    }
+      invalidarUsuarios();
+    },
+  });
+
+  function onToggleEstado(u: UsuarioAdmin) {
+    estadoMut.mutate(u);
   }
 
   return (
@@ -177,12 +169,12 @@ export function UsuariosAdmin() {
       <CrearEmpleadoSheet
         open={crearOpen}
         onOpenChange={setCrearOpen}
-        onCreated={fetchUsuarios}
+        onCreated={invalidarUsuarios}
       />
       <PermisosSheet
         usuario={editando}
         onClose={() => setEditando(null)}
-        onSaved={fetchUsuarios}
+        onSaved={invalidarUsuarios}
       />
     </Card>
   );
@@ -203,36 +195,36 @@ function CrearEmpleadoSheet({
   const [password, setPassword] = useState("");
   const [verPass, setVerPass] = useState(false);
   const [color, setColor] = useState(COLORES[0]);
-  const [saving, setSaving] = useState(false);
 
   function reset() {
     setNombre(""); setEmail(""); setPassword(""); setColor(COLORES[0]); setVerPass(false);
   }
 
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!nombre.trim() || !email.trim() || password.length < 8) {
-      toast.error("Completá nombre, email y una contraseña de al menos 8 caracteres");
-      return;
-    }
-    setSaving(true);
-    try {
-      await crearUsuario({
+  const crearMut = useMutation({
+    mutationFn: () =>
+      crearUsuario({
         nombre: nombre.trim(),
         email: email.trim(),
         rol: "EMPLEADO",
         password_temporal: password,
         avatar_color: color,
-      });
+      }),
+    onSuccess: () => {
       toast.success("Empleado creado");
       reset();
       onOpenChange(false);
       onCreated();
-    } catch (err) {
-      toast.error(getApiErrorMessage(err, "No se pudo crear el empleado"));
-    } finally {
-      setSaving(false);
+    },
+  });
+  const saving = crearMut.isPending;
+
+  function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!nombre.trim() || !email.trim() || password.length < 8) {
+      toast.error("Completá nombre, email y una contraseña de al menos 8 caracteres");
+      return;
     }
+    crearMut.mutate();
   }
 
   return (
@@ -305,7 +297,6 @@ function PermisosSheet({
   onSaved: () => void;
 }) {
   const [perms, setPerms] = useState<Perms>(PERMS_VACIO);
-  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (usuario) setPerms(aPerms(usuario.permisos));
@@ -321,24 +312,25 @@ function PermisosSheet({
     });
   }
 
-  async function guardar() {
-    if (!usuario) return;
-    setSaving(true);
-    try {
-      const permisos: Permiso[] = MODULOS.map((m) => ({
-        modulo: m.key,
-        puede_ver: perms[m.key].ver,
-        puede_editar: perms[m.key].editar,
-      }));
-      await actualizarPermisos(usuario.id, permisos);
+  const guardarMut = useMutation({
+    mutationFn: (permisos: Permiso[]) => actualizarPermisos(usuario!.id, permisos),
+    onSuccess: () => {
       toast.success("Permisos actualizados");
       onClose();
       onSaved();
-    } catch (e) {
-      toast.error(getApiErrorMessage(e, "No se pudieron guardar los permisos"));
-    } finally {
-      setSaving(false);
-    }
+    },
+  });
+  const saving = guardarMut.isPending;
+
+  function guardar() {
+    if (!usuario) return;
+    guardarMut.mutate(
+      MODULOS.map((m) => ({
+        modulo: m.key,
+        puede_ver: perms[m.key].ver,
+        puede_editar: perms[m.key].editar,
+      }))
+    );
   }
 
   return (

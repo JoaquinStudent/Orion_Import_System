@@ -2,46 +2,45 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Save, MessageCircle, Info } from "lucide-react";
 
 import { obtenerConfigPublica, actualizarConfigGeneral } from "@/lib/services/config";
-import { getApiErrorMessage } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export function WhatsappConfig() {
+  const queryClient = useQueryClient();
   const [numero, setNumero] = useState("");
   const [original, setOriginal] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+
+  const configQ = useQuery({ queryKey: ["config-publica"], queryFn: obtenerConfigPublica });
+  const loading = configQ.isLoading;
 
   useEffect(() => {
-    obtenerConfigPublica()
-      .then((c) => {
-        setNumero(c.whatsapp_atencion);
-        setOriginal(c.whatsapp_atencion);
-      })
-      .catch((e) => toast.error(getApiErrorMessage(e, "No se pudo cargar la configuración")))
-      .finally(() => setLoading(false));
-  }, []);
+    if (configQ.data) {
+      setNumero(configQ.data.whatsapp_atencion);
+      setOriginal(configQ.data.whatsapp_atencion);
+    }
+  }, [configQ.data]);
 
-  async function guardar(e: React.FormEvent) {
+  const guardarMut = useMutation({
+    mutationFn: () => actualizarConfigGeneral({ whatsapp_atencion: numero.trim() }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["config-publica"] });
+      toast.success("Número actualizado");
+    },
+  });
+  const saving = guardarMut.isPending;
+
+  function guardar(e: React.FormEvent) {
     e.preventDefault();
     if (!numero.trim()) {
       toast.error("Ingresá un número");
       return;
     }
-    setSaving(true);
-    try {
-      const c = await actualizarConfigGeneral({ whatsapp_atencion: numero.trim() });
-      setOriginal(c.whatsapp_atencion);
-      toast.success("Número actualizado");
-    } catch (err) {
-      toast.error(getApiErrorMessage(err, "No se pudo guardar"));
-    } finally {
-      setSaving(false);
-    }
+    guardarMut.mutate();
   }
 
   return (
