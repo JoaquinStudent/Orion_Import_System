@@ -1,10 +1,11 @@
 import type { Estado, EstadoRef } from "@/types/estado";
-import type { Pedido } from "@/types/pedido";
+import type { EstadoPago, Pedido } from "@/types/pedido";
+import type { Comunidad } from "@/types/comunidad";
 
 /**
- * "Base de datos" en memoria para los mocks MSW de Sprint 2.
- * Sembrada con los mismos estados/colores que `setup_supabase.sql`.
- * Es mutable: los handlers de POST/PUT/DELETE la modifican en caliente.
+ * "Base de datos" en memoria para los mocks MSW.
+ * Sembrada con los mismos estados/colores/comunidades que `setup_supabase.sql`.
+ * Es mutable: los handlers de POST/PUT/DELETE/PATCH la modifican en caliente.
  */
 
 export const estados: Estado[] = [
@@ -13,6 +14,13 @@ export const estados: Estado[] = [
   { id: 3, nombre: "En aduana", orden: 3, color: "#3C3489" },
   { id: 4, nombre: "En almacén", orden: 4, color: "#1B2A5E" },
   { id: 5, nombre: "Entregado", orden: 5, color: "#085041" },
+];
+
+/** Catálogo de comunidades (Sprint 3.5) — administrado desde /admin/configuracion. */
+export const comunidades: Comunidad[] = [
+  { id: 1, nombre: "Comunidad Norte", activo: true },
+  { id: 2, nombre: "Comunidad Centro", activo: true },
+  { id: 3, nombre: "Comunidad Sur", activo: true },
 ];
 
 /** Versión ligera del estado para anidar en un pedido. */
@@ -36,6 +44,7 @@ export const pedidos: Pedido[] = [
     costo_importacion_usd: 29,
     tipo_envio: "almacen",
     estado: ref(3),
+    estado_pago: "pendiente",
     productos: [{ id: 1, cantidad: 1, producto: "Audífonos Sony", marca: "Sony" }],
     creado_por: { id: 1, nombre: "Joaquín" },
     creado_en: "2026-06-10T10:00:00",
@@ -43,6 +52,7 @@ export const pedidos: Pedido[] = [
   },
   {
     id: 2,
+    comunidad: "Comunidad Centro",
     titular: "Lucía Ramírez",
     num_orden: "ORD-001235",
     num_tracking: "TRK-001235",
@@ -51,6 +61,7 @@ export const pedidos: Pedido[] = [
     costo_importacion_usd: 45,
     tipo_envio: "lima",
     estado: ref(1),
+    estado_pago: "pendiente",
     productos: [
       { id: 2, cantidad: 2, producto: "Polo algodón", marca: "Nike" },
       { id: 3, cantidad: 1, producto: "Gorra", marca: "Nike" },
@@ -61,6 +72,7 @@ export const pedidos: Pedido[] = [
   },
   {
     id: 3,
+    comunidad: "Comunidad Norte",
     titular: "Andrés Gómez",
     consignatario: "Sofía Gómez",
     num_orden: "ORD-001236",
@@ -70,6 +82,7 @@ export const pedidos: Pedido[] = [
     costo_importacion_usd: 60,
     tipo_envio: "shalom",
     estado: ref(2),
+    estado_pago: "liquidado",
     productos: [{ id: 4, cantidad: 1, producto: "Teclado mecánico", marca: "Keychron" }],
     creado_por: { id: 1, nombre: "Joaquín" },
     creado_en: "2026-06-13T09:15:00",
@@ -77,6 +90,7 @@ export const pedidos: Pedido[] = [
   },
   {
     id: 4,
+    comunidad: "Comunidad Sur",
     titular: "Valeria Castro",
     num_orden: "ORD-001237",
     num_tracking: "TRK-001237",
@@ -85,6 +99,7 @@ export const pedidos: Pedido[] = [
     costo_importacion_usd: 29,
     tipo_envio: null,
     estado: ref(1),
+    estado_pago: "pendiente",
     productos: [{ id: 5, cantidad: 3, producto: "Cuaderno A5" }],
     creado_por: { id: 1, nombre: "Joaquín" },
     creado_en: "2026-06-14T11:45:00",
@@ -92,6 +107,7 @@ export const pedidos: Pedido[] = [
   },
   {
     id: 5,
+    comunidad: "Comunidad Centro",
     titular: "Diego Flores",
     num_orden: "ORD-001238",
     num_tracking: "TRK-001238",
@@ -100,6 +116,7 @@ export const pedidos: Pedido[] = [
     costo_importacion_usd: 75,
     tipo_envio: "almacen",
     estado: ref(5),
+    estado_pago: "liquidado",
     productos: [{ id: 6, cantidad: 1, producto: "Cámara web", marca: "Logitech" }],
     creado_por: { id: 1, nombre: "Joaquín" },
     creado_en: "2026-06-09T08:00:00",
@@ -107,6 +124,7 @@ export const pedidos: Pedido[] = [
   },
   {
     id: 6,
+    comunidad: "Comunidad Sur",
     titular: "Camila Torres",
     num_orden: "ORD-001239",
     num_tracking: "TRK-001239",
@@ -115,23 +133,23 @@ export const pedidos: Pedido[] = [
     costo_importacion_usd: 29,
     tipo_envio: "lima",
     estado: ref(4),
+    estado_pago: "liquidado",
     productos: [{ id: 7, cantidad: 2, producto: "Mouse inalámbrico", marca: "Logitech" }],
     creado_por: { id: 1, nombre: "Joaquín" },
     creado_en: "2026-06-15T14:20:00",
     actualizado_en: null,
   },
-  // --- Pedidos de demo extra (Sprint 3) para poblar el dashboard de finanzas:
-  //     fechas variadas a lo largo de 2026 + hoy/ayer, varios tipos de envío.
-  ...demo(7, "Mateo Rojas", "almacen", 45, 1, "2026-06-18T09:00:00"),
-  ...demo(8, "Renata Silva", "lima", 60, 2, "2026-06-18T16:30:00"),
-  ...demo(9, "Bruno Díaz", "shalom", 38, 3, "2026-06-17T12:10:00"),
-  ...demo(10, "Paula Vega", "almacen", 52, 5, "2026-06-05T10:00:00"),
-  ...demo(11, "Iván Mora", "lima", 70, 5, "2026-05-20T11:30:00"),
-  ...demo(12, "Sofía Núñez", "shalom", 33, 4, "2026-05-08T14:00:00"),
-  ...demo(13, "Tomás Vera", "almacen", 88, 5, "2026-04-15T09:45:00"),
-  ...demo(14, "Lara Pinto", "lima", 41, 5, "2026-03-10T13:20:00"),
-  ...demo(15, "Hugo Salas", "almacen", 120, 5, "2026-02-22T08:30:00"),
-  ...demo(16, "Nadia Cruz", "shalom", 64, 5, "2026-01-30T17:00:00"),
+  // --- Pedidos de demo extra para poblar el dashboard de finanzas (fechas 2026) ---
+  ...demo(7, "Mateo Rojas", "almacen", 45, 1, "2026-06-18T09:00:00", "pendiente"),
+  ...demo(8, "Renata Silva", "lima", 60, 2, "2026-06-18T16:30:00", "pendiente"),
+  ...demo(9, "Bruno Díaz", "shalom", 38, 3, "2026-06-17T12:10:00", "liquidado"),
+  ...demo(10, "Paula Vega", "almacen", 52, 5, "2026-06-05T10:00:00", "liquidado"),
+  ...demo(11, "Iván Mora", "lima", 70, 5, "2026-05-20T11:30:00", "liquidado"),
+  ...demo(12, "Sofía Núñez", "shalom", 33, 4, "2026-05-08T14:00:00", "liquidado"),
+  ...demo(13, "Tomás Vera", "almacen", 88, 5, "2026-04-15T09:45:00", "liquidado"),
+  ...demo(14, "Lara Pinto", "lima", 41, 5, "2026-03-10T13:20:00", "liquidado"),
+  ...demo(15, "Hugo Salas", "almacen", 120, 5, "2026-02-22T08:30:00", "liquidado"),
+  ...demo(16, "Nadia Cruz", "shalom", 64, 5, "2026-01-30T17:00:00", "pendiente"),
 ];
 
 /** Helper para sembrar pedidos de demo sin repetir todo el objeto. */
@@ -141,7 +159,8 @@ function demo(
   tipoEnvio: Pedido["tipo_envio"],
   costo: number,
   estadoId: number,
-  creadoEn: string
+  creadoEn: string,
+  pago: EstadoPago
 ): Pedido[] {
   return [
     {
@@ -154,6 +173,7 @@ function demo(
       costo_importacion_usd: costo,
       tipo_envio: tipoEnvio,
       estado: ref(estadoId),
+      estado_pago: pago,
       productos: [],
       creado_por: { id: 1, nombre: "Joaquín" },
       creado_en: creadoEn,
@@ -166,11 +186,13 @@ function demo(
 let nextEstadoId = 6;
 let nextPedidoId = 17;
 let nextProductoId = 8;
+let nextComunidadId = 4;
 
 export const nextId = {
   estado: () => nextEstadoId++,
   pedido: () => nextPedidoId++,
   producto: () => nextProductoId++,
+  comunidad: () => nextComunidadId++,
 };
 
 /**

@@ -11,9 +11,11 @@ import axios from "axios";
 import { Plus, Trash2, Loader2, Save } from "lucide-react";
 
 import { listarEstados } from "@/lib/services/estados";
+import { listarComunidades } from "@/lib/services/comunidades";
 import { getApiErrorMessage } from "@/lib/api";
 import { TIPO_ENVIO_LABEL } from "@/lib/constants";
 import type { Estado } from "@/types/estado";
+import type { Comunidad } from "@/types/comunidad";
 import type { Pedido, PedidoInput } from "@/types/pedido";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -116,6 +118,7 @@ export interface PedidoFormProps {
 export function PedidoForm({ pedido, mode, onSubmit, cancelHref }: PedidoFormProps) {
   const router = useRouter();
   const [estados, setEstados] = useState<Estado[]>([]);
+  const [comunidades, setComunidades] = useState<Comunidad[]>([]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -140,6 +143,7 @@ export function PedidoForm({ pedido, mode, onSubmit, cancelHref }: PedidoFormPro
       .catch(() => {
         /* sin estados, el back asignará el de menor orden por defecto */
       });
+    listarComunidades().then(setComunidades).catch(() => {});
   }, [form]);
 
   async function handleSubmit(values: FormValues) {
@@ -189,7 +193,26 @@ export function PedidoForm({ pedido, mode, onSubmit, cancelHref }: PedidoFormPro
           </CardHeader>
           <CardContent className="grid gap-4 sm:grid-cols-2">
             <TextField control={form.control} name="titular" label="Titular *" placeholder="Nombre del titular" />
-            <TextField control={form.control} name="comunidad" label="Comunidad" placeholder="Comunidad (opcional)" />
+            <FormField
+              control={form.control}
+              name="comunidad"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Comunidad</FormLabel>
+                  <FormControl>
+                    <select {...field} className={selectClass}>
+                      <option value="">Sin especificar</option>
+                      {comunidades.map((c) => (
+                        <option key={c.id} value={c.nombre}>
+                          {c.nombre}
+                        </option>
+                      ))}
+                    </select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <TextField control={form.control} name="consignatario" label="Consignatario" placeholder="Quien recibe (opcional)" />
             <TextField control={form.control} name="firma" label="Firma" placeholder="Firma (opcional)" />
             <TextField control={form.control} name="whatsapp" label="WhatsApp *" placeholder="+51999999999" type="tel" />
