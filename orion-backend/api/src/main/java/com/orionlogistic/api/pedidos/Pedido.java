@@ -45,7 +45,8 @@ public class Pedido {
     @Builder.Default
     private BigDecimal valorUsd = BigDecimal.ZERO;
 
-    @Column(name = "costo_importacion_usd", nullable = false, precision = 10, scale = 2)
+    /** Costo de importación. Nullable: se suele cargar al llegar al almacén, no al registrar. */
+    @Column(name = "costo_importacion_usd", precision = 10, scale = 2)
     private BigDecimal costoImportacionUsd;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -63,6 +64,10 @@ public class Pedido {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "creado_por")
     private Usuario creadoPor;
+
+    /** Momento en que el pedido entró al estado final (entregado). Base del archivado. */
+    @Column(name = "entregado_en")
+    private LocalDateTime entregadoEn;
 
     @Column(name = "creado_en")
     private LocalDateTime creadoEn;

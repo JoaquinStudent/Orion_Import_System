@@ -1,11 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Save, Lock, RotateCcw, Info, CheckCircle2, MessageCircle } from "lucide-react";
 
 import { obtenerConfigCotizador, actualizarConfigCotizador } from "@/lib/services/cotizador";
-import { getApiErrorMessage } from "@/lib/api";
 import { formatUSD } from "@/lib/format";
 import { puedeEditar } from "@/lib/permisos";
 import { useAuth } from "@/hooks/useAuth";
@@ -17,30 +17,39 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 export default function CotizadorConfigPage() {
   const { usuario, loading: authLoading } = useAuth();
   const permitido = puedeEditar(usuario, "cotizador");
+  const queryClient = useQueryClient();
 
-  const [config, setConfig] = useState<CotizadorConfig | null>(null);
   const [flete, setFlete] = useState("");
   const [desaduanaje, setDesaduanaje] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
 
-  const fetchConfig = useCallback(async () => {
-    setLoading(true);
-    try {
-      const c = await obtenerConfigCotizador();
-      setConfig(c);
-      setFlete(String(c.flete_por_kilo));
-      setDesaduanaje(String(c.desaduanaje));
-    } catch (error) {
-      toast.error(getApiErrorMessage(error, "No se pudo cargar la configuración"));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const configQ = useQuery({
+    queryKey: ["cotizador-config"],
+    queryFn: obtenerConfigCotizador,
+    enabled: !authLoading && permitido,
+  });
+  const config: CotizadorConfig | null = configQ.data ?? null;
+  const loading = configQ.isLoading;
 
+  // Sembrar los inputs con los valores del backend cuando llegan.
   useEffect(() => {
-    if (!authLoading && permitido) fetchConfig();
-  }, [authLoading, permitido, fetchConfig]);
+    if (configQ.data) {
+      setFlete(String(configQ.data.flete_por_kilo));
+      setDesaduanaje(String(configQ.data.desaduanaje));
+    }
+  }, [configQ.data]);
+
+  const guardarMut = useMutation({
+    mutationFn: () =>
+      actualizarConfigCotizador({
+        flete_por_kilo: Number(flete),
+        desaduanaje: Number(desaduanaje),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["cotizador-config"] });
+      toast.success("Configuración actualizada");
+    },
+  });
+  const saving = guardarMut.isPending;
 
   const fleteNum = Number(flete) || 0;
   const desadNum = Number(desaduanaje) || 0;
@@ -52,25 +61,13 @@ export default function CotizadorConfigPage() {
     Number(flete) === config.flete_por_kilo &&
     Number(desaduanaje) === config.desaduanaje;
 
-  async function onSubmit(e: React.FormEvent) {
+  function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (isNaN(Number(flete)) || Number(flete) < 0 || isNaN(Number(desaduanaje)) || Number(desaduanaje) < 0) {
       toast.error("Ingresá montos válidos (≥ 0)");
       return;
     }
-    setSaving(true);
-    try {
-      const actualizado = await actualizarConfigCotizador({
-        flete_por_kilo: Number(flete),
-        desaduanaje: Number(desaduanaje),
-      });
-      setConfig(actualizado);
-      toast.success("Configuración actualizada");
-    } catch (error) {
-      toast.error(getApiErrorMessage(error, "No se pudo guardar"));
-    } finally {
-      setSaving(false);
-    }
+    guardarMut.mutate();
   }
 
   function restaurar() {
@@ -155,12 +152,12 @@ export default function CotizadorConfigPage() {
               </CardContent>
             </Card>
 
-            <div className="flex justify-end gap-3">
-              <Button type="button" variant="outline" onClick={restaurar} disabled={sinCambios || saving}>
+            <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+              <Button type="button" variant="outline" className="w-full sm:w-auto" onClick={restaurar} disabled={sinCambios || saving}>
                 <RotateCcw />
                 Restaurar valores
               </Button>
-              <Button type="submit" disabled={sinCambios || saving}>
+              <Button type="submit" className="w-full sm:w-auto" disabled={sinCambios || saving}>
                 {saving ? <Loader2 className="animate-spin" /> : <Save />}
                 Guardar cambios
               </Button>

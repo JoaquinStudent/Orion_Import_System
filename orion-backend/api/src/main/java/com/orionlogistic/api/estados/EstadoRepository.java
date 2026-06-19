@@ -12,4 +12,7 @@ public interface EstadoRepository extends JpaRepository<Estado, Long> {
 
     /** Estado de menor `orden`; default cuando un pedido se crea sin estado_id. */
     Optional<Estado> findFirstByOrderByOrdenAsc();
+
+    /** Estado de mayor `orden` (el "final"/entregado); base de las reglas y el archivado. */
+    Optional<Estado> findFirstByOrderByOrdenDesc();
 }

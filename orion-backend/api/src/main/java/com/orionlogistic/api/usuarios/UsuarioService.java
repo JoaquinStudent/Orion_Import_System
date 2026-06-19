@@ -59,6 +59,9 @@ public class UsuarioService {
     public void actualizarPermisos(Long id, ActualizarPermisosRequest req) {
         Usuario usuario = buscar(id);
         permisoRepository.deleteByUsuarioId(id);
+        // Forzar el DELETE antes de los INSERT: sin esto Hibernate puede ordenar los
+        // INSERT primero al hacer flush y violar el UNIQUE(usuario_id, modulo).
+        permisoRepository.flush();
         List<Permiso> nuevos = req.getPermisos().stream()
                 .map(in -> Permiso.builder()
                         .usuario(usuario)

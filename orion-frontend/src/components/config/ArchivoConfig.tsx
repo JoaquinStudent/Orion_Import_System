@@ -3,52 +3,56 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2, Save, MessageCircle, Info } from "lucide-react";
+import { Loader2, Save, Archive } from "lucide-react";
 
 import { obtenerConfigPublica, actualizarConfigGeneral } from "@/lib/services/config";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-export function WhatsappConfig() {
+const DEFAULT_DIAS = 7;
+
+export function ArchivoConfig() {
   const queryClient = useQueryClient();
-  const [numero, setNumero] = useState("");
-  const [original, setOriginal] = useState("");
+  const [dias, setDias] = useState(String(DEFAULT_DIAS));
+  const [original, setOriginal] = useState(String(DEFAULT_DIAS));
 
   const configQ = useQuery({ queryKey: ["config-publica"], queryFn: obtenerConfigPublica });
   const loading = configQ.isLoading;
 
   useEffect(() => {
     if (configQ.data) {
-      setNumero(configQ.data.whatsapp_atencion);
-      setOriginal(configQ.data.whatsapp_atencion);
+      const v = String(configQ.data.dias_archivo_entregados ?? DEFAULT_DIAS);
+      setDias(v);
+      setOriginal(v);
     }
   }, [configQ.data]);
 
   const guardarMut = useMutation({
-    mutationFn: () => actualizarConfigGeneral({ whatsapp_atencion: numero.trim() }),
+    mutationFn: (n: number) => actualizarConfigGeneral({ dias_archivo_entregados: n }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["config-publica"] });
-      toast.success("Número actualizado");
+      toast.success("Configuración actualizada");
     },
   });
   const saving = guardarMut.isPending;
 
   function guardar(e: React.FormEvent) {
     e.preventDefault();
-    if (!numero.trim()) {
-      toast.error("Ingresá un número");
+    const n = Number(dias);
+    if (!dias || isNaN(n) || n < 1) {
+      toast.error("Ingresá un número de días válido (mínimo 1)");
       return;
     }
-    guardarMut.mutate();
+    guardarMut.mutate(n);
   }
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
-          <MessageCircle className="h-4 w-4 text-whatsapp" />
-          N° de WhatsApp de atención al cliente
+          <Archive className="h-4 w-4 text-primary" />
+          Archivado de pedidos entregados
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -59,22 +63,25 @@ export function WhatsappConfig() {
         ) : (
           <form onSubmit={guardar} className="space-y-3">
             <p className="text-sm text-on-surface-variant">
-              Este número aparece visible en la app pública para que tus clientes te contacten.
+              Tras estos días de entregado, el pedido se archiva y deja de mostrarse en el
+              tablero (no se borra; podés verlo con &quot;Ver archivados&quot;).
             </p>
             <div className="flex flex-wrap items-end gap-3">
-              <div className="flex-1 space-y-1.5">
-                <label className="text-sm font-medium text-foreground">Número telefónico</label>
-                <Input value={numero} onChange={(e) => setNumero(e.target.value)} placeholder="+51 999 999 999" />
+              <div className="w-40 space-y-1.5">
+                <label className="text-sm font-medium text-foreground">Días para archivar</label>
+                <Input
+                  type="number"
+                  min={1}
+                  value={dias}
+                  onChange={(e) => setDias(e.target.value)}
+                  placeholder="7"
+                />
               </div>
-              <Button type="submit" disabled={saving || numero.trim() === original}>
+              <Button type="submit" disabled={saving || dias === original}>
                 {saving ? <Loader2 className="animate-spin" /> : <Save />}
-                Guardar número
+                Guardar
               </Button>
             </div>
-            <p className="flex items-center gap-1.5 rounded-lg bg-surface-container px-3 py-2 text-xs text-on-surface-variant">
-              <Info className="h-3.5 w-3.5 shrink-0" />
-              Aparece en: Landing page · Cotizador · Rastreador de pedidos
-            </p>
           </form>
         )}
       </CardContent>

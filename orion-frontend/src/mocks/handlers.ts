@@ -75,6 +75,10 @@ const MOCK_USERS: Record<string, { password: string; usuario: Usuario }> = {
 const FAKE_JWT =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwibW9jayI6dHJ1ZX0.orion-mock-signature";
 
+// Quién está logueado en esta sesión del worker (lo usa GET /auth/me).
+// Se pierde al recargar la página (el worker reinicia) → fallback al ADMIN.
+let sesionActual: Usuario | null = null;
+
 const authHandlers = [
   http.post(`${BASE}/auth/login`, async ({ request }) => {
     const body = (await request.json()) as { email?: string; password?: string };
@@ -83,11 +87,17 @@ const authHandlers = [
     if (!entry || entry.password !== body.password) {
       return fail("Credenciales inválidas", "AUTH_INVALID", 401);
     }
+    sesionActual = entry.usuario;
     return ok(
       { token: FAKE_JWT, usuario: entry.usuario },
       "Inicio de sesión exitoso"
     );
   }),
+
+  // GET /auth/me — usuario autenticado (refresco de permisos).
+  http.get(`${BASE}/auth/me`, () =>
+    ok(sesionActual ?? MOCK_USERS["joaquin@orionlogistic.com"].usuario)
+  ),
 
   http.post(`${BASE}/auth/cambiar-password`, async ({ request }) => {
     const body = (await request.json()) as {
@@ -107,6 +117,7 @@ const authHandlers = [
     ok({
       whatsapp_atencion: config.whatsapp_atencion,
       nombre_negocio: config.nombre_negocio,
+      dias_archivo_entregados: config.dias_archivo_entregados,
     })
   ),
 ];
@@ -121,12 +132,25 @@ const pedidoHandlers = [
     const url = new URL(request.url);
     const estadoId = url.searchParams.get("estado_id");
     const search = (url.searchParams.get("search") ?? "").toLowerCase().trim();
+    const archivados = url.searchParams.get("archivados") === "true";
     const page = Number(url.searchParams.get("page") ?? 0);
     const size = Number(url.searchParams.get("size") ?? 20);
 
     let filtrados = [...pedidos];
     if (estadoId) {
       filtrados = filtrados.filter((p) => p.estado.id === Number(estadoId));
+    }
+    if (archivados) {
+      // Entregados (estado final) cuya entrega supera los días configurados.
+      const finalOrden = Math.max(...estados.map((e) => e.orden));
+      const limite = Date.now() - config.dias_archivo_entregados * 86400000;
+      filtrados = filtrados.filter((p) => {
+        const est = estados.find((e) => e.id === p.estado.id);
+        return (
+          est?.orden === finalOrden &&
+          new Date(p.actualizado_en ?? p.creado_en).getTime() < limite
+        );
+      });
     }
     if (search) {
       filtrados = filtrados.filter(
@@ -161,13 +185,7 @@ const pedidoHandlers = [
   http.post(`${BASE}/pedidos`, async ({ request }) => {
     const body = (await request.json()) as PedidoInput;
 
-    if (
-      !body.titular ||
-      !body.num_orden ||
-      !body.num_tracking ||
-      !body.whatsapp ||
-      body.costo_importacion_usd == null
-    ) {
+    if (!body.titular || !body.num_orden || !body.num_tracking || !body.whatsapp) {
       return fail("Faltan campos obligatorios", "VALIDATION", 400);
     }
     if (
@@ -198,7 +216,7 @@ const pedidoHandlers = [
       whatsapp: body.whatsapp,
       firma: body.firma,
       valor_usd: body.valor_usd ?? 0,
-      costo_importacion_usd: body.costo_importacion_usd,
+      costo_importacion_usd: body.costo_importacion_usd ?? 0,
       tipo_envio: body.tipo_envio ?? null,
       estado: toEstadoRef(estado),
       estado_pago: "pendiente",
@@ -248,7 +266,7 @@ const pedidoHandlers = [
       whatsapp: body.whatsapp,
       firma: body.firma,
       valor_usd: body.valor_usd ?? 0,
-      costo_importacion_usd: body.costo_importacion_usd,
+      costo_importacion_usd: body.costo_importacion_usd ?? 0,
       tipo_envio: body.tipo_envio ?? null,
       estado: estadoFull ? toEstadoRef(estadoFull) : pedidos[idx].estado,
       productos: (body.productos ?? []).map((pr) => ({
@@ -270,9 +288,35 @@ const pedidoHandlers = [
     const estado = estados.find((e) => e.id === body.estado_id);
     if (!estado) return fail("Estado inexistente", "VALIDATION", 400);
 
+    // Reglas de negocio: el último estado es el "final" y el anterior, el "penúltimo".
+    const ordenes = [...estados.map((e) => e.orden)].sort((a, b) => b - a);
+    const finalOrden = ordenes[0];
+    const penultimoOrden = ordenes[1];
+    if (estado.orden === penultimoOrden && pedido.costo_importacion_usd <= 0) {
+      return fail("Cargá el costo de importación antes de avanzar", "VALIDATION", 400);
+    }
+    if (estado.orden === finalOrden && pedido.estado_pago !== "liquidado") {
+      return fail("Liquidá el pago antes de marcar el pedido como entregado", "VALIDATION", 400);
+    }
+
     pedido.estado = toEstadoRef(estado);
     pedido.actualizado_en = new Date().toISOString();
     return ok(pedido, "Estado actualizado");
+  }),
+
+  // PATCH /pedidos/{id}/costo — fija el costo de importación
+  http.patch(`${BASE}/pedidos/:id/costo`, async ({ params, request }) => {
+    const pedido = pedidos.find((p) => p.id === Number(params.id));
+    if (!pedido) return fail("Pedido no encontrado", "NO_ENCONTRADO", 404);
+
+    const body = (await request.json()) as { costo_importacion_usd?: number };
+    const costo = Number(body.costo_importacion_usd);
+    if (isNaN(costo) || costo <= 0) {
+      return fail("Costo de importación inválido", "VALIDATION", 400);
+    }
+    pedido.costo_importacion_usd = costo;
+    pedido.actualizado_en = new Date().toISOString();
+    return ok(pedido, "Costo de importación actualizado");
   }),
 
   // PATCH /pedidos/{id}/pago — estado de pago de la importación
@@ -309,7 +353,19 @@ const estadoHandlers = [
   ),
 
   // GET /tablero — columnas con sus pedidos
-  http.get(`${BASE}/tablero`, () => {
+  http.get(`${BASE}/tablero`, ({ request }) => {
+    const incluirArchivados =
+      new URL(request.url).searchParams.get("incluir_archivados") === "true";
+    const finalOrden = Math.max(...estados.map((e) => e.orden));
+    const limite = Date.now() - config.dias_archivo_entregados * 86400000;
+
+    // ponytail: sin `entregado_en` en el mock usamos actualizado_en ?? creado_en como proxy.
+    const archivado = (p: Pedido) => {
+      const est = estados.find((e) => e.id === p.estado.id);
+      if (!est || est.orden !== finalOrden) return false;
+      return new Date(p.actualizado_en ?? p.creado_en).getTime() < limite;
+    };
+
     const columnas = [...estados]
       .sort((a, b) => a.orden - b.orden)
       .map((e) => ({
@@ -318,11 +374,14 @@ const estadoHandlers = [
         color: e.color,
         pedidos: pedidos
           .filter((p) => p.estado.id === e.id)
+          .filter((p) => incluirArchivados || !archivado(p))
           .map((p) => ({
             id: p.id,
             num_orden: p.num_orden,
+            num_tracking: p.num_tracking,
             titular: p.titular,
             costo_importacion_usd: p.costo_importacion_usd,
+            estado_pago: p.estado_pago,
           })),
       }));
     return ok(columnas);
@@ -488,10 +547,61 @@ const finanzasHandlers = [
         ingreso_usd: Number(ingreso_usd.toFixed(2)),
       }));
     const ingresoTotal = liquidados.reduce((s, p) => s + p.costo_importacion_usd, 0);
+
+    // Desglose por tipo de envío (tipo_envio: null = "Sin asignar").
+    const tipos: (Pedido["tipo_envio"])[] = ["almacen", "lima", "shalom", null];
+    const desglose_tipo_envio = tipos
+      .map((t) => ({
+        tipo_envio: t,
+        cantidad: enRango.filter((p) => (p.tipo_envio ?? null) === t).length,
+      }))
+      .filter((x) => x.cantidad > 0);
+
     return ok({
       ingreso_total_usd: Number(ingresoTotal.toFixed(2)),
       total_pedidos: enRango.length,
       serie,
+      desglose_tipo_envio,
+    });
+  }),
+
+  // GET /finanzas/kpis — tarjetas KPI server-side. Ingresos = solo liquidado.
+  http.get(`${BASE}/finanzas/kpis`, () => {
+    const dia = (iso: string) => iso.slice(0, 10);
+    const hoyStr = new Date().toISOString().slice(0, 10);
+    const ayer = new Date();
+    ayer.setDate(ayer.getDate() - 1);
+    const ayerStr = ayer.toISOString().slice(0, 10);
+    const mesStr = hoyStr.slice(0, 7);
+    const anioStr = hoyStr.slice(0, 4);
+
+    const liquidados = pedidos.filter((p) => p.estado_pago === "liquidado");
+    const suma = (lista: Pedido[]) =>
+      lista.reduce((s, p) => s + p.costo_importacion_usd, 0);
+
+    // Mejor mes del año por ingreso liquidado.
+    const porMes = new Map<number, number>();
+    for (const p of liquidados) {
+      if (dia(p.creado_en).slice(0, 4) !== anioStr) continue;
+      const m = Number(p.creado_en.slice(5, 7));
+      porMes.set(m, (porMes.get(m) ?? 0) + p.costo_importacion_usd);
+    }
+    let mejor_mes: number | null = null;
+    let max = -1;
+    porMes.forEach((monto, m) => {
+      if (monto > max) {
+        max = monto;
+        mejor_mes = m;
+      }
+    });
+
+    return ok({
+      ingreso_hoy_usd: Number(suma(liquidados.filter((p) => dia(p.creado_en) === hoyStr)).toFixed(2)),
+      ingreso_ayer_usd: Number(suma(liquidados.filter((p) => dia(p.creado_en) === ayerStr)).toFixed(2)),
+      ingreso_mes_usd: Number(suma(liquidados.filter((p) => dia(p.creado_en).slice(0, 7) === mesStr)).toFixed(2)),
+      pedidos_mes: pedidos.filter((p) => dia(p.creado_en).slice(0, 7) === mesStr).length,
+      ingreso_anio_usd: Number(suma(liquidados.filter((p) => dia(p.creado_en).slice(0, 4) === anioStr)).toFixed(2)),
+      mejor_mes,
     });
   }),
 
@@ -501,6 +611,32 @@ const finanzasHandlers = [
     return new HttpResponse(csv, {
       status: 200,
       headers: { "Content-Type": "application/vnd.ms-excel" },
+    });
+  }),
+];
+
+/* ------------------------------------------------------------------ */
+/* Dashboard (Sprint 4)                                               */
+/* ------------------------------------------------------------------ */
+
+const dashboardHandlers = [
+  // GET /dashboard/resumen — KPIs + últimos pedidos (permiso pedidos.ver)
+  http.get(`${BASE}/dashboard/resumen`, () => {
+    const hoy = new Date().toISOString().slice(0, 10);
+    const mes = hoy.slice(0, 7);
+    const cuenta = (fn: (p: Pedido) => boolean) => pedidos.filter(fn).length;
+    const ultimos = [...pedidos]
+      .sort((a, b) => b.creado_en.localeCompare(a.creado_en))
+      .slice(0, 5)
+      .map(toListItem);
+    return ok({
+      pedidos_hoy: cuenta((p) => p.creado_en.slice(0, 10) === hoy),
+      en_transito: cuenta((p) => p.estado.nombre === "En tránsito"),
+      en_aduana: cuenta((p) => p.estado.nombre === "En aduana"),
+      entregados_mes: cuenta(
+        (p) => p.estado.nombre === "Entregado" && p.creado_en.slice(0, 7) === mes
+      ),
+      ultimos,
     });
   }),
 ];
@@ -698,11 +834,18 @@ const usuarioHandlers = [
     const body = (await request.json()) as {
       whatsapp_atencion?: string;
       nombre_negocio?: string;
+      dias_archivo_entregados?: number;
     };
     if (body.whatsapp_atencion != null) config.whatsapp_atencion = body.whatsapp_atencion;
     if (body.nombre_negocio != null) config.nombre_negocio = body.nombre_negocio;
+    if (body.dias_archivo_entregados != null)
+      config.dias_archivo_entregados = Number(body.dias_archivo_entregados);
     return ok(
-      { whatsapp_atencion: config.whatsapp_atencion, nombre_negocio: config.nombre_negocio },
+      {
+        whatsapp_atencion: config.whatsapp_atencion,
+        nombre_negocio: config.nombre_negocio,
+        dias_archivo_entregados: config.dias_archivo_entregados,
+      },
       "Configuración actualizada"
     );
   }),
@@ -714,6 +857,7 @@ export const handlers = [
   ...estadoHandlers,
   ...cotizadorHandlers,
   ...finanzasHandlers,
+  ...dashboardHandlers,
   ...rastreoHandlers,
   ...comunidadHandlers,
   ...usuarioHandlers,

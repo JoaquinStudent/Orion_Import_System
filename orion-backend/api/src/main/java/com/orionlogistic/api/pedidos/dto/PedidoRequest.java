@@ -12,8 +12,9 @@ import java.util.List;
 /**
  * Payload para crear (POST) o editar (PUT) un pedido. Mismo shape en ambos casos:
  * el PUT reemplaza datos y la lista completa de productos (doc 05b).
- * Obligatorios (NOT NULL en BD): titular, num_orden, num_tracking, whatsapp,
- * costo_importacion_usd. `estado_id` opcional (si falta, se asigna el de menor orden).
+ * Obligatorios (NOT NULL en BD): titular, num_orden, num_tracking, whatsapp.
+ * `costo_importacion_usd` y `estado_id` opcionales (si falta el estado, se asigna el de
+ * menor orden).
  */
 @Getter @Setter
 public class PedidoRequest {
@@ -42,7 +43,8 @@ public class PedidoRequest {
     @PositiveOrZero
     private BigDecimal valorUsd;
 
-    @NotNull @PositiveOrZero
+    /** Opcional al crear/editar: se carga normalmente al llegar al almacén. */
+    @PositiveOrZero
     private BigDecimal costoImportacionUsd;
 
     /** Debe ser almacen | lima | shalom (CHECK en BD). Null permitido. */

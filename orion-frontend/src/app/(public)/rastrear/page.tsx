@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { toast } from "sonner";
 import {
   MapPin,
@@ -152,6 +153,11 @@ export default function RastrearPage() {
         </Button>
       </div>
 
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
+      >
       <Card>
         <CardContent className="space-y-8 pt-6">
           {/* Resumen del pedido */}
@@ -247,6 +253,7 @@ export default function RastrearPage() {
           </div>
         </CardContent>
       </Card>
+      </motion.div>
     </main>
   );
 }
@@ -262,9 +269,9 @@ function Dato({ label, valor, fuerte }: { label: string; valor?: string | null; 
 
 function Stepper({ estados }: { estados: RastreoResult["estados"] }) {
   return (
-    <ol className="flex items-start justify-between gap-1">
+    <ol className="flex items-start gap-1 overflow-x-auto pb-1">
       {estados.map((e, i) => (
-        <li key={e.nombre} className="relative flex flex-1 flex-col items-center text-center">
+        <li key={e.nombre} className="relative flex min-w-[64px] flex-1 shrink-0 flex-col items-center text-center">
           {i > 0 && (
             <span
               className={`absolute right-1/2 top-4 -z-0 h-0.5 w-full ${

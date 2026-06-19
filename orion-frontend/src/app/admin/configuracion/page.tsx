@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Plus, Pencil, Trash2, Save, X, Lock, MapPin } from "lucide-react";
 
 import {
@@ -10,7 +11,6 @@ import {
   actualizarComunidad,
   eliminarComunidad,
 } from "@/lib/services/comunidades";
-import { getApiErrorMessage } from "@/lib/api";
 import { puedeEditar } from "@/lib/permisos";
 import { useAuth } from "@/hooks/useAuth";
 import type { Comunidad } from "@/types/comunidad";
@@ -19,72 +19,64 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { UsuariosAdmin } from "@/components/usuarios/UsuariosAdmin";
 import { WhatsappConfig } from "@/components/config/WhatsappConfig";
+import { ArchivoConfig } from "@/components/config/ArchivoConfig";
 
 export default function ConfiguracionPage() {
   const { usuario, loading: authLoading } = useAuth();
   const permitido = puedeEditar(usuario, "configuracion");
-
-  const [comunidades, setComunidades] = useState<Comunidad[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const queryClient = useQueryClient();
 
   const [editingId, setEditingId] = useState<number | null>(null);
   const [nombre, setNombre] = useState("");
 
-  const fetchComunidades = useCallback(async () => {
-    setLoading(true);
-    try {
-      setComunidades(await listarComunidades());
-    } catch (error) {
-      toast.error(getApiErrorMessage(error, "No se pudieron cargar las comunidades"));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!authLoading && permitido) fetchComunidades();
-  }, [authLoading, permitido, fetchComunidades]);
+  const comunidadesQ = useQuery({
+    queryKey: ["comunidades"],
+    queryFn: listarComunidades,
+    enabled: !authLoading && permitido,
+  });
+  const comunidades: Comunidad[] = comunidadesQ.data ?? [];
+  const loading = comunidadesQ.isLoading;
 
   function resetForm() {
     setEditingId(null);
     setNombre("");
   }
 
-  async function onSubmit(e: React.FormEvent) {
+  const guardarMut = useMutation({
+    mutationFn: (nombre: string) =>
+      editingId ? actualizarComunidad(editingId, { nombre }) : crearComunidad({ nombre }),
+    onSuccess: () => {
+      toast.success(editingId ? "Comunidad actualizada" : "Comunidad creada");
+      queryClient.invalidateQueries({ queryKey: ["comunidades"] });
+      resetForm();
+    },
+  });
+  const saving = guardarMut.isPending;
+
+  const eliminarMut = useMutation({
+    mutationFn: (id: number) => eliminarComunidad(id),
+    onSuccess: () => {
+      toast.success("Comunidad eliminada");
+      queryClient.invalidateQueries({ queryKey: ["comunidades"] });
+    },
+  });
+
+  function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!nombre.trim()) {
       toast.error("Ingresá un nombre");
       return;
     }
-    setSaving(true);
-    try {
-      if (editingId) {
-        await actualizarComunidad(editingId, { nombre: nombre.trim() });
-        toast.success("Comunidad actualizada");
-      } else {
-        await crearComunidad({ nombre: nombre.trim() });
-        toast.success("Comunidad creada");
-      }
-      resetForm();
-      await fetchComunidades();
-    } catch (error) {
-      toast.error(getApiErrorMessage(error, "No se pudo guardar"));
-    } finally {
-      setSaving(false);
-    }
+    guardarMut.mutate(nombre.trim());
   }
 
-  async function onDelete(c: Comunidad) {
+  function onDelete(c: Comunidad) {
     if (!window.confirm(`¿Eliminar la comunidad "${c.nombre}"?`)) return;
-    try {
-      await eliminarComunidad(c.id);
-      toast.success("Comunidad eliminada");
-      if (editingId === c.id) resetForm();
-      await fetchComunidades();
-    } catch (error) {
-      toast.error(getApiErrorMessage(error, "No se pudo eliminar"));
-    }
+    eliminarMut.mutate(c.id, {
+      onSuccess: () => {
+        if (editingId === c.id) resetForm();
+      },
+    });
   }
 
   if (authLoading) {
@@ -118,6 +110,9 @@ export default function ConfiguracionPage() {
 
       {/* WhatsApp de atención */}
       <WhatsappConfig />
+
+      {/* Archivado de entregados */}
+      <ArchivoConfig />
 
       {/* Comunidades */}
       <div>

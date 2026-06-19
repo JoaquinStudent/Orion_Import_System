@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Download,
   Loader2,
@@ -22,15 +23,15 @@ import {
   Tooltip,
 } from "recharts";
 
-import { obtenerResumen, exportarExcel } from "@/lib/services/finanzas";
+import { obtenerResumen, obtenerKpis, exportarExcel } from "@/lib/services/finanzas";
 import { listarPedidos, cambiarEstadoPago } from "@/lib/services/pedidos";
 import { getApiErrorMessage } from "@/lib/api";
 import { formatUSD, formatFecha } from "@/lib/format";
 import { TIPO_ENVIO_LABEL } from "@/lib/constants";
 import { puedeVer } from "@/lib/permisos";
 import { useAuth } from "@/hooks/useAuth";
-import type { FinanzasResumen } from "@/types/finanzas";
-import type { PedidoListItem, TipoEnvio } from "@/types/pedido";
+import type { FinanzasKpis, FinanzasResumen } from "@/types/finanzas";
+import type { PedidoListItem } from "@/types/pedido";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EstadoBadge } from "@/components/pedidos/EstadoBadge";
@@ -72,122 +73,52 @@ function rango(p: Periodo): { desde: string; hasta: string } {
   return { desde: ymd(new Date(hoy.getFullYear(), 0, 1)), hasta };
 }
 
-function enRango(p: PedidoListItem, desde: string, hasta: string): boolean {
-  const f = p.creado_en.slice(0, 10);
-  return f >= desde && f <= hasta;
-}
-
-// Solo los pedidos con pago LIQUIDADO cuentan como ingreso.
-const sumar = (lista: PedidoListItem[]) =>
-  lista
-    .filter((p) => p.estado_pago === "liquidado")
-    .reduce((s, p) => s + p.costo_importacion_usd, 0);
-
 /* ---------- página ---------- */
 export default function FinanzasPage() {
   const { usuario, loading: authLoading } = useAuth();
   const permitido = puedeVer(usuario, "finanzas");
+  const queryClient = useQueryClient();
 
-  const [pedidos, setPedidos] = useState<PedidoListItem[]>([]);
-  const [serie, setSerie] = useState<FinanzasResumen["serie"]>([]);
-  const [loading, setLoading] = useState(true);
   const [periodo, setPeriodo] = useState<Periodo>("mes");
   const [exportando, setExportando] = useState(false);
-  const [liquidandoId, setLiquidandoId] = useState<number | null>(null);
 
-  // Carga inicial: todos los pedidos (fuente de KPIs, tabla y desglose).
-  useEffect(() => {
-    if (authLoading || !permitido) return;
-    listarPedidos({ size: 200 })
-      .then((res) => setPedidos(res.content))
-      .catch((e) => toast.error(getApiErrorMessage(e, "No se pudieron cargar los datos")))
-      .finally(() => setLoading(false));
-  }, [authLoading, permitido]);
+  const habilitado = !authLoading && permitido;
 
-  // Serie del gráfico: del endpoint de finanzas, según el período activo.
-  const fetchSerie = useCallback(async () => {
-    const { desde, hasta } = rango(periodo);
-    const api = PERIODOS.find((x) => x.key === periodo)!.api;
-    try {
-      const r = await obtenerResumen({ periodo: api, desde, hasta });
-      setSerie(r.serie);
-    } catch {
-      setSerie([]);
-    }
-  }, [periodo]);
+  // KPIs (server-side).
+  const kpisQ = useQuery({
+    queryKey: ["finanzas", "kpis"],
+    queryFn: obtenerKpis,
+    enabled: habilitado,
+  });
+  // Últimas 8 filas del detalle.
+  const detalleQ = useQuery({
+    queryKey: ["finanzas", "detalle"],
+    queryFn: () => listarPedidos({ size: 8 }),
+    enabled: habilitado,
+  });
+  // Resumen del período activo: serie + total + ingreso + desglose por tipo.
+  const resumenQ = useQuery({
+    queryKey: ["finanzas", "resumen", periodo],
+    queryFn: () => {
+      const { desde, hasta } = rango(periodo);
+      const api = PERIODOS.find((x) => x.key === periodo)!.api;
+      return obtenerResumen({ periodo: api, desde, hasta });
+    },
+    enabled: habilitado,
+  });
 
-  useEffect(() => {
-    if (!authLoading && permitido) fetchSerie();
-  }, [authLoading, permitido, fetchSerie]);
+  const kpis: FinanzasKpis | null = kpisQ.data ?? null;
+  const resumen: FinanzasResumen | null = resumenQ.data ?? null;
+  const detalle: PedidoListItem[] = detalleQ.data?.content ?? [];
+  const loading = kpisQ.isLoading || detalleQ.isLoading;
 
-  /* ---- agregaciones (memoizadas sobre los pedidos) ---- */
-  const kpis = useMemo(() => {
-    const hoy = new Date();
-    const ayer = new Date(hoy);
-    ayer.setDate(ayer.getDate() - 1);
-    const hoyStr = ymd(hoy);
-    const ayerStr = ymd(ayer);
-
-    const ingHoy = sumar(pedidos.filter((p) => enRango(p, hoyStr, hoyStr)));
-    const ingAyer = sumar(pedidos.filter((p) => enRango(p, ayerStr, ayerStr)));
-
-    const rMes = rango("mes");
-    const delMes = pedidos.filter((p) => enRango(p, rMes.desde, rMes.hasta));
-
-    const rAnio = rango("anio");
-    const delAnio = pedidos.filter((p) => enRango(p, rAnio.desde, rAnio.hasta));
-
-    // Mejor mes del año (por ingresos).
-    const porMes = new Map<number, number>();
-    for (const p of delAnio) {
-      if (p.estado_pago !== "liquidado") continue;
-      const m = Number(p.creado_en.slice(5, 7)) - 1;
-      porMes.set(m, (porMes.get(m) ?? 0) + p.costo_importacion_usd);
-    }
-    let mejorMes: string | null = null;
-    let max = -1;
-    porMes.forEach((monto, m) => {
-      if (monto > max) {
-        max = monto;
-        mejorMes = MESES[m];
-      }
-    });
-
-    const deltaAyer =
-      ingAyer > 0 ? ((ingHoy - ingAyer) / ingAyer) * 100 : null;
-
-    return {
-      ingHoy,
-      deltaAyer,
-      ingMes: sumar(delMes),
-      pedidosMes: delMes.length,
-      ingAnio: sumar(delAnio),
-      mejorMes,
-    };
-  }, [pedidos]);
-
-  // Resumen del período activo (panel lateral).
-  const resumenPeriodo = useMemo(() => {
-    const { desde, hasta } = rango(periodo);
-    const enPeriodo = pedidos.filter((p) => enRango(p, desde, hasta));
-    const tipos: (TipoEnvio | "sin")[] = ["almacen", "lima", "shalom", "sin"];
-    const desglose = tipos
-      .map((t) => ({
-        tipo: t,
-        label: t === "sin" ? "Sin asignar" : TIPO_ENVIO_LABEL[t],
-        cantidad: enPeriodo.filter((p) => (p.tipo_envio ?? "sin") === t).length,
-      }))
-      .filter((x) => x.cantidad > 0);
-    return { total: enPeriodo.length, ingreso: sumar(enPeriodo), desglose };
-  }, [pedidos, periodo]);
-
-  const detalle = useMemo(
-    () =>
-      [...pedidos]
-        .sort((a, b) => b.creado_en.localeCompare(a.creado_en))
-        .slice(0, 8),
-    [pedidos]
-  );
+  const serie = resumen?.serie ?? [];
+  const deltaAyer =
+    kpis && kpis.ingreso_ayer_usd > 0
+      ? ((kpis.ingreso_hoy_usd - kpis.ingreso_ayer_usd) / kpis.ingreso_ayer_usd) * 100
+      : null;
+  const mejorMes = kpis?.mejor_mes ? MESES[kpis.mejor_mes - 1] : null;
+  const desglose = resumen?.desglose_tipo_envio ?? [];
 
   async function onExportar() {
     setExportando(true);
@@ -201,20 +132,20 @@ export default function FinanzasPage() {
   }
 
   // Liquidar el pago de un pedido desde la tabla (recién ahí cuenta como ingreso).
-  async function liquidar(p: PedidoListItem) {
-    setLiquidandoId(p.id);
-    try {
-      await cambiarEstadoPago(p.id, "liquidado");
-      setPedidos((prev) =>
-        prev.map((x) => (x.id === p.id ? { ...x, estado_pago: "liquidado" } : x))
-      );
-      fetchSerie(); // el ingreso del gráfico se recalcula
+  const liquidarMut = useMutation({
+    mutationFn: (p: PedidoListItem) => cambiarEstadoPago(p.id, "liquidado"),
+    onSuccess: (_data, p) => {
+      // El backend recalcula KPIs/resumen; invalidamos todo lo financiero + pedidos.
+      queryClient.invalidateQueries({ queryKey: ["finanzas"] });
+      queryClient.invalidateQueries({ queryKey: ["pedidos"] });
+      queryClient.invalidateQueries({ queryKey: ["tablero"] });
       toast.success(`Pago de ${p.num_orden} liquidado`);
-    } catch (e) {
-      toast.error(getApiErrorMessage(e, "No se pudo liquidar"));
-    } finally {
-      setLiquidandoId(null);
-    }
+    },
+  });
+  const liquidandoId = liquidarMut.isPending ? liquidarMut.variables?.id ?? null : null;
+
+  function liquidar(p: PedidoListItem) {
+    liquidarMut.mutate(p);
   }
 
   if (authLoading) {
@@ -250,7 +181,7 @@ export default function FinanzasPage() {
               <button
                 key={p.key}
                 onClick={() => setPeriodo(p.key)}
-                className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors sm:px-3 sm:text-sm ${
                   periodo === p.key
                     ? "bg-primary text-primary-foreground"
                     : "text-on-surface-variant hover:bg-secondary"
@@ -271,36 +202,36 @@ export default function FinanzasPage() {
       <div className="grid gap-4 sm:grid-cols-3">
         <KpiCard
           titulo="Ingresos hoy"
-          valor={formatUSD(kpis.ingHoy)}
+          valor={formatUSD(kpis?.ingreso_hoy_usd ?? 0)}
           extra={
-            kpis.deltaAyer === null ? (
+            deltaAyer === null ? (
               <span className="text-on-surface-muted">Sin datos de ayer</span>
             ) : (
               <span
                 className={`inline-flex items-center gap-1 ${
-                  kpis.deltaAyer >= 0 ? "text-emerald-600" : "text-destructive"
+                  deltaAyer >= 0 ? "text-emerald-600" : "text-destructive"
                 }`}
               >
-                {kpis.deltaAyer >= 0 ? (
+                {deltaAyer >= 0 ? (
                   <TrendingUp className="h-4 w-4" />
                 ) : (
                   <TrendingDown className="h-4 w-4" />
                 )}
-                {kpis.deltaAyer >= 0 ? "+" : ""}
-                {kpis.deltaAyer.toFixed(0)}% vs ayer
+                {deltaAyer >= 0 ? "+" : ""}
+                {deltaAyer.toFixed(0)}% vs ayer
               </span>
             )
           }
         />
         <KpiCard
           titulo="Ingresos este mes"
-          valor={formatUSD(kpis.ingMes)}
-          extra={`${kpis.pedidosMes} pedidos registrados`}
+          valor={formatUSD(kpis?.ingreso_mes_usd ?? 0)}
+          extra={`${kpis?.pedidos_mes ?? 0} pedidos registrados`}
         />
         <KpiCard
           titulo="Ingresos este año"
-          valor={formatUSD(kpis.ingAnio)}
-          extra={kpis.mejorMes ? `Mejor mes: ${capitalizar(kpis.mejorMes)}` : "—"}
+          valor={formatUSD(kpis?.ingreso_anio_usd ?? 0)}
+          extra={mejorMes ? `Mejor mes: ${capitalizar(mejorMes)}` : "—"}
         />
       </div>
 
@@ -452,15 +383,15 @@ export default function FinanzasPage() {
             <CardTitle className="text-base">Resumen del período</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Fila label="Total de pedidos" valor={String(resumenPeriodo.total)} fuerte />
+            <Fila label="Total de pedidos" valor={String(resumen?.total_pedidos ?? 0)} fuerte />
             <div className="border-t border-outline-variant" />
-            {resumenPeriodo.desglose.length === 0 ? (
+            {desglose.length === 0 ? (
               <p className="text-sm text-on-surface-muted">Sin pedidos en el período.</p>
             ) : (
-              resumenPeriodo.desglose.map((d) => (
+              desglose.map((d) => (
                 <Fila
-                  key={d.tipo}
-                  label={`Método ${d.label}`}
+                  key={d.tipo_envio ?? "sin"}
+                  label={`Método ${d.tipo_envio ? TIPO_ENVIO_LABEL[d.tipo_envio] : "Sin asignar"}`}
                   valor={`${d.cantidad} ${d.cantidad === 1 ? "pedido" : "pedidos"}`}
                 />
               ))
@@ -471,7 +402,7 @@ export default function FinanzasPage() {
                 Ingreso total USD
               </p>
               <p className="text-2xl font-bold text-primary">
-                {formatUSD(resumenPeriodo.ingreso)}
+                {formatUSD(resumen?.ingreso_total_usd ?? 0)}
               </p>
             </div>
             <Button onClick={onExportar} disabled={exportando} className="w-full">

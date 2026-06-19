@@ -1,13 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { toast } from "sonner";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Plus, Search, Eye, Loader2, PackageOpen } from "lucide-react";
 
 import { listarPedidos } from "@/lib/services/pedidos";
 import { listarEstados } from "@/lib/services/estados";
-import { getApiErrorMessage } from "@/lib/api";
 import { formatUSD, formatFecha } from "@/lib/format";
 import { TIPO_ENVIO_LABEL } from "@/lib/constants";
 import type { Estado } from "@/types/estado";
@@ -20,23 +19,10 @@ import { EstadoBadge } from "@/components/pedidos/EstadoBadge";
 const PAGE_SIZE = 10;
 
 export default function PedidosPage() {
-  const [estados, setEstados] = useState<Estado[]>([]);
-  const [data, setData] = useState<Paginated<PedidoListItem> | null>(null);
-  const [loading, setLoading] = useState(true);
-
   const [search, setSearch] = useState("");
   const [debounced, setDebounced] = useState("");
   const [estadoId, setEstadoId] = useState<number | undefined>(undefined);
   const [page, setPage] = useState(0);
-
-  // Carga inicial de estados (para el filtro).
-  useEffect(() => {
-    listarEstados()
-      .then(setEstados)
-      .catch(() => {
-        /* el filtro queda sin opciones; no es bloqueante */
-      });
-  }, []);
 
   // Debounce de la búsqueda: espera a que el usuario deje de tipear.
   useEffect(() => {
@@ -49,26 +35,22 @@ export default function PedidosPage() {
     setPage(0);
   }, [debounced, estadoId]);
 
-  const fetchPedidos = useCallback(async () => {
-    setLoading(true);
-    try {
-      const res = await listarPedidos({
+  const estadosQ = useQuery({ queryKey: ["estados"], queryFn: listarEstados });
+  const estados: Estado[] = estadosQ.data ?? [];
+
+  const pedidosQ = useQuery({
+    queryKey: ["pedidos", { search: debounced, estadoId, page }],
+    queryFn: () =>
+      listarPedidos({
         search: debounced || undefined,
         estado_id: estadoId,
         page,
         size: PAGE_SIZE,
-      });
-      setData(res);
-    } catch (error) {
-      toast.error(getApiErrorMessage(error, "No se pudieron cargar los pedidos"));
-    } finally {
-      setLoading(false);
-    }
-  }, [debounced, estadoId, page]);
-
-  useEffect(() => {
-    fetchPedidos();
-  }, [fetchPedidos]);
+      }),
+    placeholderData: keepPreviousData, // paginación sin parpadeo
+  });
+  const data: Paginated<PedidoListItem> | null = pedidosQ.data ?? null;
+  const loading = pedidosQ.isLoading;
 
   const total = data?.total_elements ?? 0;
   const desde = total === 0 ? 0 : page * PAGE_SIZE + 1;
@@ -126,7 +108,7 @@ export default function PedidosPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-outline-variant bg-surface-container text-left text-xs uppercase tracking-wide text-on-surface-variant">
-                <th className="px-4 py-3 font-medium">Orden / Tracking</th>
+                <th className="px-4 py-3 font-medium">Tracking / Orden</th>
                 <th className="px-4 py-3 font-medium">Titular</th>
                 <th className="px-4 py-3 font-medium">Estado</th>
                 <th className="px-4 py-3 font-medium">Envío</th>
@@ -156,8 +138,8 @@ export default function PedidosPage() {
                     className="border-b border-outline-variant/60 last:border-0 hover:bg-surface-container-low"
                   >
                     <td className="px-4 py-3">
-                      <div className="font-medium text-foreground">{p.num_orden}</div>
-                      <div className="text-xs text-on-surface-muted">{p.num_tracking}</div>
+                      <div className="font-medium text-foreground">{p.num_tracking}</div>
+                      <div className="text-xs text-on-surface-muted">{p.num_orden}</div>
                     </td>
                     <td className="px-4 py-3 text-foreground">{p.titular}</td>
                     <td className="px-4 py-3">

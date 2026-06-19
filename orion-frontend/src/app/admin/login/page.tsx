@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 import {
-  Compass,
   Mail,
   Lock,
   Eye,
@@ -21,7 +21,8 @@ import {
 } from "lucide-react";
 
 import { api, getApiErrorMessage } from "@/lib/api";
-import { setToken, setUsuario } from "@/lib/auth";
+import { setToken } from "@/lib/auth";
+import { useAuth } from "@/hooks/useAuth";
 import type { ApiResponse } from "@/types/api";
 import type { LoginResponse } from "@/types/usuario";
 import { Button } from "@/components/ui/button";
@@ -53,6 +54,7 @@ const STATS = [
 
 export default function LoginPage() {
   const router = useRouter();
+  const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm<LoginValues>({
@@ -69,7 +71,7 @@ export default function LoginPage() {
         values
       );
       setToken(data.data.token);
-      setUsuario(data.data.usuario);
+      login(data.data.usuario);
       toast.success(`Bienvenido, ${data.data.usuario.nombre.split(" ")[0]}`);
 
       if (data.data.usuario.password_temporal) {
@@ -98,11 +100,15 @@ export default function LoginPage() {
           }}
         />
         <div className="z-10 max-w-md text-center">
-          <div className="mb-8 flex flex-col items-center">
-            <Compass className="mb-3 h-16 w-16" />
-            <h1 className="text-4xl font-bold tracking-tight">
-              Orión <span className="text-gold">Logistic</span>
-            </h1>
+          <div className="mb-8 flex justify-center">
+            <Image
+              src="/logo-white.svg"
+              alt="Orión Logistic"
+              width={260}
+              height={177}
+              className="h-44 w-auto"
+              priority
+            />
           </div>
           <p className="mb-12 leading-relaxed text-navy-soft">
             Gestión logística integral y seguimiento de paquetes a nivel
@@ -129,12 +135,14 @@ export default function LoginPage() {
       <div className="flex w-full items-center justify-center bg-surface-container-low p-6 md:w-1/2">
         <div className="w-full max-w-[400px] rounded-xl border border-outline-variant bg-white p-8 shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
           {/* Marca móvil */}
-          <div className="mb-8 flex flex-col items-center md:hidden">
-            <Compass className="mb-2 h-12 w-12 text-primary" />
-            <h1 className="text-2xl font-bold">
-              <span className="text-primary">Orión</span>{" "}
-              <span className="text-gold">Logistic</span>
-            </h1>
+          <div className="mb-8 flex justify-center md:hidden">
+            <Image
+              src="/logo.svg"
+              alt="Orión Logistic"
+              width={150}
+              height={102}
+              className="h-24 w-auto"
+            />
           </div>
 
           <div className="mb-8 text-center">

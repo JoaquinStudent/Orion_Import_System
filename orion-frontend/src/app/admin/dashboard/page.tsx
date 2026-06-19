@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
 import {
   Loader2,
   Package,
@@ -21,12 +22,13 @@ import {
   Tooltip,
 } from "recharts";
 
-import { listarPedidos } from "@/lib/services/pedidos";
+import { obtenerDashboardResumen } from "@/lib/services/dashboard";
 import { obtenerResumen, exportarExcel } from "@/lib/services/finanzas";
 import { getApiErrorMessage } from "@/lib/api";
 import { formatUSD, formatFecha } from "@/lib/format";
+import { puedeVer } from "@/lib/permisos";
 import { useAuth } from "@/hooks/useAuth";
-import type { PedidoListItem } from "@/types/pedido";
+import type { DashboardResumen } from "@/types/dashboard";
 import type { FinanzasResumen } from "@/types/finanzas";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -46,48 +48,30 @@ function ymd(d: Date): string {
 }
 
 export default function DashboardPage() {
-  const { usuario } = useAuth();
-  const [pedidos, setPedidos] = useState<PedidoListItem[]>([]);
-  const [resumen, setResumen] = useState<FinanzasResumen | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { usuario, loading: authLoading } = useAuth();
+  const verPedidos = puedeVer(usuario, "pedidos");
+  const verFinanzas = puedeVer(usuario, "finanzas");
   const [exportando, setExportando] = useState(false);
 
-  useEffect(() => {
-    const hoy = new Date();
-    const inicioMes = ymd(new Date(hoy.getFullYear(), hoy.getMonth(), 1));
-    Promise.all([
-      listarPedidos({ size: 200 }),
-      obtenerResumen({ periodo: "dia", desde: inicioMes, hasta: ymd(hoy) }),
-    ])
-      .then(([p, r]) => {
-        setPedidos(p.content);
-        setResumen(r);
-      })
-      .catch((e) => toast.error(getApiErrorMessage(e, "No se pudo cargar el dashboard")))
-      .finally(() => setLoading(false));
-  }, []);
+  const hoy = new Date();
+  const inicioMes = ymd(new Date(hoy.getFullYear(), hoy.getMonth(), 1));
 
-  const kpis = useMemo(() => {
-    const hoy = ymd(new Date());
-    const mes = hoy.slice(0, 7);
-    const cuenta = (fn: (p: PedidoListItem) => boolean) => pedidos.filter(fn).length;
-    return {
-      hoy: cuenta((p) => p.creado_en.slice(0, 10) === hoy),
-      transito: cuenta((p) => p.estado.nombre === "En tránsito"),
-      aduana: cuenta((p) => p.estado.nombre === "En aduana"),
-      entregadosMes: cuenta(
-        (p) => p.estado.nombre === "Entregado" && p.creado_en.slice(0, 7) === mes
-      ),
-    };
-  }, [pedidos]);
+  // Cada query se gatea por permiso (enabled) para no provocar 403 a un EMPLEADO.
+  const dashboardQ = useQuery({
+    queryKey: ["dashboard-resumen"],
+    queryFn: obtenerDashboardResumen,
+    enabled: !authLoading && verPedidos,
+  });
+  const resumenQ = useQuery({
+    queryKey: ["finanzas", "resumen", "dashboard-mes"],
+    queryFn: () => obtenerResumen({ periodo: "dia", desde: inicioMes, hasta: ymd(hoy) }),
+    enabled: !authLoading && verFinanzas,
+  });
 
-  const ultimos = useMemo(
-    () =>
-      [...pedidos]
-        .sort((a, b) => b.creado_en.localeCompare(a.creado_en))
-        .slice(0, 6),
-    [pedidos]
-  );
+  const data: DashboardResumen | null = dashboardQ.data ?? null;
+  const resumen: FinanzasResumen | null = resumenQ.data ?? null;
+  const loading = authLoading || dashboardQ.isLoading || resumenQ.isLoading;
+  const ultimos = data?.ultimos ?? [];
 
   async function onExportar() {
     setExportando(true);
@@ -119,10 +103,10 @@ export default function DashboardPage() {
 
       {/* KPIs */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Kpi icon={Package} color="#0C447C" label="Pedidos hoy" valor={kpis.hoy} />
-        <Kpi icon={Truck} color="#854F0B" label="En tránsito" valor={kpis.transito} />
-        <Kpi icon={Landmark} color="#3C3489" label="En aduana" valor={kpis.aduana} />
-        <Kpi icon={CheckCircle2} color="#085041" label="Entregados (mes)" valor={kpis.entregadosMes} />
+        <Kpi icon={Package} color="#0C447C" label="Pedidos hoy" valor={data?.pedidos_hoy ?? 0} />
+        <Kpi icon={Truck} color="#854F0B" label="En tránsito" valor={data?.en_transito ?? 0} />
+        <Kpi icon={Landmark} color="#3C3489" label="En aduana" valor={data?.en_aduana ?? 0} />
+        <Kpi icon={CheckCircle2} color="#085041" label="Entregados (mes)" valor={data?.entregados_mes ?? 0} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
