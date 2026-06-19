@@ -20,6 +20,7 @@ public class ConfiguracionService {
     public static final String UMBRAL_ASESOR = "umbral_asesor";
     public static final String WHATSAPP_ATENCION = "whatsapp_atencion";
     public static final String NOMBRE_NEGOCIO = "nombre_negocio";
+    public static final String DIAS_ARCHIVO_ENTREGADOS = "dias_archivo_entregados";
 
     private final ConfiguracionRepository repository;
 
