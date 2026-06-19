@@ -1,6 +1,7 @@
 package com.orionlogistic.api.finanzas;
 
 import com.orionlogistic.api.common.PermisoChecker;
+import com.orionlogistic.api.finanzas.dto.FinanzasKpisResponse;
 import com.orionlogistic.api.finanzas.dto.FinanzasResumenResponse;
 import com.orionlogistic.api.pedidos.Pedido;
 import com.orionlogistic.api.pedidos.PedidoRepository;
@@ -17,6 +18,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /** Resumen financiero (ingresos por importaciones) — doc 05.7. */
 @Service
@@ -67,7 +69,75 @@ public class FinanzasService {
                 .map(e -> new FinanzasResumenResponse.Punto(e.getKey(), e.getValue()))
                 .toList();
 
-        return new FinanzasResumenResponse(total, pedidos.size(), serie);
+        return new FinanzasResumenResponse(
+                total, pedidos.size(), serie, desglosePorTipoEnvio(pedidos));
+    }
+
+    /** Cuenta los pedidos por tipo de envío (incluye sin asignar = tipo_envio null). */
+    private List<FinanzasResumenResponse.DesgloseTipoEnvio> desglosePorTipoEnvio(List<Pedido> pedidos) {
+        Map<String, Long> porTipo = pedidos.stream()
+                .collect(Collectors.groupingBy(
+                        p -> p.getTipoEnvio() == null ? "" : p.getTipoEnvio(),
+                        LinkedHashMap::new,
+                        Collectors.counting()));
+        return porTipo.entrySet().stream()
+                .map(e -> new FinanzasResumenResponse.DesgloseTipoEnvio(
+                        e.getKey().isEmpty() ? null : e.getKey(), e.getValue()))
+                .toList();
+    }
+
+    /** KPIs financieros del panel (ingresos liquidados por ventana + mejor mes del año). */
+    @Transactional(readOnly = true)
+    public FinanzasKpisResponse kpis(Usuario usuario) {
+        permisoChecker.exigirVer(usuario, MODULO);
+
+        LocalDate hoy = LocalDate.now();
+        LocalDate ayer = hoy.minusDays(1);
+        LocalDate inicioMes = hoy.withDayOfMonth(1);
+        LocalDate inicioAnio = hoy.withDayOfYear(1);
+
+        List<Pedido> delAnio = pedidosEnRango(inicioAnio.toString(), hoy.toString());
+        List<Pedido> delMes = pedidosEnRango(inicioMes.toString(), hoy.toString());
+
+        BigDecimal ingresoHoy = ingresoLiquidadoEntre(delMes, hoy, hoy);
+        BigDecimal ingresoAyer = ingresoLiquidadoEntre(delMes, ayer, ayer);
+        BigDecimal ingresoMes = ingresoLiquidadoEntre(delMes, inicioMes, hoy);
+        BigDecimal ingresoAnio = ingresoLiquidadoEntre(delAnio, inicioAnio, hoy);
+
+        return new FinanzasKpisResponse(
+                ingresoHoy, ingresoAyer, ingresoMes,
+                delMes.size(), ingresoAnio, mejorMesDelAnio(delAnio));
+    }
+
+    /** Suma de costos de los pedidos LIQUIDADOS cuya fecha de creación cae en [desde, hasta]. */
+    private BigDecimal ingresoLiquidadoEntre(List<Pedido> pedidos, LocalDate desde, LocalDate hasta) {
+        return pedidos.stream()
+                .filter(p -> p.getCreadoEn() != null)
+                .filter(p -> "liquidado".equals(p.getEstadoPago()))
+                .filter(p -> {
+                    LocalDate f = p.getCreadoEn().toLocalDate();
+                    return !f.isBefore(desde) && !f.isAfter(hasta);
+                })
+                .map(p -> p.getCostoImportacionUsd() != null
+                        ? p.getCostoImportacionUsd() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    /** Mes (1-12) con mayor ingreso liquidado dentro de la lista, o null si no hay ingresos. */
+    private Integer mejorMesDelAnio(List<Pedido> delAnio) {
+        Map<Integer, BigDecimal> porMes = new LinkedHashMap<>();
+        for (Pedido p : delAnio) {
+            if (p.getCreadoEn() == null || !"liquidado".equals(p.getEstadoPago())) {
+                continue;
+            }
+            BigDecimal costo = p.getCostoImportacionUsd() != null
+                    ? p.getCostoImportacionUsd() : BigDecimal.ZERO;
+            porMes.merge(p.getCreadoEn().getMonthValue(), costo, BigDecimal::add);
+        }
+        return porMes.entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
+                .orElse(null);
     }
 
     /** Reporte .xlsx de los pedidos del rango (dentro de la tx para el lazy del estado). */
