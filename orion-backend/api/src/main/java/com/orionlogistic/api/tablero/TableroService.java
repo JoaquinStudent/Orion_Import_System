@@ -1,8 +1,10 @@
 package com.orionlogistic.api.tablero;
 
 import com.orionlogistic.api.common.PermisoChecker;
+import com.orionlogistic.api.configuracion.ConfiguracionService;
 import com.orionlogistic.api.estados.Estado;
 import com.orionlogistic.api.estados.EstadoRepository;
+import com.orionlogistic.api.pedidos.Pedido;
 import com.orionlogistic.api.pedidos.PedidoRepository;
 import com.orionlogistic.api.tablero.dto.TableroColumnaResponse;
 import com.orionlogistic.api.tablero.dto.TableroPedidoCardDto;
@@ -11,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -24,14 +27,22 @@ public class TableroService {
     private final EstadoRepository estadoRepository;
     private final PedidoRepository pedidoRepository;
     private final PermisoChecker permisoChecker;
+    private final ConfiguracionService configuracionService;
 
     /** Kanban completo: estados ordenados, cada uno con sus pedidos resumidos. */
     @Transactional(readOnly = true)
     public List<TableroColumnaResponse> obtener(Usuario usuario) {
         permisoChecker.exigirVer(usuario, MODULO);
 
+        // Excluir entregados archivados (estado final + entregado hace más de N días) para
+        // que la columna "Entregado" no crezca sin límite (doc 05d.4).
+        Estado estadoFinal = estadoRepository.findFirstByOrderByOrdenDesc().orElse(null);
+        LocalDateTime cutoff = LocalDateTime.now().minusDays(
+                configuracionService.getInt(ConfiguracionService.DIAS_ARCHIVO_ENTREGADOS, 7));
+
         Map<Long, List<TableroPedidoCardDto>> porEstado = pedidoRepository.findAll().stream()
                 .filter(p -> p.getEstado() != null)
+                .filter(p -> !esArchivado(p, estadoFinal, cutoff))
                 .collect(Collectors.groupingBy(
                         p -> p.getEstado().getId(),
                         Collectors.mapping(TableroPedidoCardDto::from, Collectors.toList())));
@@ -39,6 +50,14 @@ public class TableroService {
         return estadoRepository.findAllByOrderByOrdenAsc().stream()
                 .map(e -> columna(e, porEstado))
                 .toList();
+    }
+
+    /** ¿El pedido está archivado? (en el estado final y entregado antes del cutoff). */
+    private boolean esArchivado(Pedido p, Estado estadoFinal, LocalDateTime cutoff) {
+        return estadoFinal != null
+                && estadoFinal.getId().equals(p.getEstado().getId())
+                && p.getEntregadoEn() != null
+                && p.getEntregadoEn().isBefore(cutoff);
     }
 
     private TableroColumnaResponse columna(

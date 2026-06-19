@@ -69,12 +69,13 @@ CREATE TABLE pedidos (
     whatsapp              VARCHAR(20)    NOT NULL,
     firma                 VARCHAR(150),
     valor_usd             NUMERIC(10,2)  DEFAULT 0,
-    costo_importacion_usd NUMERIC(10,2)  NOT NULL,
+    costo_importacion_usd NUMERIC(10,2),
     estado_id             BIGINT         REFERENCES estados(id) ON DELETE SET NULL,
     tipo_envio            VARCHAR(30)    CHECK (tipo_envio IN ('almacen','lima','shalom')),
     estado_pago           VARCHAR(20)    NOT NULL DEFAULT 'pendiente'
                                          CHECK (estado_pago IN ('pendiente','liquidado')),
     creado_por            BIGINT         REFERENCES usuarios(id) ON DELETE SET NULL,
+    entregado_en          TIMESTAMPTZ,
     creado_en             TIMESTAMPTZ    DEFAULT now(),
     actualizado_en        TIMESTAMPTZ
 );
@@ -140,7 +141,8 @@ INSERT INTO configuracion (clave, valor) VALUES
     ('desaduanaje',       '9.00'),
     ('whatsapp_atencion', '+51999999999'),
     ('nombre_negocio',    'Orión Logistic'),
-    ('umbral_asesor',     '200')
+    ('umbral_asesor',     '200'),
+    ('dias_archivo_entregados', '7')
 ON CONFLICT (clave) DO UPDATE SET valor = EXCLUDED.valor;
 
 -- Script 10 — usuario administrador inicial

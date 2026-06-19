@@ -36,6 +36,13 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
     /** Rastreo público: valida tracking + orden juntos. */
     Optional<Pedido> findByNumTrackingAndNumOrden(String numTracking, String numOrden);
 
+    /**
+     * Pedidos archivados: en el estado final y entregados hace más de N días
+     * (entregado_en anterior al cutoff). Para GET /pedidos?archivados=true.
+     */
+    Page<Pedido> findByEstadoIdAndEntregadoEnBefore(
+            Long estadoId, LocalDateTime cutoff, Pageable pageable);
+
     boolean existsByNumOrden(String numOrden);
 
     boolean existsByNumTracking(String numTracking);

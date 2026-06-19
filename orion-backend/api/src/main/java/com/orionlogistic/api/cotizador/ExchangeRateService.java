@@ -3,6 +3,7 @@ package com.orionlogistic.api.cotizador;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
@@ -38,6 +39,16 @@ public class ExchangeRateService {
             refresh();
         }
         return new UsdPen(rate, fetchedAt);
+    }
+
+    /**
+     * Refresco programado cada 6h (00:00, 06:00, 12:00, 18:00). Determinista, en vez de
+     * depender del refresco lazy de {@link #get()}. El TTL y el fallback siguen como red
+     * de seguridad si este cron falla o si la API externa no responde.
+     */
+    @Scheduled(cron = "0 0 */6 * * *")
+    public synchronized void refrescarProgramado() {
+        refresh();
     }
 
     private void refresh() {
