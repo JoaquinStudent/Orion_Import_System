@@ -4,6 +4,7 @@ import com.orionlogistic.api.common.DuplicadoException;
 import com.orionlogistic.api.common.NotFoundException;
 import com.orionlogistic.api.usuarios.dto.ActualizarPermisosRequest;
 import com.orionlogistic.api.usuarios.dto.CrearUsuarioRequest;
+import com.orionlogistic.api.usuarios.dto.PermisoDto;
 import com.orionlogistic.api.usuarios.dto.UsuarioResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,7 +24,15 @@ public class UsuarioService {
     @Transactional(readOnly = true)
     public List<UsuarioResponse> listar() {
         return usuarioRepository.findAll().stream()
-                .map(UsuarioResponse::from)
+                .map(u -> {
+                    // ADMIN tiene acceso total → permisos vacío; EMPLEADO trae los suyos.
+                    List<PermisoDto> permisos = "ADMIN".equals(u.getRol())
+                            ? List.of()
+                            : permisoRepository.findByUsuarioId(u.getId()).stream()
+                                    .map(PermisoDto::from)
+                                    .toList();
+                    return UsuarioResponse.from(u, permisos);
+                })
                 .toList();
     }
 

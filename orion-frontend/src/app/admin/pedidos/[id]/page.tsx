@@ -11,9 +11,11 @@ import {
   Loader2,
   PackageX,
   MessageCircle,
+  CheckCircle2,
+  Undo2,
 } from "lucide-react";
 
-import { obtenerPedido, eliminarPedido } from "@/lib/services/pedidos";
+import { obtenerPedido, eliminarPedido, cambiarEstadoPago } from "@/lib/services/pedidos";
 import { getApiErrorMessage } from "@/lib/api";
 import { formatUSD, formatFecha, whatsappLink } from "@/lib/format";
 import { TIPO_ENVIO_LABEL } from "@/lib/constants";
@@ -21,6 +23,7 @@ import type { Pedido } from "@/types/pedido";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EstadoBadge } from "@/components/pedidos/EstadoBadge";
+import { PagoBadge } from "@/components/pedidos/PagoBadge";
 
 export default function DetallePedidoPage() {
   const params = useParams<{ id: string }>();
@@ -31,6 +34,24 @@ export default function DetallePedidoPage() {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [pagando, setPagando] = useState(false);
+
+  async function onTogglePago() {
+    if (!pedido) return;
+    const nuevo = pedido.estado_pago === "liquidado" ? "pendiente" : "liquidado";
+    setPagando(true);
+    try {
+      const actualizado = await cambiarEstadoPago(pedido.id, nuevo);
+      setPedido(actualizado);
+      toast.success(
+        nuevo === "liquidado" ? "Pago marcado como liquidado" : "Pago vuelto a pendiente"
+      );
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, "No se pudo actualizar el pago"));
+    } finally {
+      setPagando(false);
+    }
+  }
 
   const fetchPedido = useCallback(async () => {
     setLoading(true);
@@ -160,6 +181,30 @@ export default function DetallePedidoPage() {
               label="Última actualización"
               value={formatFecha(pedido.actualizado_en)}
             />
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Pago de la importación */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Pago de la importación</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-on-surface-variant">Estado del pago:</span>
+            <PagoBadge estado={pedido.estado_pago} />
+          </div>
+          {pedido.estado_pago === "liquidado" ? (
+            <Button variant="outline" size="sm" onClick={onTogglePago} disabled={pagando}>
+              {pagando ? <Loader2 className="animate-spin" /> : <Undo2 />}
+              Volver a pendiente
+            </Button>
+          ) : (
+            <Button size="sm" onClick={onTogglePago} disabled={pagando}>
+              {pagando ? <Loader2 className="animate-spin" /> : <CheckCircle2 />}
+              Marcar como liquidado
+            </Button>
           )}
         </CardContent>
       </Card>

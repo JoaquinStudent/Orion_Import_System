@@ -55,6 +55,11 @@ public class Pedido {
     @Column(name = "tipo_envio", length = 30)
     private String tipoEnvio;
 
+    /** Pago de la importación: 'pendiente' | 'liquidado'. Solo liquidado = ingreso. */
+    @Column(name = "estado_pago", nullable = false, length = 20)
+    @Builder.Default
+    private String estadoPago = "pendiente";
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "creado_por")
     private Usuario creadoPor;

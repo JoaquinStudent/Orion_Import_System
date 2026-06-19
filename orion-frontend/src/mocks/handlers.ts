@@ -2,7 +2,8 @@ import { http, HttpResponse } from "msw";
 import type { Usuario } from "@/types/usuario";
 import type { EstadoInput } from "@/types/estado";
 import type { Pedido, PedidoInput, PedidoListItem } from "@/types/pedido";
-import { config, estados, nextId, pedidos, toEstadoRef } from "@/mocks/db";
+import { comunidades, config, estados, nextId, pedidos, toEstadoRef, usuarios } from "@/mocks/db";
+import type { Permiso, Rol } from "@/types/usuario";
 
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080/api/v1";
 
@@ -29,6 +30,7 @@ function toListItem(p: Pedido): PedidoListItem {
     costo_importacion_usd: p.costo_importacion_usd,
     tipo_envio: p.tipo_envio,
     estado: p.estado,
+    estado_pago: p.estado_pago,
     creado_en: p.creado_en,
   };
 }
@@ -199,6 +201,7 @@ const pedidoHandlers = [
       costo_importacion_usd: body.costo_importacion_usd,
       tipo_envio: body.tipo_envio ?? null,
       estado: toEstadoRef(estado),
+      estado_pago: "pendiente",
       productos: (body.productos ?? []).map((pr) => ({
         id: nextId.producto(),
         ...pr,
@@ -270,6 +273,20 @@ const pedidoHandlers = [
     pedido.estado = toEstadoRef(estado);
     pedido.actualizado_en = new Date().toISOString();
     return ok(pedido, "Estado actualizado");
+  }),
+
+  // PATCH /pedidos/{id}/pago — estado de pago de la importación
+  http.patch(`${BASE}/pedidos/:id/pago`, async ({ params, request }) => {
+    const pedido = pedidos.find((p) => p.id === Number(params.id));
+    if (!pedido) return fail("Pedido no encontrado", "NO_ENCONTRADO", 404);
+
+    const body = (await request.json()) as { estado_pago?: "pendiente" | "liquidado" };
+    if (body.estado_pago !== "pendiente" && body.estado_pago !== "liquidado") {
+      return fail("Estado de pago inválido", "VALIDATION", 400);
+    }
+    pedido.estado_pago = body.estado_pago;
+    pedido.actualizado_en = new Date().toISOString();
+    return ok(pedido, "Estado de pago actualizado");
   }),
 
   // DELETE /pedidos/{id}
@@ -456,8 +473,11 @@ const finanzasHandlers = [
       return d.slice(0, 7); // mes → yyyy-MM
     };
 
+    // Solo los pedidos con pago LIQUIDADO cuentan como ingreso.
+    const liquidados = enRango.filter((p) => p.estado_pago === "liquidado");
+
     const porFecha = new Map<string, number>();
-    for (const p of enRango) {
+    for (const p of liquidados) {
       const k = clave(p.creado_en);
       porFecha.set(k, (porFecha.get(k) ?? 0) + p.costo_importacion_usd);
     }
@@ -467,7 +487,7 @@ const finanzasHandlers = [
         fecha,
         ingreso_usd: Number(ingreso_usd.toFixed(2)),
       }));
-    const ingresoTotal = enRango.reduce((s, p) => s + p.costo_importacion_usd, 0);
+    const ingresoTotal = liquidados.reduce((s, p) => s + p.costo_importacion_usd, 0);
     return ok({
       ingreso_total_usd: Number(ingresoTotal.toFixed(2)),
       total_pedidos: enRango.length,
@@ -558,6 +578,136 @@ const rastreoHandlers = [
   }),
 ];
 
+/* ------------------------------------------------------------------ */
+/* Comunidades (catálogo administrado)                                 */
+/* ------------------------------------------------------------------ */
+
+const comunidadHandlers = [
+  // GET /comunidades — catálogo activo (para el combobox del alta de pedido)
+  http.get(`${BASE}/comunidades`, () =>
+    ok([...comunidades].sort((a, b) => a.nombre.localeCompare(b.nombre)))
+  ),
+
+  // POST /comunidades (ADMIN)
+  http.post(`${BASE}/comunidades`, async ({ request }) => {
+    const body = (await request.json()) as { nombre?: string };
+    const nombre = body.nombre?.trim();
+    if (!nombre) return fail("El nombre es obligatorio", "VALIDATION", 400);
+    if (comunidades.some((c) => c.nombre.toLowerCase() === nombre.toLowerCase())) {
+      return fail("Ya existe una comunidad con ese nombre", "DUPLICADO", 409);
+    }
+    const nueva = { id: nextId.comunidad(), nombre, activo: true };
+    comunidades.push(nueva);
+    return ok(nueva, "Comunidad creada", 201);
+  }),
+
+  // PUT /comunidades/{id} (ADMIN)
+  http.put(`${BASE}/comunidades/:id`, async ({ params, request }) => {
+    const c = comunidades.find((x) => x.id === Number(params.id));
+    if (!c) return fail("Comunidad no encontrada", "NO_ENCONTRADO", 404);
+    const body = (await request.json()) as { nombre?: string };
+    const nombre = body.nombre?.trim();
+    if (!nombre) return fail("El nombre es obligatorio", "VALIDATION", 400);
+    if (
+      comunidades.some(
+        (x) => x.id !== c.id && x.nombre.toLowerCase() === nombre.toLowerCase()
+      )
+    ) {
+      return fail("Ya existe una comunidad con ese nombre", "DUPLICADO", 409);
+    }
+    c.nombre = nombre;
+    return ok(c, "Comunidad actualizada");
+  }),
+
+  // DELETE /comunidades/{id} (ADMIN)
+  http.delete(`${BASE}/comunidades/:id`, ({ params }) => {
+    const idx = comunidades.findIndex((x) => x.id === Number(params.id));
+    if (idx === -1) return fail("Comunidad no encontrada", "NO_ENCONTRADO", 404);
+    comunidades.splice(idx, 1);
+    return ok(null, "Comunidad eliminada");
+  }),
+];
+
+/* ------------------------------------------------------------------ */
+/* Usuarios y permisos (solo ADMIN) + config general                  */
+/* ------------------------------------------------------------------ */
+
+function toUsuarioAdmin(u: (typeof usuarios)[number]) {
+  return {
+    id: u.id,
+    nombre: u.nombre,
+    email: u.email,
+    rol: u.rol,
+    avatar_color: u.avatar_color,
+    activo: u.activo,
+    permisos: u.permisos,
+  };
+}
+
+const usuarioHandlers = [
+  // GET /usuarios
+  http.get(`${BASE}/usuarios`, () => ok(usuarios.map(toUsuarioAdmin))),
+
+  // POST /usuarios — alta de empleado
+  http.post(`${BASE}/usuarios`, async ({ request }) => {
+    const body = (await request.json()) as {
+      nombre?: string;
+      email?: string;
+      rol?: Rol;
+      avatar_color?: string;
+    };
+    if (!body.nombre || !body.email) {
+      return fail("Nombre y email son obligatorios", "VALIDATION", 400);
+    }
+    if (usuarios.some((u) => u.email.toLowerCase() === body.email!.toLowerCase())) {
+      return fail("Ya existe un usuario con ese email", "DUPLICADO", 409);
+    }
+    const nuevo = {
+      id: nextId.usuario(),
+      nombre: body.nombre,
+      email: body.email.toLowerCase(),
+      rol: (body.rol ?? "EMPLEADO") as Rol,
+      avatar_color: body.avatar_color ?? "#1B2A5E",
+      activo: true,
+      permisos: [] as Permiso[],
+    };
+    usuarios.push(nuevo);
+    return ok(toUsuarioAdmin(nuevo), "Usuario creado", 201);
+  }),
+
+  // PUT /usuarios/{id}/permisos
+  http.put(`${BASE}/usuarios/:id/permisos`, async ({ params, request }) => {
+    const u = usuarios.find((x) => x.id === Number(params.id));
+    if (!u) return fail("Usuario no encontrado", "NO_ENCONTRADO", 404);
+    const body = (await request.json()) as { permisos?: Permiso[] };
+    u.permisos = body.permisos ?? [];
+    return ok(null, "Permisos actualizados");
+  }),
+
+  // PATCH /usuarios/{id}/estado
+  http.patch(`${BASE}/usuarios/:id/estado`, async ({ params, request }) => {
+    const u = usuarios.find((x) => x.id === Number(params.id));
+    if (!u) return fail("Usuario no encontrado", "NO_ENCONTRADO", 404);
+    const body = (await request.json()) as { activo?: boolean };
+    u.activo = Boolean(body.activo);
+    return ok(toUsuarioAdmin(u), "Estado actualizado");
+  }),
+
+  // PUT /admin/config — config general (WhatsApp de atención, nombre)
+  http.put(`${BASE}/admin/config`, async ({ request }) => {
+    const body = (await request.json()) as {
+      whatsapp_atencion?: string;
+      nombre_negocio?: string;
+    };
+    if (body.whatsapp_atencion != null) config.whatsapp_atencion = body.whatsapp_atencion;
+    if (body.nombre_negocio != null) config.nombre_negocio = body.nombre_negocio;
+    return ok(
+      { whatsapp_atencion: config.whatsapp_atencion, nombre_negocio: config.nombre_negocio },
+      "Configuración actualizada"
+    );
+  }),
+];
+
 export const handlers = [
   ...authHandlers,
   ...pedidoHandlers,
@@ -565,4 +715,6 @@ export const handlers = [
   ...cotizadorHandlers,
   ...finanzasHandlers,
   ...rastreoHandlers,
+  ...comunidadHandlers,
+  ...usuarioHandlers,
 ];

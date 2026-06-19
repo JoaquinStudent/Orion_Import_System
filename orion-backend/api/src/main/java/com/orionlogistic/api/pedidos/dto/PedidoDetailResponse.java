@@ -25,6 +25,7 @@ public class PedidoDetailResponse {
     private BigDecimal costoImportacionUsd;
     private String tipoEnvio;
     private EstadoRefDto estado;
+    private String estadoPago;
     private List<ProductoResponse> productos;
     private CreadoPorDto creadoPor;
     private LocalDateTime creadoEn;
@@ -57,6 +58,7 @@ public class PedidoDetailResponse {
                 p.getCostoImportacionUsd(),
                 p.getTipoEnvio(),
                 EstadoRefDto.from(p.getEstado()),
+                p.getEstadoPago(),
                 p.getProductos().stream().map(ProductoResponse::from).toList(),
                 CreadoPorDto.from(p.getCreadoPor()),
                 p.getCreadoEn(),

@@ -15,7 +15,7 @@ import java.util.List;
 public class ExcelExporter {
 
     private static final String[] COLUMNAS =
-            {"N° Orden", "Tracking", "Titular", "Estado", "Costo USD", "Fecha"};
+            {"N° Orden", "Tracking", "Titular", "Estado", "Costo USD", "Pago", "Fecha"};
 
     public byte[] reportePedidos(List<Pedido> pedidos) {
         try (XSSFWorkbook wb = new XSSFWorkbook();
@@ -49,6 +49,8 @@ public class ExcelExporter {
                 row.createCell(3).setCellValue(p.getEstado() != null ? p.getEstado().getNombre() : "");
                 row.createCell(4).setCellValue(costo.doubleValue());
                 row.createCell(5).setCellValue(
+                        "liquidado".equals(p.getEstadoPago()) ? "Liquidado" : "Pendiente");
+                row.createCell(6).setCellValue(
                         p.getCreadoEn() != null ? p.getCreadoEn().toLocalDate().toString() : "");
             }
 
