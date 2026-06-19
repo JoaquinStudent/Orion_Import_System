@@ -17,13 +17,6 @@ import {
 import { SidebarNav } from "@/components/admin/Sidebar";
 import type { Usuario } from "@/types/usuario";
 
-function saludo(): string {
-  const h = new Date().getHours();
-  if (h < 12) return "Buenos días";
-  if (h < 19) return "Buenas tardes";
-  return "Buenas noches";
-}
-
 function fechaLarga(): string {
   return new Date().toLocaleDateString("es-PE", {
     weekday: "long",
@@ -64,10 +57,7 @@ export function Topbar({
         </Sheet>
 
         <div className="leading-tight">
-          <p className="text-sm font-semibold text-foreground">
-            {saludo()}, {usuario?.nombre?.split(" ")[0] ?? ""} 👋
-          </p>
-          <p className="hidden text-xs capitalize text-on-surface-muted sm:block">
+          <p className="text-sm font-semibold capitalize text-foreground">
             {fechaLarga()}
           </p>
         </div>

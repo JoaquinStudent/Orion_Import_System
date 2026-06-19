@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { toast } from "sonner";
 import {
   MapPin,
@@ -152,6 +153,11 @@ export default function RastrearPage() {
         </Button>
       </div>
 
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
+      >
       <Card>
         <CardContent className="space-y-8 pt-6">
           {/* Resumen del pedido */}
@@ -247,6 +253,7 @@ export default function RastrearPage() {
           </div>
         </CardContent>
       </Card>
+      </motion.div>
     </main>
   );
 }

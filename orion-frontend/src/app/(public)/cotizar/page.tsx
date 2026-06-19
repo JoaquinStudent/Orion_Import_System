@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -187,6 +188,7 @@ export default function CotizarPage() {
 
       {/* Paso 2: resultado con desglose */}
       {result?.aplica_calculo === true && (
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, ease: "easeOut" }}>
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Tu cotización estimada</CardTitle>
@@ -213,10 +215,12 @@ export default function CotizarPage() {
             </Button>
           </CardContent>
         </Card>
+        </motion.div>
       )}
 
       {/* Paso 3: invitación al asesor */}
       {result?.aplica_calculo === false && (
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, ease: "easeOut" }}>
         <Card>
           <CardContent className="flex flex-col items-center gap-4 py-8 text-center">
             <span className="flex h-12 w-12 items-center justify-center rounded-full bg-secondary text-primary">
@@ -242,6 +246,7 @@ export default function CotizarPage() {
             </Button>
           </CardContent>
         </Card>
+        </motion.div>
       )}
     </main>
   );
