@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Save, Archive } from "lucide-react";
 
 import { obtenerConfigPublica, actualizarConfigGeneral } from "@/lib/services/config";
-import { getApiErrorMessage } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,41 +13,38 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 const DEFAULT_DIAS = 7;
 
 export function ArchivoConfig() {
+  const queryClient = useQueryClient();
   const [dias, setDias] = useState(String(DEFAULT_DIAS));
   const [original, setOriginal] = useState(String(DEFAULT_DIAS));
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+
+  const configQ = useQuery({ queryKey: ["config-publica"], queryFn: obtenerConfigPublica });
+  const loading = configQ.isLoading;
 
   useEffect(() => {
-    obtenerConfigPublica()
-      .then((c) => {
-        const v = String(c.dias_archivo_entregados ?? DEFAULT_DIAS);
-        setDias(v);
-        setOriginal(v);
-      })
-      .catch((e) => toast.error(getApiErrorMessage(e, "No se pudo cargar la configuración")))
-      .finally(() => setLoading(false));
-  }, []);
+    if (configQ.data) {
+      const v = String(configQ.data.dias_archivo_entregados ?? DEFAULT_DIAS);
+      setDias(v);
+      setOriginal(v);
+    }
+  }, [configQ.data]);
 
-  async function guardar(e: React.FormEvent) {
+  const guardarMut = useMutation({
+    mutationFn: (n: number) => actualizarConfigGeneral({ dias_archivo_entregados: n }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["config-publica"] });
+      toast.success("Configuración actualizada");
+    },
+  });
+  const saving = guardarMut.isPending;
+
+  function guardar(e: React.FormEvent) {
     e.preventDefault();
     const n = Number(dias);
     if (!dias || isNaN(n) || n < 1) {
       toast.error("Ingresá un número de días válido (mínimo 1)");
       return;
     }
-    setSaving(true);
-    try {
-      const c = await actualizarConfigGeneral({ dias_archivo_entregados: n });
-      const v = String(c.dias_archivo_entregados ?? n);
-      setOriginal(v);
-      setDias(v);
-      toast.success("Configuración actualizada");
-    } catch (err) {
-      toast.error(getApiErrorMessage(err, "No se pudo guardar"));
-    } finally {
-      setSaving(false);
-    }
+    guardarMut.mutate(n);
   }
 
   return (

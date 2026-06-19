@@ -26,6 +26,14 @@ function fechaLarga(): string {
   });
 }
 
+function fechaCorta(): string {
+  return new Date().toLocaleDateString("es-PE", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
+
 export function Topbar({
   usuario,
   onLogout,
@@ -56,9 +64,10 @@ export function Topbar({
           </SheetContent>
         </Sheet>
 
-        <div className="leading-tight">
-          <p className="text-sm font-semibold capitalize text-foreground">
-            {fechaLarga()}
+        <div className="min-w-0 leading-tight">
+          <p className="truncate text-xs font-semibold capitalize text-foreground sm:text-sm">
+            <span className="sm:hidden">{fechaCorta()}</span>
+            <span className="hidden sm:inline">{fechaLarga()}</span>
           </p>
         </div>
       </div>

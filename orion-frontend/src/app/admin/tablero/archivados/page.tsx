@@ -1,12 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { toast } from "sonner";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Eye, Loader2, Archive } from "lucide-react";
 
 import { listarPedidos } from "@/lib/services/pedidos";
-import { getApiErrorMessage } from "@/lib/api";
 import { formatUSD, formatFecha } from "@/lib/format";
 import { TIPO_ENVIO_LABEL } from "@/lib/constants";
 import type { Paginated, PedidoListItem } from "@/types/pedido";
@@ -18,24 +17,15 @@ import { PagoBadge } from "@/components/pedidos/PagoBadge";
 const PAGE_SIZE = 20;
 
 export default function ArchivadosPage() {
-  const [data, setData] = useState<Paginated<PedidoListItem> | null>(null);
-  const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
 
-  const fetchArchivados = useCallback(async () => {
-    setLoading(true);
-    try {
-      setData(await listarPedidos({ archivados: true, page, size: PAGE_SIZE }));
-    } catch (error) {
-      toast.error(getApiErrorMessage(error, "No se pudieron cargar los archivados"));
-    } finally {
-      setLoading(false);
-    }
-  }, [page]);
-
-  useEffect(() => {
-    fetchArchivados();
-  }, [fetchArchivados]);
+  const archivadosQ = useQuery({
+    queryKey: ["pedidos", "archivados", page],
+    queryFn: () => listarPedidos({ archivados: true, page, size: PAGE_SIZE }),
+    placeholderData: keepPreviousData,
+  });
+  const data: Paginated<PedidoListItem> | null = archivadosQ.data ?? null;
+  const loading = archivadosQ.isLoading;
 
   const total = data?.total_elements ?? 0;
   const desde = total === 0 ? 0 : page * PAGE_SIZE + 1;

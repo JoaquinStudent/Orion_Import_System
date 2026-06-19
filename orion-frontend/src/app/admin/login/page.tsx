@@ -21,7 +21,8 @@ import {
 } from "lucide-react";
 
 import { api, getApiErrorMessage } from "@/lib/api";
-import { setToken, setUsuario } from "@/lib/auth";
+import { setToken } from "@/lib/auth";
+import { useAuth } from "@/hooks/useAuth";
 import type { ApiResponse } from "@/types/api";
 import type { LoginResponse } from "@/types/usuario";
 import { Button } from "@/components/ui/button";
@@ -53,6 +54,7 @@ const STATS = [
 
 export default function LoginPage() {
   const router = useRouter();
+  const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm<LoginValues>({
@@ -69,7 +71,7 @@ export default function LoginPage() {
         values
       );
       setToken(data.data.token);
-      setUsuario(data.data.usuario);
+      login(data.data.usuario);
       toast.success(`Bienvenido, ${data.data.usuario.nombre.split(" ")[0]}`);
 
       if (data.data.usuario.password_temporal) {

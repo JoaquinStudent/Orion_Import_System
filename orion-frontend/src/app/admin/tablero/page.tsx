@@ -1,52 +1,43 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Archive, Loader2, Settings2 } from "lucide-react";
 
 import { obtenerTablero } from "@/lib/services/estados";
 import { cambiarEstadoPedido, cambiarCostoImportacion } from "@/lib/services/pedidos";
-import { getApiErrorMessage } from "@/lib/api";
 import { formatUSD } from "@/lib/format";
 import type { TableroColumna, TableroPedidoCard } from "@/types/pedido";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 type CostoModal = { pedidoId: number; estadoId: number; card: TableroPedidoCard };
+type MoveVars = { pedidoId: number; estadoId: number; card: TableroPedidoCard };
 
 export default function TableroPage() {
   const router = useRouter();
-  const [columnas, setColumnas] = useState<TableroColumna[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [dragId, setDragId] = useState<number | null>(null);
   const [overCol, setOverCol] = useState<number | null>(null);
   const [costoModal, setCostoModal] = useState<CostoModal | null>(null);
   const [costoInput, setCostoInput] = useState("");
-  const [savingCosto, setSavingCosto] = useState(false);
 
   // El backend ya excluye los entregados archivados; se consultan en /admin/tablero/archivados.
-  const fetchTablero = useCallback(async () => {
-    setLoading(true);
-    try {
-      setColumnas(await obtenerTablero());
-    } catch (error) {
-      toast.error(getApiErrorMessage(error, "No se pudo cargar el tablero"));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const tableroQ = useQuery({ queryKey: ["tablero"], queryFn: () => obtenerTablero() });
+  const columnas: TableroColumna[] = tableroQ.data ?? [];
+  const loading = tableroQ.isLoading;
 
-  useEffect(() => {
-    fetchTablero();
-  }, [fetchTablero]);
-
-  // Movimiento optimista + confirmación con el backend.
-  const moverPedido = useCallback(
-    (pedidoId: number, estadoId: number, card: TableroPedidoCard) => {
-      setColumnas((prev) =>
-        prev.map((c) => {
+  // Movimiento optimista: escribe en la cache ["tablero"], revierte si el back falla.
+  const estadoMut = useMutation({
+    mutationFn: ({ pedidoId, estadoId }: MoveVars) => cambiarEstadoPedido(pedidoId, estadoId),
+    onMutate: async ({ pedidoId, estadoId, card }) => {
+      await queryClient.cancelQueries({ queryKey: ["tablero"] });
+      const prev = queryClient.getQueryData<TableroColumna[]>(["tablero"]);
+      queryClient.setQueryData<TableroColumna[]>(["tablero"], (old) =>
+        (old ?? []).map((c) => {
           if (c.pedidos.some((p) => p.id === pedidoId)) {
             return { ...c, pedidos: c.pedidos.filter((p) => p.id !== pedidoId) };
           }
@@ -54,13 +45,23 @@ export default function TableroPage() {
           return c;
         })
       );
-      cambiarEstadoPedido(pedidoId, estadoId).catch((error) => {
-        toast.error(getApiErrorMessage(error, "No se pudo mover el pedido"));
-        fetchTablero(); // revierte recargando el estado real
-      });
+      return { prev };
     },
-    [fetchTablero]
-  );
+    onError: (_e, _v, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(["tablero"], ctx.prev);
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ["tablero"] }),
+  });
+
+  const costoMut = useMutation({
+    mutationFn: ({ pedidoId, costo }: { pedidoId: number; costo: number }) =>
+      cambiarCostoImportacion(pedidoId, costo),
+  });
+  const savingCosto = costoMut.isPending;
+
+  function moverPedido(pedidoId: number, estadoId: number, card: TableroPedidoCard) {
+    estadoMut.mutate({ pedidoId, estadoId, card });
+  }
 
   function handleDrop(estadoId: number) {
     const pedidoId = dragId;
@@ -100,18 +101,15 @@ export default function TableroPage() {
       toast.error("Ingresá un costo de importación válido.");
       return;
     }
-    setSavingCosto(true);
     try {
-      await cambiarCostoImportacion(costoModal.pedidoId, costo);
+      await costoMut.mutateAsync({ pedidoId: costoModal.pedidoId, costo });
       moverPedido(costoModal.pedidoId, costoModal.estadoId, {
         ...costoModal.card,
         costo_importacion_usd: costo,
       });
       setCostoModal(null);
-    } catch (e) {
-      toast.error(getApiErrorMessage(e, "No se pudo guardar el costo"));
-    } finally {
-      setSavingCosto(false);
+    } catch {
+      // el toast de error global del MutationCache ya avisa
     }
   }
 
@@ -161,7 +159,7 @@ export default function TableroPage() {
               e.preventDefault();
               handleDrop(col.id);
             }}
-            className={`flex w-72 shrink-0 flex-col rounded-xl border bg-surface-container-low transition-colors ${
+            className={`flex w-[80vw] max-w-xs shrink-0 flex-col rounded-xl border bg-surface-container-low transition-colors sm:w-72 ${
               overCol === col.id
                 ? "border-primary bg-secondary/40"
                 : "border-outline-variant"
