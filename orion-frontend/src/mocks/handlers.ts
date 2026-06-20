@@ -118,6 +118,9 @@ const authHandlers = [
       whatsapp_atencion: config.whatsapp_atencion,
       nombre_negocio: config.nombre_negocio,
       dias_archivo_entregados: config.dias_archivo_entregados,
+      estados: [...estados]
+        .sort((a, b) => a.orden - b.orden)
+        .map((e) => ({ nombre: e.nombre, color: e.color, orden: e.orden })),
     })
   ),
 ];

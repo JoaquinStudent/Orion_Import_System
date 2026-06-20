@@ -123,7 +123,7 @@ export default function RastrearPage() {
                   <Input value={orden} onChange={(e) => setOrden(e.target.value)} placeholder="Ej: ORD-001234" className="pl-9" />
                 </div>
               </div>
-              <Button type="submit" size="lg" className="w-full" disabled={loading}>
+              <Button type="submit" size="lg" className="btn-cta w-full" disabled={loading}>
                 {loading ? <Loader2 className="animate-spin" /> : <Search />}
                 Buscar mi pedido
               </Button>
@@ -233,7 +233,7 @@ export default function RastrearPage() {
                     );
                   })}
                 </div>
-                <Button className="mt-4 w-full" onClick={onConfirmar} disabled={confirmando}>
+                <Button className="btn-cta mt-4 w-full" onClick={onConfirmar} disabled={confirmando}>
                   {confirmando ? <Loader2 className="animate-spin" /> : null}
                   Confirmar tipo de envío
                 </Button>

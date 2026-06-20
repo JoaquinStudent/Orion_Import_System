@@ -15,8 +15,15 @@ const config: Config = {
   theme: {
     container: {
       center: true,
-      padding: "1rem",
-      screens: { "2xl": "1200px" }, // max-width público (DESIGN.md)
+      padding: { DEFAULT: "1rem", lg: "2rem" },
+      // Ancho natural por breakpoint y tope de 1200px en desktop (xl+),
+      // así el contenido no se estira a todo el ancho en monitores grandes.
+      screens: {
+        sm: "640px",
+        md: "768px",
+        lg: "1024px",
+        xl: "1200px",
+      },
     },
     extend: {
       colors: {

@@ -49,3 +49,14 @@
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
+
+@layer components {
+  /**
+   * Micro-interacción unificada de los CTA cara al cliente (landing, cotizador,
+   * rastreador, footer). Una sola definición = armonía en todos los botones.
+   * El nav queda fuera a propósito.
+   */
+  .btn-cta {
+    @apply transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:scale-[0.98] motion-reduce:transform-none;
+  }
+}
