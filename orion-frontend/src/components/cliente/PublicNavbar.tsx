@@ -18,10 +18,10 @@ export function PublicNavbar() {
           />
         </Link>
         <div className="flex items-center gap-2">
-          <Button asChild variant="ghost" size="sm" className="whitespace-nowrap sm:h-11 sm:px-5 sm:text-base">
+          <Button asChild variant="gold" size="sm" className="whitespace-nowrap border border-primary sm:h-11 sm:px-5 sm:text-base">
             <Link href="/cotizar">Cotizar</Link>
           </Button>
-          <Button asChild size="sm" className="whitespace-nowrap sm:h-11 sm:px-5 sm:text-base">
+          <Button asChild variant="secondary" size="sm" className="whitespace-nowrap sm:h-11 sm:px-5 sm:text-base">
             <Link href="/rastrear">Rastrear pedido</Link>
           </Button>
         </div>

@@ -117,6 +117,32 @@ El payload del front es correcto: `PUT /usuarios/{id}/permisos` con
 
 ---
 
+## 7. Exponer los estados en `GET /config/publica` (para la landing)
+
+**Por qué:** la landing muestra la línea de estados ("Seguí tu pedido en tiempo real") con los
+**estados reales** que el admin haya creado (son dinámicos). Hoy `GET /estados` exige auth, y
+**no conviene abrirlo** (es un endpoint admin). En vez de eso, reusamos el endpoint que **ya es
+público**: `/config/publica`.
+
+**Qué hacer:** agregar al response de `GET /config/publica` un array `estados` con
+**solo nombre, color y orden** (sin `id` ni nada sensible), ordenado por `orden`:
+```json
+{ "success": true, "data": {
+  "whatsapp_atencion": "...", "nombre_negocio": "...", "dias_archivo_entregados": 7,
+  "estados": [
+    { "nombre": "Recibido", "color": "#0C447C", "orden": 1 },
+    { "nombre": "En tránsito", "color": "#854F0B", "orden": 2 }
+  ]
+}}
+```
+Así no se abre ningún endpoint admin y la landing refleja los estados dinámicos. POST/PUT/DELETE de
+`/estados` siguen siendo ADMIN (sin cambios).
+
+> Mientras no venga `estados` en `/config/publica`, el front **cae a los 5 estados por defecto**
+> (Recibido → … → Entregado), así que la landing no se rompe.
+
+---
+
 ## Resumen de endpoints afectados
 | Endpoint | Cambio |
 |---|---|
@@ -129,3 +155,4 @@ El payload del front es correcto: `PUT /usuarios/{id}/permisos` con
 | `pedidos` (tabla) | + `entregado_en` |
 | `ExchangeRateService` | refresco `@Scheduled` |
 | `UsuarioService.actualizarPermisos` | flush/upsert (bug duplicado) |
+| `GET /config/publica` | + array `estados` (nombre/color/orden) para la landing |
