@@ -18,10 +18,6 @@ public class ConfigController {
 
     @GetMapping("/publica")
     public ResponseEntity<ApiResponse<ConfigPublicaResponse>> publica() {
-        return ResponseEntity.ok(ApiResponse.ok(new ConfigPublicaResponse(
-                configuracion.getString(ConfiguracionService.WHATSAPP_ATENCION, "+51999999999"),
-                configuracion.getString(ConfiguracionService.NOMBRE_NEGOCIO, "Orión Logistic"),
-                configuracion.getInt(ConfiguracionService.DIAS_ARCHIVO_ENTREGADOS, 7)
-        )));
+        return ResponseEntity.ok(ApiResponse.ok(configuracion.construirPublica()));
     }
 }

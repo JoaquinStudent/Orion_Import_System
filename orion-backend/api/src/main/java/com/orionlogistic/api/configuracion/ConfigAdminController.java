@@ -32,10 +32,7 @@ public class ConfigAdminController {
             configuracion.set(ConfiguracionService.DIAS_ARCHIVO_ENTREGADOS,
                     String.valueOf(req.getDiasArchivoEntregados()));
         }
-        return ResponseEntity.ok(ApiResponse.ok(new ConfigPublicaResponse(
-                configuracion.getString(ConfiguracionService.WHATSAPP_ATENCION, "+51999999999"),
-                configuracion.getString(ConfiguracionService.NOMBRE_NEGOCIO, "Orión Logistic"),
-                configuracion.getInt(ConfiguracionService.DIAS_ARCHIVO_ENTREGADOS, 7)
-        ), "Configuración actualizada"));
+        return ResponseEntity.ok(
+                ApiResponse.ok(configuracion.construirPublica(), "Configuración actualizada"));
     }
 }
