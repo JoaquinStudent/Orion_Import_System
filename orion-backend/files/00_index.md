@@ -28,6 +28,7 @@ Este SDD describe **cómo está diseñado** el sistema de Orión Logistic antes 
 | 08b | [Plan diario](08b_plan_diario.md) | Ambos | Desglose día por día de las 4 semanas |
 | 09 | [Galería de prompts](09_galeria_prompts.md) | Joaquín | Prompts de Google Stitch por pantalla |
 | 10 | [Scripts SQL Supabase](10_supabase_sql.md) | José | Scripts SQL — orden de ejecución en Supabase |
+| 11 | [Políticas RLS de Supabase](11_supabase_rls_policies.md) | José | Aviso `RLS Enabled No Policy` — deny-all explícito |
 
 ---
 
