@@ -1,9 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft,
   Pencil,
@@ -16,7 +16,6 @@ import {
 } from "lucide-react";
 
 import { obtenerPedido, eliminarPedido, cambiarEstadoPago } from "@/lib/services/pedidos";
-import { getApiErrorMessage } from "@/lib/api";
 import { formatUSD, formatFecha, whatsappLink } from "@/lib/format";
 import { TIPO_ENVIO_LABEL } from "@/lib/constants";
 import type { Pedido } from "@/types/pedido";
@@ -29,61 +28,52 @@ export default function DetallePedidoPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const id = Number(params.id);
+  const queryClient = useQueryClient();
 
-  const [pedido, setPedido] = useState<Pedido | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [notFound, setNotFound] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-  const [pagando, setPagando] = useState(false);
+  const pedidoQ = useQuery({
+    queryKey: ["pedido", id],
+    queryFn: () => obtenerPedido(id),
+    enabled: Number.isFinite(id),
+  });
+  const pedido: Pedido | null = pedidoQ.data ?? null;
+  const loading = pedidoQ.isLoading;
+  const notFound = pedidoQ.isError;
 
-  async function onTogglePago() {
-    if (!pedido) return;
-    const nuevo = pedido.estado_pago === "liquidado" ? "pendiente" : "liquidado";
-    setPagando(true);
-    try {
-      const actualizado = await cambiarEstadoPago(pedido.id, nuevo);
-      setPedido(actualizado);
+  const pagoMut = useMutation({
+    mutationFn: (nuevo: "pendiente" | "liquidado") => cambiarEstadoPago(id, nuevo),
+    onSuccess: (actualizado, nuevo) => {
+      queryClient.setQueryData(["pedido", id], actualizado);
+      queryClient.invalidateQueries({ queryKey: ["pedidos"] });
+      queryClient.invalidateQueries({ queryKey: ["tablero"] });
+      queryClient.invalidateQueries({ queryKey: ["finanzas"] });
       toast.success(
         nuevo === "liquidado" ? "Pago marcado como liquidado" : "Pago vuelto a pendiente"
       );
-    } catch (error) {
-      toast.error(getApiErrorMessage(error, "No se pudo actualizar el pago"));
-    } finally {
-      setPagando(false);
-    }
-  }
+    },
+  });
 
-  const fetchPedido = useCallback(async () => {
-    setLoading(true);
-    try {
-      setPedido(await obtenerPedido(id));
-    } catch {
-      setNotFound(true);
-    } finally {
-      setLoading(false);
-    }
-  }, [id]);
-
-  useEffect(() => {
-    fetchPedido();
-  }, [fetchPedido]);
-
-  async function onDelete() {
-    if (
-      !window.confirm("¿Eliminar este pedido? Esta acción no se puede deshacer.")
-    ) {
-      return;
-    }
-    setDeleting(true);
-    try {
-      await eliminarPedido(id);
+  const deleteMut = useMutation({
+    mutationFn: () => eliminarPedido(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["pedidos"] });
+      queryClient.invalidateQueries({ queryKey: ["tablero"] });
       toast.success("Pedido eliminado");
       router.push("/admin/pedidos");
-    } catch (error) {
-      toast.error(getApiErrorMessage(error, "No se pudo eliminar el pedido"));
-      setDeleting(false);
-    }
+    },
+  });
+
+  function onTogglePago() {
+    if (!pedido) return;
+    pagoMut.mutate(pedido.estado_pago === "liquidado" ? "pendiente" : "liquidado");
   }
+
+  function onDelete() {
+    if (!window.confirm("¿Eliminar este pedido? Esta acción no se puede deshacer.")) return;
+    deleteMut.mutate();
+  }
+
+  const pagando = pagoMut.isPending;
+  const deleting = deleteMut.isPending;
 
   if (loading) {
     return (
@@ -125,7 +115,7 @@ export default function DetallePedidoPage() {
             Orden {pedido.num_orden}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button asChild variant="whatsapp" size="sm">
             <a href={whatsappLink(pedido.whatsapp, waMensaje)} target="_blank" rel="noopener noreferrer">
               <MessageCircle />

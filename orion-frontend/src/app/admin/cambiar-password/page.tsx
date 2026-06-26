@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { Lock, Eye, EyeOff, Loader2, KeyRound } from "lucide-react";
 
 import { api, getApiErrorMessage } from "@/lib/api";
-import { getUsuario, setUsuario } from "@/lib/auth";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -46,6 +46,7 @@ type Values = z.infer<typeof schema>;
 
 export default function CambiarPasswordPage() {
   const router = useRouter();
+  const { usuario, login } = useAuth();
   const [show, setShow] = useState(false);
 
   const form = useForm<Values>({
@@ -62,9 +63,8 @@ export default function CambiarPasswordPage() {
         password_nueva: values.password_nueva,
       });
 
-      // Refleja que ya no requiere cambio obligatorio.
-      const usuario = getUsuario();
-      if (usuario) setUsuario({ ...usuario, password_temporal: false });
+      // Refleja que ya no requiere cambio obligatorio (cookie + store).
+      if (usuario) login({ ...usuario, password_temporal: false });
 
       toast.success("Contraseña actualizada");
       router.replace("/admin/dashboard");

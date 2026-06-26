@@ -4,6 +4,7 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
 import { MswProvider } from "@/components/providers/MswProvider";
+import { Providers } from "@/components/providers/Providers";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -35,7 +36,9 @@ export default function RootLayout({
   return (
     <html lang="es" className={cn("font-sans", inter.variable)}>
       <body className="antialiased">
-        <MswProvider>{children}</MswProvider>
+        <MswProvider>
+          <Providers>{children}</Providers>
+        </MswProvider>
         <Toaster richColors position="top-right" />
       </body>
     </html>

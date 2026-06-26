@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Plus, Pencil, Trash2, Loader2, Save, X } from "lucide-react";
 
 import {
@@ -11,8 +12,7 @@ import {
   actualizarEstado,
   eliminarEstado,
 } from "@/lib/services/estados";
-import { getApiErrorMessage } from "@/lib/api";
-import type { Estado } from "@/types/estado";
+import type { Estado, EstadoInput } from "@/types/estado";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,9 +20,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 const COLOR_DEFAULT = "#1B2A5E";
 
 export default function EstadosPage() {
-  const [estados, setEstados] = useState<Estado[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const queryClient = useQueryClient();
+  const estadosQ = useQuery({ queryKey: ["estados"], queryFn: listarEstados });
+  const estados: Estado[] = estadosQ.data ?? [];
+  const loading = estadosQ.isLoading;
 
   // Formulario (sirve para crear y para editar según editingId).
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -30,20 +31,10 @@ export default function EstadosPage() {
   const [orden, setOrden] = useState("");
   const [color, setColor] = useState(COLOR_DEFAULT);
 
-  const fetchEstados = useCallback(async () => {
-    setLoading(true);
-    try {
-      setEstados(await listarEstados());
-    } catch (error) {
-      toast.error(getApiErrorMessage(error, "No se pudieron cargar los estados"));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchEstados();
-  }, [fetchEstados]);
+  function invalidar() {
+    queryClient.invalidateQueries({ queryKey: ["estados"] });
+    queryClient.invalidateQueries({ queryKey: ["tablero"] });
+  }
 
   function resetForm() {
     setEditingId(null);
@@ -59,46 +50,45 @@ export default function EstadosPage() {
     setColor(estado.color);
   }
 
-  async function onSubmit(e: React.FormEvent) {
+  const guardarMut = useMutation({
+    mutationFn: (input: EstadoInput) =>
+      editingId ? actualizarEstado(editingId, input) : crearEstado(input),
+    onSuccess: () => {
+      toast.success(editingId ? "Estado actualizado" : "Estado creado");
+      invalidar();
+      resetForm();
+    },
+  });
+  const saving = guardarMut.isPending;
+
+  const eliminarMut = useMutation({
+    mutationFn: (id: number) => eliminarEstado(id),
+    onSuccess: () => {
+      toast.success("Estado eliminado");
+      invalidar();
+    },
+  });
+
+  function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!nombre.trim()) {
       toast.error("El nombre es obligatorio");
       return;
     }
-    const input = {
+    guardarMut.mutate({
       nombre: nombre.trim(),
       orden: orden ? Number(orden) : estados.length + 1,
       color,
-    };
-    setSaving(true);
-    try {
-      if (editingId) {
-        await actualizarEstado(editingId, input);
-        toast.success("Estado actualizado");
-      } else {
-        await crearEstado(input);
-        toast.success("Estado creado");
-      }
-      resetForm();
-      await fetchEstados();
-    } catch (error) {
-      toast.error(getApiErrorMessage(error, "No se pudo guardar el estado"));
-    } finally {
-      setSaving(false);
-    }
+    });
   }
 
-  async function onDelete(estado: Estado) {
+  function onDelete(estado: Estado) {
     if (!window.confirm(`¿Eliminar el estado "${estado.nombre}"?`)) return;
-    try {
-      await eliminarEstado(estado.id);
-      toast.success("Estado eliminado");
-      if (editingId === estado.id) resetForm();
-      await fetchEstados();
-    } catch (error) {
-      // 409 ESTADO_EN_USO trae un mensaje claro del backend.
-      toast.error(getApiErrorMessage(error, "No se pudo eliminar el estado"));
-    }
+    eliminarMut.mutate(estado.id, {
+      onSuccess: () => {
+        if (editingId === estado.id) resetForm();
+      },
+    });
   }
 
   return (

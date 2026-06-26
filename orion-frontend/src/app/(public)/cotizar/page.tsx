@@ -161,7 +161,7 @@ export default function CotizarPage() {
                 {/* Preview del redondeo de peso */}
                 {pesoValido && (
                   <div className="rounded-lg bg-surface-container px-4 py-3 text-sm">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                       <span className="text-on-surface-variant">
                         Peso ingresado: <strong className="text-foreground">{pesoNum} kg</strong>
                       </span>
@@ -176,7 +176,7 @@ export default function CotizarPage() {
                   </div>
                 )}
 
-                <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
+                <Button type="submit" size="lg" className="btn-cta w-full" disabled={isSubmitting}>
                   {isSubmitting ? <Loader2 className="animate-spin" /> : <ArrowRight />}
                   Calcular costo de envío
                 </Button>
@@ -227,7 +227,7 @@ export default function CotizarPage() {
               <MessageCircle className="h-6 w-6" />
             </span>
             <p className="text-on-surface-variant">{result.mensaje}</p>
-            <Button asChild variant="whatsapp" size="lg">
+            <Button asChild variant="whatsapp" size="lg" className="btn-cta">
               <a
                 href={whatsappLink(
                   result.whatsapp_atencion,

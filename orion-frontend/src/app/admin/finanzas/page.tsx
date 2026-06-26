@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Download,
   Loader2,
@@ -76,41 +77,40 @@ function rango(p: Periodo): { desde: string; hasta: string } {
 export default function FinanzasPage() {
   const { usuario, loading: authLoading } = useAuth();
   const permitido = puedeVer(usuario, "finanzas");
+  const queryClient = useQueryClient();
 
-  const [kpis, setKpis] = useState<FinanzasKpis | null>(null);
-  const [resumen, setResumen] = useState<FinanzasResumen | null>(null);
-  const [detalle, setDetalle] = useState<PedidoListItem[]>([]);
-  const [loading, setLoading] = useState(true);
   const [periodo, setPeriodo] = useState<Periodo>("mes");
   const [exportando, setExportando] = useState(false);
-  const [liquidandoId, setLiquidandoId] = useState<number | null>(null);
 
-  // KPIs (server-side) + últimas 8 filas del detalle. Carga única.
-  useEffect(() => {
-    if (authLoading || !permitido) return;
-    Promise.all([obtenerKpis(), listarPedidos({ size: 8 })])
-      .then(([k, d]) => {
-        setKpis(k);
-        setDetalle(d.content);
-      })
-      .catch((e) => toast.error(getApiErrorMessage(e, "No se pudieron cargar los datos")))
-      .finally(() => setLoading(false));
-  }, [authLoading, permitido]);
+  const habilitado = !authLoading && permitido;
 
-  // Resumen del período activo: serie del gráfico + total + ingreso + desglose por tipo.
-  const fetchResumen = useCallback(async () => {
-    const { desde, hasta } = rango(periodo);
-    const api = PERIODOS.find((x) => x.key === periodo)!.api;
-    try {
-      setResumen(await obtenerResumen({ periodo: api, desde, hasta }));
-    } catch {
-      setResumen(null);
-    }
-  }, [periodo]);
+  // KPIs (server-side).
+  const kpisQ = useQuery({
+    queryKey: ["finanzas", "kpis"],
+    queryFn: obtenerKpis,
+    enabled: habilitado,
+  });
+  // Últimas 8 filas del detalle.
+  const detalleQ = useQuery({
+    queryKey: ["finanzas", "detalle"],
+    queryFn: () => listarPedidos({ size: 8 }),
+    enabled: habilitado,
+  });
+  // Resumen del período activo: serie + total + ingreso + desglose por tipo.
+  const resumenQ = useQuery({
+    queryKey: ["finanzas", "resumen", periodo],
+    queryFn: () => {
+      const { desde, hasta } = rango(periodo);
+      const api = PERIODOS.find((x) => x.key === periodo)!.api;
+      return obtenerResumen({ periodo: api, desde, hasta });
+    },
+    enabled: habilitado,
+  });
 
-  useEffect(() => {
-    if (!authLoading && permitido) fetchResumen();
-  }, [authLoading, permitido, fetchResumen]);
+  const kpis: FinanzasKpis | null = kpisQ.data ?? null;
+  const resumen: FinanzasResumen | null = resumenQ.data ?? null;
+  const detalle: PedidoListItem[] = detalleQ.data?.content ?? [];
+  const loading = kpisQ.isLoading || detalleQ.isLoading;
 
   const serie = resumen?.serie ?? [];
   const deltaAyer =
@@ -132,21 +132,20 @@ export default function FinanzasPage() {
   }
 
   // Liquidar el pago de un pedido desde la tabla (recién ahí cuenta como ingreso).
-  async function liquidar(p: PedidoListItem) {
-    setLiquidandoId(p.id);
-    try {
-      await cambiarEstadoPago(p.id, "liquidado");
-      setDetalle((prev) =>
-        prev.map((x) => (x.id === p.id ? { ...x, estado_pago: "liquidado" } : x))
-      );
-      // KPIs y resumen los recalcula el backend.
-      await Promise.all([obtenerKpis().then(setKpis), fetchResumen()]);
+  const liquidarMut = useMutation({
+    mutationFn: (p: PedidoListItem) => cambiarEstadoPago(p.id, "liquidado"),
+    onSuccess: (_data, p) => {
+      // El backend recalcula KPIs/resumen; invalidamos todo lo financiero + pedidos.
+      queryClient.invalidateQueries({ queryKey: ["finanzas"] });
+      queryClient.invalidateQueries({ queryKey: ["pedidos"] });
+      queryClient.invalidateQueries({ queryKey: ["tablero"] });
       toast.success(`Pago de ${p.num_orden} liquidado`);
-    } catch (e) {
-      toast.error(getApiErrorMessage(e, "No se pudo liquidar"));
-    } finally {
-      setLiquidandoId(null);
-    }
+    },
+  });
+  const liquidandoId = liquidarMut.isPending ? liquidarMut.variables?.id ?? null : null;
+
+  function liquidar(p: PedidoListItem) {
+    liquidarMut.mutate(p);
   }
 
   if (authLoading) {
@@ -182,7 +181,7 @@ export default function FinanzasPage() {
               <button
                 key={p.key}
                 onClick={() => setPeriodo(p.key)}
-                className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors sm:px-3 sm:text-sm ${
                   periodo === p.key
                     ? "bg-primary text-primary-foreground"
                     : "text-on-surface-variant hover:bg-secondary"

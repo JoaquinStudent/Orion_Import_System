@@ -1,37 +1,28 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Loader2, PackageX } from "lucide-react";
 
 import { obtenerPedido, actualizarPedido } from "@/lib/services/pedidos";
-import type { Pedido, PedidoInput } from "@/types/pedido";
+import type { PedidoInput } from "@/types/pedido";
 import { Button } from "@/components/ui/button";
 import { PedidoForm } from "@/components/pedidos/PedidoForm";
 
 export default function EditarPedidoPage() {
   const params = useParams<{ id: string }>();
   const id = Number(params.id);
+  const queryClient = useQueryClient();
 
-  const [pedido, setPedido] = useState<Pedido | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [notFound, setNotFound] = useState(false);
-
-  const fetchPedido = useCallback(async () => {
-    setLoading(true);
-    try {
-      setPedido(await obtenerPedido(id));
-    } catch {
-      setNotFound(true);
-    } finally {
-      setLoading(false);
-    }
-  }, [id]);
-
-  useEffect(() => {
-    fetchPedido();
-  }, [fetchPedido]);
+  const pedidoQ = useQuery({
+    queryKey: ["pedido", id],
+    queryFn: () => obtenerPedido(id),
+    enabled: Number.isFinite(id),
+  });
+  const pedido = pedidoQ.data ?? null;
+  const loading = pedidoQ.isLoading;
+  const notFound = pedidoQ.isError;
 
   if (loading) {
     return (
@@ -70,7 +61,13 @@ export default function EditarPedidoPage() {
       <PedidoForm
         mode="editar"
         pedido={pedido}
-        onSubmit={(input: PedidoInput) => actualizarPedido(id, input)}
+        onSubmit={async (input: PedidoInput) => {
+          const guardado = await actualizarPedido(id, input);
+          queryClient.invalidateQueries({ queryKey: ["pedido", id] });
+          queryClient.invalidateQueries({ queryKey: ["pedidos"] });
+          queryClient.invalidateQueries({ queryKey: ["tablero"] });
+          return guardado;
+        }}
         cancelHref={`/admin/pedidos/${id}`}
       />
     </div>

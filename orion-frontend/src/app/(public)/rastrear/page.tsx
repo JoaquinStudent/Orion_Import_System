@@ -123,7 +123,7 @@ export default function RastrearPage() {
                   <Input value={orden} onChange={(e) => setOrden(e.target.value)} placeholder="Ej: ORD-001234" className="pl-9" />
                 </div>
               </div>
-              <Button type="submit" size="lg" className="w-full" disabled={loading}>
+              <Button type="submit" size="lg" className="btn-cta w-full" disabled={loading}>
                 {loading ? <Loader2 className="animate-spin" /> : <Search />}
                 Buscar mi pedido
               </Button>
@@ -233,7 +233,7 @@ export default function RastrearPage() {
                     );
                   })}
                 </div>
-                <Button className="mt-4 w-full" onClick={onConfirmar} disabled={confirmando}>
+                <Button className="btn-cta mt-4 w-full" onClick={onConfirmar} disabled={confirmando}>
                   {confirmando ? <Loader2 className="animate-spin" /> : null}
                   Confirmar tipo de envío
                 </Button>
@@ -269,9 +269,9 @@ function Dato({ label, valor, fuerte }: { label: string; valor?: string | null; 
 
 function Stepper({ estados }: { estados: RastreoResult["estados"] }) {
   return (
-    <ol className="flex items-start justify-between gap-1">
+    <ol className="flex items-start gap-1 overflow-x-auto pb-1">
       {estados.map((e, i) => (
-        <li key={e.nombre} className="relative flex flex-1 flex-col items-center text-center">
+        <li key={e.nombre} className="relative flex min-w-[64px] flex-1 shrink-0 flex-col items-center text-center">
           {i > 0 && (
             <span
               className={`absolute right-1/2 top-4 -z-0 h-0.5 w-full ${
