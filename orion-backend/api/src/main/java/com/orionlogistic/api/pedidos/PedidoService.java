@@ -120,6 +120,14 @@ public class PedidoService {
     public PedidoDetailResponse cambiarEstadoPago(Long id, String estadoPago, Usuario usuario) {
         permisoChecker.exigirEditar(usuario, MODULO_PEDIDOS);
         Pedido pedido = buscarPedido(id);
+        // Solo se liquida (= ingreso) si hay costo de importación cargado.
+        if ("liquidado".equals(estadoPago)) {
+            BigDecimal costo = pedido.getCostoImportacionUsd();
+            if (costo == null || costo.compareTo(BigDecimal.ZERO) <= 0) {
+                throw new ValidationException(
+                        "Cargá el costo de importación antes de liquidar el pago");
+            }
+        }
         pedido.setEstadoPago(estadoPago);
         return PedidoDetailResponse.from(pedidoRepository.save(pedido));
     }

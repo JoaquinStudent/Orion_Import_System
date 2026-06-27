@@ -29,6 +29,14 @@ public class ComunidadService {
                 .toList();
     }
 
+    /** Nombres de las comunidades activas (combobox del registro público). */
+    @Transactional(readOnly = true)
+    public List<String> listarPublicas() {
+        return repository.findByActivoTrueOrderByNombreAsc().stream()
+                .map(Comunidad::getNombre)
+                .toList();
+    }
+
     @Transactional
     public ComunidadResponse crear(ComunidadRequest req, Usuario usuario) {
         permisoChecker.exigirEditar(usuario, MODULO);

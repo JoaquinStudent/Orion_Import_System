@@ -6,6 +6,8 @@ import java.util.List;
 
 public interface ComunidadRepository extends JpaRepository<Comunidad, Long> {
     List<Comunidad> findAllByOrderByNombreAsc();
+    List<Comunidad> findByActivoTrueOrderByNombreAsc();
     boolean existsByNombreIgnoreCase(String nombre);
     boolean existsByNombreIgnoreCaseAndIdNot(String nombre, Long id);
+    boolean existsByNombreIgnoreCaseAndActivoTrue(String nombre);
 }
