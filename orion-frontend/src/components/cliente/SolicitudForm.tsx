@@ -1,15 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { useForm, useFieldArray, type Control, type FieldPath } from "react-hook-form";
+import { useForm, type Control, type FieldPath } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 import axios from "axios";
-import { Plus, Trash2, Loader2, Send, CheckCircle2 } from "lucide-react";
+import { Loader2, Send, CheckCircle2 } from "lucide-react";
 
-import { crearSolicitudPublica, listarComunidadesPublicas } from "@/lib/services/solicitudes";
+import { crearSolicitudPublica } from "@/lib/services/solicitudes";
 import { getApiErrorMessage } from "@/lib/api";
 import type { SolicitudInput } from "@/types/solicitud";
 import { Button } from "@/components/ui/button";
@@ -34,28 +34,37 @@ const productoSchema = z.object({
   marca: z.string(),
 });
 
-const schema = z.object({
-  titular: z.string().min(1, "Tu nombre es obligatorio"),
-  comunidad: z.string().min(1, "Elegí tu comunidad"),
-  consignatario: z.string(),
-  firma: z.string(),
-  num_orden: z.string().min(1, "El número de orden es obligatorio"),
-  num_tracking: z.string().min(1, "El tracking es obligatorio"),
-  whatsapp: z.string().min(1, "El WhatsApp es obligatorio"),
-  valor_usd: z
-    .string()
-    .refine((v) => v === "" || (!isNaN(Number(v)) && Number(v) >= 0), "Monto inválido"),
-  productos: z.array(productoSchema),
-});
+const schema = z
+  .object({
+    titular: z.string().min(1, "Tu nombre es obligatorio"),
+    codigoComunidad: z.string(),
+    sinComunidad: z.boolean(),
+    consignatario: z.string(),
+    firma: z.string().min(1, "La firma es obligatoria"),
+    num_orden: z.string().min(1, "El número de orden es obligatorio"),
+    num_tracking: z.string().min(1, "El tracking es obligatorio"),
+    whatsapp: z.string().min(1, "El WhatsApp es obligatorio"),
+    valor_usd: z
+      .string()
+      .refine((v) => v === "" || (!isNaN(Number(v)) && Number(v) >= 0), "Monto inválido"),
+    productos: z.array(productoSchema),
+  })
+  .superRefine((val, ctx) => {
+    if (!val.sinComunidad && val.codigoComunidad.trim().length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["codigoComunidad"],
+        message: "Ingresá el código de tu comunidad",
+      });
+    }
+  });
 
 type FormValues = z.infer<typeof schema>;
 
-const selectClass =
-  "h-11 w-full rounded-lg border border-outline-variant bg-white px-3 text-sm text-foreground focus-visible:border-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary";
-
 const DEFAULTS: FormValues = {
   titular: "",
-  comunidad: "",
+  codigoComunidad: "",
+  sinComunidad: false,
   consignatario: "",
   firma: "",
   num_orden: "",
@@ -66,7 +75,6 @@ const DEFAULTS: FormValues = {
 };
 
 export function SolicitudForm() {
-  const [comunidades, setComunidades] = useState<string[]>([]);
   const [turnstileToken, setTurnstileToken] = useState("");
   const [enviado, setEnviado] = useState(false);
 
@@ -75,23 +83,18 @@ export function SolicitudForm() {
     defaultValues: DEFAULTS,
   });
 
-  const { fields, append, remove } = useFieldArray({
-    control: form.control,
-    name: "productos",
-  });
-
   const { isSubmitting } = form.formState;
-
-  useEffect(() => {
-    listarComunidadesPublicas().then(setComunidades).catch(() => {});
-  }, []);
+  const sinComunidad = form.watch("sinComunidad");
 
   async function handleSubmit(values: FormValues) {
     const input: SolicitudInput = {
       titular: values.titular.trim(),
-      comunidad: values.comunidad.trim(),
+      sin_comunidad: values.sinComunidad,
+      codigo_comunidad: values.sinComunidad
+        ? undefined
+        : values.codigoComunidad.trim() || undefined,
       consignatario: values.consignatario.trim() || undefined,
-      firma: values.firma.trim() || undefined,
+      firma: values.firma.trim(),
       num_orden: values.num_orden.trim(),
       num_tracking: values.num_tracking.trim(),
       whatsapp: values.whatsapp.trim(),
@@ -156,28 +159,50 @@ export function SolicitudForm() {
           </CardHeader>
           <CardContent className="grid gap-4 sm:grid-cols-2">
             <TextField control={form.control} name="titular" label="Nombre completo *" placeholder="Tu nombre" />
-            <FormField
-              control={form.control}
-              name="comunidad"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Comunidad *</FormLabel>
-                  <FormControl>
-                    <select {...field} className={selectClass}>
-                      <option value="">Elegí tu comunidad</option>
-                      {comunidades.map((c) => (
-                        <option key={c} value={c}>
-                          {c}
-                        </option>
-                      ))}
-                    </select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
             <TextField control={form.control} name="whatsapp" label="WhatsApp *" placeholder="+51999999999" type="tel" />
-            <TextField control={form.control} name="consignatario" label="Quién recibe" placeholder="Opcional" />
+            <TextField control={form.control} name="consignatario" label="Consignatario" placeholder="Opcional" />
+            <TextField control={form.control} name="firma" label="Firma *" placeholder="Apellido de quien recibe en EE.UU." />
+
+            <div className="space-y-2 sm:col-span-2">
+              <FormField
+                control={form.control}
+                name="codigoComunidad"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Código de comunidad *</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        disabled={sinComunidad}
+                        placeholder="Te lo comparte tu comunidad"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="sinComunidad"
+                render={({ field }) => (
+                  <label className="flex items-center gap-2 text-sm text-on-surface-variant">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-outline-variant text-primary focus-visible:ring-primary"
+                      checked={field.value}
+                      onChange={(e) => {
+                        field.onChange(e.target.checked);
+                        if (e.target.checked) {
+                          form.clearErrors("codigoComunidad");
+                          form.setValue("codigoComunidad", "");
+                        }
+                      }}
+                    />
+                    No pertenezco a ninguna comunidad
+                  </label>
+                )}
+              />
+            </div>
           </CardContent>
         </Card>
 
@@ -193,42 +218,21 @@ export function SolicitudForm() {
         </Card>
 
         <Card>
-          <CardHeader className="flex-row items-center justify-between space-y-0">
-            <CardTitle className="text-base">Productos</CardTitle>
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              onClick={() => append({ cantidad: "1", producto: "", marca: "" })}
-            >
-              <Plus />
-              Agregar
-            </Button>
+          <CardHeader>
+            <CardTitle className="text-base">Producto</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            {fields.map((f, i) => (
-              <div key={f.id} className="flex items-start gap-2">
-                <div className="w-20 shrink-0">
-                  <TextField control={form.control} name={`productos.${i}.cantidad`} label={i === 0 ? "Cant." : ""} type="number" />
-                </div>
-                <div className="flex-1">
-                  <TextField control={form.control} name={`productos.${i}.producto`} label={i === 0 ? "Producto" : ""} placeholder="Descripción" />
-                </div>
-                <div className="flex-1">
-                  <TextField control={form.control} name={`productos.${i}.marca`} label={i === 0 ? "Marca" : ""} placeholder="Opcional" />
-                </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className={i === 0 ? "mt-8" : ""}
-                  aria-label="Quitar producto"
-                  onClick={() => remove(i)}
-                >
-                  <Trash2 className="text-destructive" />
-                </Button>
+          <CardContent>
+            <div className="flex items-start gap-2">
+              <div className="w-20 shrink-0">
+                <TextField control={form.control} name="productos.0.cantidad" label="Cant." type="number" />
               </div>
-            ))}
+              <div className="flex-1">
+                <TextField control={form.control} name="productos.0.producto" label="Producto" placeholder="Descripción" />
+              </div>
+              <div className="flex-1">
+                <TextField control={form.control} name="productos.0.marca" label="Marca" placeholder="Opcional" />
+              </div>
+            </div>
           </CardContent>
         </Card>
 

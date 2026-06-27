@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Check, X, Loader2, Inbox } from "lucide-react";
+import { Check, X, Loader2, Inbox, MessageCircle } from "lucide-react";
 
 import {
   listarSolicitudes,
@@ -11,7 +11,7 @@ import {
   rechazarSolicitud,
 } from "@/lib/services/solicitudes";
 import { getApiErrorMessage } from "@/lib/api";
-import { formatUSD, formatFecha } from "@/lib/format";
+import { formatUSD, formatFecha, whatsappLink } from "@/lib/format";
 import type { Paginated } from "@/types/pedido";
 import type { Solicitud } from "@/types/solicitud";
 import { Button } from "@/components/ui/button";
@@ -121,6 +121,19 @@ export default function SolicitudesPage() {
                       <td className="px-4 py-2.5 text-right">{formatUSD(s.valor_usd)}</td>
                       <td className="px-4 py-2.5">
                         <div className="flex justify-end gap-2">
+                          <Button asChild size="sm" variant="whatsapp">
+                            <a
+                              href={whatsappLink(
+                                s.whatsapp,
+                                `Hola ${s.titular}, te escribimos de Orión Logistic por tu pedido ${s.num_orden}.`
+                              )}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              <MessageCircle className="h-3.5 w-3.5" />
+                              WhatsApp
+                            </a>
+                          </Button>
                           <Button
                             size="sm"
                             onClick={() => aprobarMut.mutate(s.id)}

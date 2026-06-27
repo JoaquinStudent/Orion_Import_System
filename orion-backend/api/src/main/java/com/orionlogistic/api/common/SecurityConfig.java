@@ -52,8 +52,6 @@ public class SecurityConfig {
                                 "/cotizador/**",
                                 "/rastreo/**",
                                 "/config/publica",
-                                // Registro público de pedidos por clientes (landing)
-                                "/comunidades/publicas",
                                 // Documentación de la API (Swagger / OpenAPI)
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",

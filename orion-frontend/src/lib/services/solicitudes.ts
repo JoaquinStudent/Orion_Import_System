@@ -9,12 +9,6 @@ export async function crearSolicitudPublica(input: SolicitudInput): Promise<Soli
   return data.data;
 }
 
-/** GET /comunidades/publicas — público: nombres de comunidades activas (combobox). */
-export async function listarComunidadesPublicas(): Promise<string[]> {
-  const { data } = await api.get<ApiResponse<string[]>>("/comunidades/publicas");
-  return data.data;
-}
-
 /** GET /solicitudes — bandeja de revisión del admin. */
 export async function listarSolicitudes(
   estado = "pendiente",
