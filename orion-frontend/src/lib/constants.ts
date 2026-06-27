@@ -1,6 +1,7 @@
 import {
   LayoutDashboard,
   Package,
+  Inbox,
   Kanban,
   Wallet,
   Calculator,
@@ -22,6 +23,7 @@ export interface NavItem {
 export const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
   { label: "Pedidos", href: "/admin/pedidos", icon: Package, modulo: "pedidos" },
+  { label: "Solicitudes", href: "/admin/solicitudes", icon: Inbox, modulo: "pedidos" },
   { label: "Tablero", href: "/admin/tablero", icon: Kanban, modulo: "tablero" },
   { label: "Finanzas", href: "/admin/finanzas", icon: Wallet, modulo: "finanzas" },
   { label: "Cotizador", href: "/admin/cotizador", icon: Calculator, modulo: "cotizador" },

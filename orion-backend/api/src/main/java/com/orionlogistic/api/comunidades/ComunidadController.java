@@ -29,6 +29,12 @@ public class ComunidadController {
         return ResponseEntity.ok(ApiResponse.ok(comunidadService.listar()));
     }
 
+    /** Público (registro de clientes): solo nombres de comunidades activas. */
+    @GetMapping("/publicas")
+    public ResponseEntity<ApiResponse<List<String>>> listarPublicas() {
+        return ResponseEntity.ok(ApiResponse.ok(comunidadService.listarPublicas()));
+    }
+
     @PostMapping
     public ResponseEntity<ApiResponse<ComunidadResponse>> crear(
             @Valid @RequestBody ComunidadRequest req,

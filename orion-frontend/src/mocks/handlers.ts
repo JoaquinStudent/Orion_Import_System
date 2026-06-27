@@ -2,7 +2,8 @@ import { http, HttpResponse } from "msw";
 import type { Usuario } from "@/types/usuario";
 import type { EstadoInput } from "@/types/estado";
 import type { Pedido, PedidoInput, PedidoListItem } from "@/types/pedido";
-import { comunidades, config, estados, nextId, pedidos, toEstadoRef, usuarios } from "@/mocks/db";
+import { comunidades, config, estados, nextId, pedidos, solicitudes, toEstadoRef, usuarios } from "@/mocks/db";
+import type { Solicitud } from "@/types/solicitud";
 import type { Permiso, Rol } from "@/types/usuario";
 
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080/api/v1";
@@ -330,6 +331,9 @@ const pedidoHandlers = [
     const body = (await request.json()) as { estado_pago?: "pendiente" | "liquidado" };
     if (body.estado_pago !== "pendiente" && body.estado_pago !== "liquidado") {
       return fail("Estado de pago inválido", "VALIDATION", 400);
+    }
+    if (body.estado_pago === "liquidado" && !(Number(pedido.costo_importacion_usd) > 0)) {
+      return fail("Cargá el costo de importación antes de liquidar el pago", "VALIDATION", 400);
     }
     pedido.estado_pago = body.estado_pago;
     pedido.actualizado_en = new Date().toISOString();
@@ -727,6 +731,16 @@ const comunidadHandlers = [
     ok([...comunidades].sort((a, b) => a.nombre.localeCompare(b.nombre)))
   ),
 
+  // GET /comunidades/publicas — solo nombres activos (registro público)
+  http.get(`${BASE}/comunidades/publicas`, () =>
+    ok(
+      comunidades
+        .filter((c) => c.activo)
+        .map((c) => c.nombre)
+        .sort((a, b) => a.localeCompare(b))
+    )
+  ),
+
   // POST /comunidades (ADMIN)
   http.post(`${BASE}/comunidades`, async ({ request }) => {
     const body = (await request.json()) as { nombre?: string };
@@ -854,6 +868,115 @@ const usuarioHandlers = [
   }),
 ];
 
+/* ------------------------------------------------------------------ */
+/* Solicitudes — registro público + cola de revisión del admin         */
+/* ------------------------------------------------------------------ */
+
+function paginar<T>(items: T[], page: number, size: number) {
+  const start = page * size;
+  return {
+    content: items.slice(start, start + size),
+    page,
+    size,
+    total_elements: items.length,
+    total_pages: Math.ceil(items.length / size) || 0,
+  };
+}
+
+const solicitudHandlers = [
+  // POST /solicitudes — público (landing). Sin costo/estado.
+  http.post(`${BASE}/solicitudes`, async ({ request }) => {
+    const body = (await request.json()) as Partial<Solicitud> & { comunidad?: string };
+    if (!body.titular || !body.num_orden || !body.num_tracking || !body.whatsapp) {
+      return fail("Faltan campos obligatorios", "VALIDATION", 400);
+    }
+    if (!body.comunidad || !comunidades.some((c) => c.activo && c.nombre === body.comunidad)) {
+      return fail("La comunidad indicada no pertenece a Orión", "VALIDATION", 400);
+    }
+    const dup =
+      pedidos.some((p) => p.num_orden === body.num_orden || p.num_tracking === body.num_tracking) ||
+      solicitudes.some(
+        (s) =>
+          s.estado === "pendiente" &&
+          (s.num_orden === body.num_orden || s.num_tracking === body.num_tracking)
+      );
+    if (dup) return fail("Ese número de orden o tracking ya fue registrado", "DUPLICADO", 409);
+
+    const nueva: Solicitud = {
+      id: nextId.solicitud(),
+      titular: body.titular,
+      comunidad: body.comunidad,
+      consignatario: body.consignatario,
+      firma: body.firma,
+      num_orden: body.num_orden,
+      num_tracking: body.num_tracking,
+      whatsapp: body.whatsapp,
+      valor_usd: body.valor_usd ?? 0,
+      productos: body.productos ?? [],
+      estado: "pendiente",
+      creado_en: new Date().toISOString(),
+    };
+    solicitudes.push(nueva);
+    return ok(nueva, "Solicitud recibida", 201);
+  }),
+
+  // GET /solicitudes?estado=pendiente — bandeja del admin
+  http.get(`${BASE}/solicitudes`, ({ request }) => {
+    const url = new URL(request.url);
+    const estado = url.searchParams.get("estado") ?? "pendiente";
+    const page = Number(url.searchParams.get("page") ?? 0);
+    const size = Number(url.searchParams.get("size") ?? 20);
+    const items = solicitudes
+      .filter((s) => s.estado === estado)
+      .sort((a, b) => a.creado_en.localeCompare(b.creado_en));
+    return ok(paginar(items, page, size));
+  }),
+
+  // GET /solicitudes/pendientes/count
+  http.get(`${BASE}/solicitudes/pendientes/count`, () =>
+    ok({ pendientes: solicitudes.filter((s) => s.estado === "pendiente").length })
+  ),
+
+  // POST /solicitudes/{id}/aprobar — crea el pedido real
+  http.post(`${BASE}/solicitudes/:id/aprobar`, ({ params }) => {
+    const s = solicitudes.find((x) => x.id === Number(params.id));
+    if (!s) return fail("Solicitud no encontrada", "NO_ENCONTRADO", 404);
+    if (s.estado !== "pendiente") return fail("La solicitud ya fue revisada", "VALIDATION", 400);
+    const estado = [...estados].sort((a, b) => a.orden - b.orden)[0];
+    const nuevo: Pedido = {
+      id: nextId.pedido(),
+      comunidad: s.comunidad,
+      titular: s.titular,
+      consignatario: s.consignatario,
+      num_orden: s.num_orden,
+      num_tracking: s.num_tracking,
+      whatsapp: s.whatsapp,
+      firma: s.firma,
+      valor_usd: s.valor_usd,
+      costo_importacion_usd: 0,
+      tipo_envio: null,
+      estado: toEstadoRef(estado),
+      estado_pago: "pendiente",
+      productos: s.productos.map((pr) => ({ id: nextId.producto(), ...pr })),
+      creado_por: { id: 1, nombre: "Joaquín" },
+      creado_en: new Date().toISOString(),
+      actualizado_en: null,
+    };
+    pedidos.unshift(nuevo);
+    s.estado = "aprobada";
+    return ok(nuevo, "Solicitud aprobada y pedido creado");
+  }),
+
+  // POST /solicitudes/{id}/rechazar
+  http.post(`${BASE}/solicitudes/:id/rechazar`, ({ params }) => {
+    const s = solicitudes.find((x) => x.id === Number(params.id));
+    if (!s) return fail("Solicitud no encontrada", "NO_ENCONTRADO", 404);
+    if (s.estado !== "pendiente") return fail("La solicitud ya fue revisada", "VALIDATION", 400);
+    s.estado = "rechazada";
+    return ok(s, "Solicitud rechazada");
+  }),
+];
+
 export const handlers = [
   ...authHandlers,
   ...pedidoHandlers,
@@ -863,5 +986,6 @@ export const handlers = [
   ...dashboardHandlers,
   ...rastreoHandlers,
   ...comunidadHandlers,
+  ...solicitudHandlers,
   ...usuarioHandlers,
 ];

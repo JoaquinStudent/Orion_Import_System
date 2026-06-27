@@ -1,6 +1,7 @@
 import type { Estado, EstadoRef } from "@/types/estado";
 import type { EstadoPago, Pedido } from "@/types/pedido";
 import type { Comunidad } from "@/types/comunidad";
+import type { Solicitud } from "@/types/solicitud";
 import type { Permiso, Rol } from "@/types/usuario";
 
 /**
@@ -221,12 +222,29 @@ export const usuarios: UsuarioMock[] = [
   },
 ];
 
+/** Solicitudes de registro público (cola de revisión del admin). */
+export const solicitudes: Solicitud[] = [
+  {
+    id: 1,
+    titular: "María Pérez",
+    comunidad: "Comunidad Norte",
+    whatsapp: "+51987654321",
+    num_orden: "ORD-900001",
+    num_tracking: "TRK-900001",
+    valor_usd: 120,
+    productos: [{ cantidad: 1, producto: "Audífonos Bluetooth", marca: "Sony" }],
+    estado: "pendiente",
+    creado_en: new Date().toISOString(),
+  },
+];
+
 /** Generadores de IDs incrementales (arrancan por encima de lo sembrado). */
 let nextEstadoId = 6;
 let nextPedidoId = 17;
 let nextProductoId = 8;
 let nextComunidadId = 4;
 let nextUsuarioId = 3;
+let nextSolicitudId = 2;
 
 export const nextId = {
   estado: () => nextEstadoId++,
@@ -234,6 +252,7 @@ export const nextId = {
   producto: () => nextProductoId++,
   comunidad: () => nextComunidadId++,
   usuario: () => nextUsuarioId++,
+  solicitud: () => nextSolicitudId++,
 };
 
 /**
