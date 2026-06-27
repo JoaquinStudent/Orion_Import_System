@@ -6,9 +6,12 @@ export type EstadoSolicitud = "pendiente" | "aprobada" | "rechazada";
 /** Payload del registro público de pedido (POST /solicitudes). Sin costo/estado. */
 export interface SolicitudInput {
   titular: string;
-  comunidad: string;
+  /** Código de la comunidad (lo comparte el admin). Vacío si es cliente externo. */
+  codigo_comunidad?: string;
+  /** El cliente no pertenece a ninguna comunidad. */
+  sin_comunidad: boolean;
   consignatario?: string;
-  firma?: string;
+  firma: string;
   num_orden: string;
   num_tracking: string;
   whatsapp: string;

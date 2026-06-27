@@ -22,13 +22,17 @@ public class SolicitudPublicaRequest {
     @NotBlank @Size(max = 150)
     private String titular;
 
-    @NotBlank @Size(max = 100)
-    private String comunidad;
+    /** Código de la comunidad (lo comparte el admin). Requerido salvo que marque sinComunidad. */
+    @Size(max = 50)
+    private String codigoComunidad;
+
+    /** Cliente externo: no pertenece a ninguna comunidad. */
+    private boolean sinComunidad;
 
     @Size(max = 150)
     private String consignatario;
 
-    @Size(max = 150)
+    @NotBlank @Size(max = 150)
     private String firma;
 
     @NotBlank @Size(max = 50)
@@ -43,7 +47,9 @@ public class SolicitudPublicaRequest {
     @PositiveOrZero
     private BigDecimal valorUsd;
 
+    /** Cada pedido es un único producto. */
     @Valid
+    @Size(min = 1, max = 1, message = "Cada pedido admite un único producto")
     private List<ProductoItem> productos = new ArrayList<>();
 
     /** Token de Cloudflare Turnstile (se verifica server-side si hay secret configurado). */

@@ -13,7 +13,7 @@ import {
 } from "@/lib/services/comunidades";
 import { puedeEditar } from "@/lib/permisos";
 import { useAuth } from "@/hooks/useAuth";
-import type { Comunidad } from "@/types/comunidad";
+import type { Comunidad, ComunidadInput } from "@/types/comunidad";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,6 +28,7 @@ export default function ConfiguracionPage() {
 
   const [editingId, setEditingId] = useState<number | null>(null);
   const [nombre, setNombre] = useState("");
+  const [codigo, setCodigo] = useState("");
 
   const comunidadesQ = useQuery({
     queryKey: ["comunidades"],
@@ -40,11 +41,12 @@ export default function ConfiguracionPage() {
   function resetForm() {
     setEditingId(null);
     setNombre("");
+    setCodigo("");
   }
 
   const guardarMut = useMutation({
-    mutationFn: (nombre: string) =>
-      editingId ? actualizarComunidad(editingId, { nombre }) : crearComunidad({ nombre }),
+    mutationFn: (input: ComunidadInput) =>
+      editingId ? actualizarComunidad(editingId, input) : crearComunidad(input),
     onSuccess: () => {
       toast.success(editingId ? "Comunidad actualizada" : "Comunidad creada");
       queryClient.invalidateQueries({ queryKey: ["comunidades"] });
@@ -67,7 +69,7 @@ export default function ConfiguracionPage() {
       toast.error("Ingresá un nombre");
       return;
     }
-    guardarMut.mutate(nombre.trim());
+    guardarMut.mutate({ nombre: nombre.trim(), codigo: codigo.trim() || undefined });
   }
 
   function onDelete(c: Comunidad) {
@@ -139,6 +141,14 @@ export default function ConfiguracionPage() {
                 placeholder="Ej: Comunidad Norte"
               />
             </div>
+            <div className="flex-1 space-y-1.5">
+              <label className="text-sm font-medium text-foreground">Código</label>
+              <Input
+                value={codigo}
+                onChange={(e) => setCodigo(e.target.value)}
+                placeholder="El que compartís con la comunidad"
+              />
+            </div>
             <div className="flex gap-2">
               <Button type="submit" disabled={saving}>
                 {saving ? <Loader2 className="animate-spin" /> : editingId ? <Save /> : <Plus />}
@@ -172,7 +182,14 @@ export default function ConfiguracionPage() {
                 <li key={c.id} className="flex items-center gap-3 px-4 py-3">
                   <MapPin className="h-4 w-4 shrink-0 text-on-surface-muted" />
                   <span className="flex-1 font-medium text-foreground">{c.nombre}</span>
-                  <Button variant="ghost" size="icon" aria-label="Editar" onClick={() => { setEditingId(c.id); setNombre(c.nombre); }}>
+                  {c.codigo ? (
+                    <span className="rounded bg-surface-variant px-2 py-0.5 font-mono text-xs text-on-surface-variant">
+                      {c.codigo}
+                    </span>
+                  ) : (
+                    <span className="text-xs italic text-on-surface-muted">Sin código</span>
+                  )}
+                  <Button variant="ghost" size="icon" aria-label="Editar" onClick={() => { setEditingId(c.id); setNombre(c.nombre); setCodigo(c.codigo ?? ""); }}>
                     <Pencil />
                   </Button>
                   <Button variant="ghost" size="icon" aria-label="Eliminar" onClick={() => onDelete(c)}>

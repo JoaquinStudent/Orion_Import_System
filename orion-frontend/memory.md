@@ -41,9 +41,13 @@ Panel admin + sitio público de Orión Logistic. Parte del **monorepo** `Orion_I
   bloquea el estado final si `estado_pago != liquidado`.
 - **No se puede liquidar** un pedido con costo 0/null (botones deshabilitados en detalle y
   finanzas; el guard autoritativo está en el back).
-- **Registro público de clientes** (`/registrar`): mismo form que el alta interna pero sin
-  costo/estado/tipo_envío; comunidad obligatoria del catálogo público; Turnstile + tope diario.
-  Cae en la cola `/admin/solicitudes`; el admin aprueba → se crea el pedido real.
+- **Registro público de clientes** (`/registrar`): alta sin costo/estado/tipo_envío; Turnstile +
+  tope diario. Se identifica la comunidad por **código** (`codigo_comunidad`) que comparte el admin,
+  o se marca **`sin_comunidad`** (cliente externo → se guarda "Cliente externo"); ya no hay listado
+  público de comunidades. **Firma obligatoria** (apellido de quien recibe en EE.UU.) y **un único
+  producto** por pedido. Cae en la cola `/admin/solicitudes`; el admin aprueba → se crea el pedido
+  real. En esa cola hay botón **WhatsApp** (`whatsappLink` + `variant="whatsapp"`) para contactar al
+  dueño del pedido antes de aprobar.
 
 ## `files/` (documentación SDD, espejo del back)
 `00_index` … `10_supabase_sql`, más contratos `05b`/`05c` y plan diario `08b`. Es el SDD v2.0.

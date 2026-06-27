@@ -20,9 +20,9 @@ export const estados: Estado[] = [
 
 /** Catálogo de comunidades (Sprint 3.5) — administrado desde /admin/configuracion. */
 export const comunidades: Comunidad[] = [
-  { id: 1, nombre: "Comunidad Norte", activo: true },
-  { id: 2, nombre: "Comunidad Centro", activo: true },
-  { id: 3, nombre: "Comunidad Sur", activo: true },
+  { id: 1, nombre: "Comunidad Norte", codigo: "NORTE-2024", activo: true },
+  { id: 2, nombre: "Comunidad Centro", codigo: "CENTRO-2024", activo: true },
+  { id: 3, nombre: "Comunidad Sur", codigo: "SUR-2024", activo: true },
 ];
 
 /** Versión ligera del estado para anidar en un pedido. */
