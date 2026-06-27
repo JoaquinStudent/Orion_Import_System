@@ -85,8 +85,12 @@ DROP TABLE IF EXISTS comunidades CASCADE;
 CREATE TABLE comunidades (
     id     BIGSERIAL    PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL UNIQUE,
+    codigo VARCHAR(50),
     activo BOOLEAN      DEFAULT true
 );
+-- Código (opcional) que el admin comparte con la comunidad; único case-insensitive.
+CREATE UNIQUE INDEX IF NOT EXISTS comunidades_codigo_key
+    ON comunidades (LOWER(codigo)) WHERE codigo IS NOT NULL;
 INSERT INTO comunidades (nombre) VALUES
     ('Comunidad Norte'), ('Comunidad Centro'), ('Comunidad Sur')
 ON CONFLICT (nombre) DO NOTHING;

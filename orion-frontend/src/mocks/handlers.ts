@@ -731,25 +731,19 @@ const comunidadHandlers = [
     ok([...comunidades].sort((a, b) => a.nombre.localeCompare(b.nombre)))
   ),
 
-  // GET /comunidades/publicas — solo nombres activos (registro público)
-  http.get(`${BASE}/comunidades/publicas`, () =>
-    ok(
-      comunidades
-        .filter((c) => c.activo)
-        .map((c) => c.nombre)
-        .sort((a, b) => a.localeCompare(b))
-    )
-  ),
-
   // POST /comunidades (ADMIN)
   http.post(`${BASE}/comunidades`, async ({ request }) => {
-    const body = (await request.json()) as { nombre?: string };
+    const body = (await request.json()) as { nombre?: string; codigo?: string };
     const nombre = body.nombre?.trim();
+    const codigo = body.codigo?.trim() || undefined;
     if (!nombre) return fail("El nombre es obligatorio", "VALIDATION", 400);
     if (comunidades.some((c) => c.nombre.toLowerCase() === nombre.toLowerCase())) {
       return fail("Ya existe una comunidad con ese nombre", "DUPLICADO", 409);
     }
-    const nueva = { id: nextId.comunidad(), nombre, activo: true };
+    if (codigo && comunidades.some((c) => c.codigo?.toLowerCase() === codigo.toLowerCase())) {
+      return fail("Ya existe una comunidad con ese código", "DUPLICADO", 409);
+    }
+    const nueva = { id: nextId.comunidad(), nombre, codigo, activo: true };
     comunidades.push(nueva);
     return ok(nueva, "Comunidad creada", 201);
   }),
@@ -758,8 +752,9 @@ const comunidadHandlers = [
   http.put(`${BASE}/comunidades/:id`, async ({ params, request }) => {
     const c = comunidades.find((x) => x.id === Number(params.id));
     if (!c) return fail("Comunidad no encontrada", "NO_ENCONTRADO", 404);
-    const body = (await request.json()) as { nombre?: string };
+    const body = (await request.json()) as { nombre?: string; codigo?: string };
     const nombre = body.nombre?.trim();
+    const codigo = body.codigo?.trim() || undefined;
     if (!nombre) return fail("El nombre es obligatorio", "VALIDATION", 400);
     if (
       comunidades.some(
@@ -768,7 +763,14 @@ const comunidadHandlers = [
     ) {
       return fail("Ya existe una comunidad con ese nombre", "DUPLICADO", 409);
     }
+    if (
+      codigo &&
+      comunidades.some((x) => x.id !== c.id && x.codigo?.toLowerCase() === codigo.toLowerCase())
+    ) {
+      return fail("Ya existe una comunidad con ese código", "DUPLICADO", 409);
+    }
     c.nombre = nombre;
+    c.codigo = codigo;
     return ok(c, "Comunidad actualizada");
   }),
 
@@ -886,12 +888,26 @@ function paginar<T>(items: T[], page: number, size: number) {
 const solicitudHandlers = [
   // POST /solicitudes — público (landing). Sin costo/estado.
   http.post(`${BASE}/solicitudes`, async ({ request }) => {
-    const body = (await request.json()) as Partial<Solicitud> & { comunidad?: string };
-    if (!body.titular || !body.num_orden || !body.num_tracking || !body.whatsapp) {
+    const body = (await request.json()) as Partial<Solicitud> & {
+      codigo_comunidad?: string;
+      sin_comunidad?: boolean;
+    };
+    if (!body.titular || !body.num_orden || !body.num_tracking || !body.whatsapp || !body.firma) {
       return fail("Faltan campos obligatorios", "VALIDATION", 400);
     }
-    if (!body.comunidad || !comunidades.some((c) => c.activo && c.nombre === body.comunidad)) {
-      return fail("La comunidad indicada no pertenece a Orión", "VALIDATION", 400);
+    let comunidad: string;
+    if (body.sin_comunidad) {
+      comunidad = "Cliente externo";
+    } else {
+      const codigo = body.codigo_comunidad?.trim();
+      const match = codigo
+        ? comunidades.find((c) => c.activo && c.codigo?.toLowerCase() === codigo.toLowerCase())
+        : undefined;
+      if (!match) return fail("El código de comunidad no es válido", "VALIDATION", 400);
+      comunidad = match.nombre;
+    }
+    if ((body.productos ?? []).length !== 1) {
+      return fail("Cada pedido admite un único producto", "VALIDATION", 400);
     }
     const dup =
       pedidos.some((p) => p.num_orden === body.num_orden || p.num_tracking === body.num_tracking) ||
@@ -905,7 +921,7 @@ const solicitudHandlers = [
     const nueva: Solicitud = {
       id: nextId.solicitud(),
       titular: body.titular,
-      comunidad: body.comunidad,
+      comunidad,
       consignatario: body.consignatario,
       firma: body.firma,
       num_orden: body.num_orden,

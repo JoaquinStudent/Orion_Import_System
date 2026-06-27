@@ -54,9 +54,17 @@ public class SolicitudService {
                     "Se alcanzó el máximo de registros por hoy. Probá más tarde.");
         }
 
-        String comunidad = req.getComunidad().trim();
-        if (!comunidadRepository.existsByNombreIgnoreCaseAndActivoTrue(comunidad)) {
-            throw new ValidationException("La comunidad indicada no pertenece a Orión");
+        String comunidad;
+        if (req.isSinComunidad()) {
+            comunidad = "Cliente externo";
+        } else {
+            String codigo = trimOrNull(req.getCodigoComunidad());
+            if (codigo == null) {
+                throw new ValidationException("Ingresá el código de tu comunidad");
+            }
+            comunidad = comunidadRepository.findByCodigoIgnoreCaseAndActivoTrue(codigo)
+                    .orElseThrow(() -> new ValidationException("El código de comunidad no es válido"))
+                    .getNombre();
         }
 
         String numOrden = req.getNumOrden().trim();

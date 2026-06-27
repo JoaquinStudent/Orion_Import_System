@@ -11,4 +11,8 @@ public class ComunidadRequest {
 
     @NotBlank @Size(max = 100)
     private String nombre;
+
+    /** Código que se comparte con la comunidad para registrar pedidos (opcional, único). */
+    @Size(max = 50)
+    private String codigo;
 }

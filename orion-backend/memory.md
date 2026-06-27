@@ -22,7 +22,8 @@ API REST de Orión Logistic. Parte del **monorepo** `Orion_Import_System` (la ot
 - `auth` — login JWT, cambiar/​reset password (`JwtService`, `JwtAuthFilter`).
 - `pedidos` — CRUD, tablero (cambiar estado con reglas por `orden`), costo, pago, archivado.
 - `estados` — columnas del kanban (CRUD, `orden`).
-- `comunidades` — catálogo (combobox). `GET /comunidades/publicas` es **público**.
+- `comunidades` — catálogo (combobox interno). Cada comunidad tiene un `codigo` que el admin
+  comparte; el registro público valida ese código (no se exponen los nombres públicamente).
 - `solicitudes` — **registro público de pedidos** (cola de revisión, ver abajo).
 - `cotizador` — cálculo + tipo de cambio (ExchangeRate-API cacheada).
 - `finanzas` — resumen + export Excel.
@@ -32,7 +33,7 @@ API REST de Orión Logistic. Parte del **monorepo** `Orion_Import_System` (la ot
 - `common` — `ApiResponse`, excepciones, `SecurityConfig`, `CorsConfig`, `PermisoChecker`.
 
 ## Endpoints públicos (permitAll en `SecurityConfig`)
-`/auth/login`, `/cotizador/**`, `/rastreo/**`, `/config/publica`, `/comunidades/publicas`,
+`/auth/login`, `/cotizador/**`, `/rastreo/**`, `/config/publica`,
 **`POST /solicitudes`** (solo el alta; revisar/aprobar/rechazar exige auth), Swagger.
 Resto autenticado; `/usuarios/**` y `/admin/**` solo ADMIN. OPTIONS siempre permitido (CORS).
 
@@ -41,8 +42,12 @@ Resto autenticado; `/usuarios/**` y `/admin/**` solo ADMIN. OPTIONS siempre perm
   Reglas de estado en `validarReglasDeEstado` (penúltimo exige costo; final exige liquidado).
 - **Solicitudes** (tabla `solicitudes`, separada de `pedidos`): el cliente registra desde la
   landing. Anti-abuso: Cloudflare Turnstile (`TurnstileVerifier`, verifica si hay
-  `TURNSTILE_SECRET`) + tope diario (`limite_solicitudes_dia`). Comunidad obligatoria del
-  catálogo activo. Productos como **JSONB**. Al aprobar se reusa `PedidoService.crear`.
+  `TURNSTILE_SECRET`) + tope diario (`limite_solicitudes_dia`). La comunidad se resuelve por
+  **`codigoComunidad`** contra el catálogo activo (o `sinComunidad=true` → guarda "Cliente
+  externo"); **`firma` obligatoria** (`@NotBlank`); **un único producto** (`@Size(min=1,max=1)`).
+  Productos como **JSONB**. Al aprobar se reusa `PedidoService.crear`.
+- **Comunidades**: cada una tiene `codigo` (opcional, único case-insensitive) que el admin asigna
+  y puede reeditar; es lo que el cliente ingresa al registrar. No se exponen los nombres en público.
 
 ## Variables de entorno (`api/.env`, gitignoreado; plantilla `.env.example`)
 `DATABASE_URL/USERNAME/PASSWORD`, `JWT_SECRET` (≥32 chars), `JWT_EXPIRATION`,
@@ -52,7 +57,8 @@ Se cargan vía `spring.config.import=optional:file:.env,optional:file:api/.env`.
 ## `files/` — SDD + SQL
 SDD `00`…`10` (+ `05b/05c` contratos, `08b` plan). SQL: `setup_supabase.sql` (esquema base) y
 migraciones idempotentes `migracion_comunidades_pago`, `migracion_integridad_indices`,
-`migracion_seguridad_rls`, `migracion_mejoras_back`, **`migracion_solicitudes`**.
+`migracion_seguridad_rls`, `migracion_mejoras_back`, `migracion_solicitudes`,
+**`migracion_codigo_comunidad`** (columna `codigo` en `comunidades`).
 Aplicarlas en el SQL Editor de Supabase antes de levantar (por `ddl-auto=validate`).
 
 ## Cómo correr

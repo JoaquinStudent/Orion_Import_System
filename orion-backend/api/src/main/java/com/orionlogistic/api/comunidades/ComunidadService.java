@@ -29,14 +29,6 @@ public class ComunidadService {
                 .toList();
     }
 
-    /** Nombres de las comunidades activas (combobox del registro público). */
-    @Transactional(readOnly = true)
-    public List<String> listarPublicas() {
-        return repository.findByActivoTrueOrderByNombreAsc().stream()
-                .map(Comunidad::getNombre)
-                .toList();
-    }
-
     @Transactional
     public ComunidadResponse crear(ComunidadRequest req, Usuario usuario) {
         permisoChecker.exigirEditar(usuario, MODULO);
@@ -44,7 +36,11 @@ public class ComunidadService {
         if (repository.existsByNombreIgnoreCase(nombre)) {
             throw new DuplicadoException("Ya existe una comunidad con ese nombre");
         }
-        Comunidad c = Comunidad.builder().nombre(nombre).activo(true).build();
+        String codigo = normalizarCodigo(req.getCodigo());
+        if (codigo != null && repository.existsByCodigoIgnoreCase(codigo)) {
+            throw new DuplicadoException("Ya existe una comunidad con ese código");
+        }
+        Comunidad c = Comunidad.builder().nombre(nombre).codigo(codigo).activo(true).build();
         return ComunidadResponse.from(repository.save(c));
     }
 
@@ -57,8 +53,19 @@ public class ComunidadService {
         if (repository.existsByNombreIgnoreCaseAndIdNot(nombre, id)) {
             throw new DuplicadoException("Ya existe una comunidad con ese nombre");
         }
+        String codigo = normalizarCodigo(req.getCodigo());
+        if (codigo != null && repository.existsByCodigoIgnoreCaseAndIdNot(codigo, id)) {
+            throw new DuplicadoException("Ya existe una comunidad con ese código");
+        }
         c.setNombre(nombre);
+        c.setCodigo(codigo);
         return ComunidadResponse.from(repository.save(c));
+    }
+
+    private static String normalizarCodigo(String codigo) {
+        if (codigo == null) return null;
+        String t = codigo.trim();
+        return t.isEmpty() ? null : t;
     }
 
     @Transactional
