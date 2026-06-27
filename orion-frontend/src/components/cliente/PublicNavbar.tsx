@@ -21,6 +21,9 @@ export function PublicNavbar() {
           <Button asChild variant="gold" size="sm" className="whitespace-nowrap border border-primary sm:h-11 sm:px-5 sm:text-base">
             <Link href="/cotizar">Cotizar</Link>
           </Button>
+          <Button asChild variant="secondary" size="sm" className="hidden whitespace-nowrap sm:inline-flex sm:h-11 sm:px-5 sm:text-base">
+            <Link href="/registrar">Registrá tu pedido</Link>
+          </Button>
           <Button asChild variant="secondary" size="sm" className="whitespace-nowrap sm:h-11 sm:px-5 sm:text-base">
             <Link href="/rastrear">Rastrear pedido</Link>
           </Button>

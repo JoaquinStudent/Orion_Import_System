@@ -354,9 +354,16 @@ export default function FinanzasPage() {
                               <button
                                 type="button"
                                 onClick={() => liquidar(p)}
-                                disabled={liquidandoId === p.id}
+                                disabled={
+                                  liquidandoId === p.id ||
+                                  !(Number(p.costo_importacion_usd) > 0)
+                                }
                                 className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-700 transition-colors hover:bg-amber-200 disabled:opacity-50"
-                                title="Marcar como liquidado"
+                                title={
+                                  Number(p.costo_importacion_usd) > 0
+                                    ? "Marcar como liquidado"
+                                    : "Cargá el costo de importación antes de liquidar"
+                                }
                               >
                                 {liquidandoId === p.id ? (
                                   <Loader2 className="h-3 w-3 animate-spin" />

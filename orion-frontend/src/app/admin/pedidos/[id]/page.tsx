@@ -191,7 +191,16 @@ export default function DetallePedidoPage() {
               Volver a pendiente
             </Button>
           ) : (
-            <Button size="sm" onClick={onTogglePago} disabled={pagando}>
+            <Button
+              size="sm"
+              onClick={onTogglePago}
+              disabled={pagando || !(Number(pedido.costo_importacion_usd) > 0)}
+              title={
+                Number(pedido.costo_importacion_usd) > 0
+                  ? undefined
+                  : "Cargá el costo de importación antes de liquidar"
+              }
+            >
               {pagando ? <Loader2 className="animate-spin" /> : <CheckCircle2 />}
               Marcar como liquidado
             </Button>

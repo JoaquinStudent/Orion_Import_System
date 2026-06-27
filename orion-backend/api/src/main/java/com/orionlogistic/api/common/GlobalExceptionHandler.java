@@ -67,6 +67,14 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error(e.getMessage(), "VALIDATION"));
     }
 
+    /** Límite de uso superado (registros públicos por día) → 429. */
+    @ExceptionHandler(RateLimitException.class)
+    public ResponseEntity<ApiResponse<Void>> handleRateLimit(RateLimitException e) {
+        return ResponseEntity
+                .status(HttpStatus.TOO_MANY_REQUESTS)
+                .body(ApiResponse.error(e.getMessage(), "LIMITE_DIARIO"));
+    }
+
     /**
      * RuntimeException no tipada: probablemente un fallo no previsto. Devolvemos
      * un mensaje genérico (NO reflejamos {@code e.getMessage()} para no filtrar

@@ -1,10 +1,14 @@
 package com.orionlogistic.api.configuracion;
 
+import com.orionlogistic.api.configuracion.dto.ConfigPublicaResponse;
+import com.orionlogistic.api.configuracion.dto.EstadoPublicoResponse;
+import com.orionlogistic.api.estados.EstadoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * Lectura/escritura tipada de la tabla `configuracion` (key-value).
@@ -23,6 +27,7 @@ public class ConfiguracionService {
     public static final String DIAS_ARCHIVO_ENTREGADOS = "dias_archivo_entregados";
 
     private final ConfiguracionRepository repository;
+    private final EstadoRepository estadoRepository;
 
     public String getString(String clave, String porDefecto) {
         return repository.findByClave(clave)
@@ -57,5 +62,22 @@ public class ConfiguracionService {
                 .orElseGet(() -> Configuracion.builder().clave(clave).build());
         cfg.setValor(valor);
         repository.save(cfg);
+    }
+
+    /**
+     * Arma el response público del negocio (config + estados dinámicos). Único lugar que lo
+     * construye para que GET /config/publica y PUT /admin/config devuelvan siempre la misma
+     * forma (doc 05d.7). `estados` trae solo nombre/color/orden, ordenado por `orden`.
+     */
+    @Transactional(readOnly = true)
+    public ConfigPublicaResponse construirPublica() {
+        List<EstadoPublicoResponse> estados = estadoRepository.findAllByOrderByOrdenAsc().stream()
+                .map(EstadoPublicoResponse::from)
+                .toList();
+        return new ConfigPublicaResponse(
+                getString(WHATSAPP_ATENCION, "+51999999999"),
+                getString(NOMBRE_NEGOCIO, "Orión Logistic"),
+                getInt(DIAS_ARCHIVO_ENTREGADOS, 7),
+                estados);
     }
 }
