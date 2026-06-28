@@ -55,10 +55,14 @@ Resto autenticado; `/usuarios/**` y `/admin/**` solo ADMIN. OPTIONS siempre perm
 Se cargan vía `spring.config.import=optional:file:.env,optional:file:api/.env`.
 
 ## `files/` — SDD + SQL
-SDD `00`…`10` (+ `05b/05c` contratos, `08b` plan). SQL: `setup_supabase.sql` (esquema base) y
-migraciones idempotentes `migracion_comunidades_pago`, `migracion_integridad_indices`,
-`migracion_seguridad_rls`, `migracion_mejoras_back`, `migracion_solicitudes`,
-**`migracion_codigo_comunidad`** (columna `codigo` en `comunidades`).
+SDD `00`…`10` (+ `05b/05c` contratos, `08b` plan, **`11_supabase_rls_policies`** — anexo de
+seguridad RLS). SQL: `setup_supabase.sql` (esquema base) y migraciones idempotentes
+`migracion_comunidades_pago`, `migracion_integridad_indices`, `migracion_seguridad_rls`,
+`migracion_mejoras_back`, `migracion_solicitudes`,
+**`migracion_codigo_comunidad`** (columna `codigo` en `comunidades`) y
+**`migracion_rls_policies`** (políticas deny-all explícitas `USING(false) WITH CHECK(false)`
+para `anon, authenticated` en **las 8 tablas, incluida `solicitudes`** + REVOKE; silencia el
+aviso `rls_enabled_no_policy` del Security Advisor — el backend entra como owner y bypasea RLS).
 Aplicarlas en el SQL Editor de Supabase antes de levantar (por `ddl-auto=validate`).
 
 ## Cómo correr

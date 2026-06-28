@@ -1,9 +1,9 @@
 -- ============================================================
 -- Migración Orión Logistic — Seguridad: políticas RLS deny-all explícitas
--- Correr en el SQL Editor de Supabase. Silencia los 7 avisos INFO del
+-- Correr en el SQL Editor de Supabase. Silencia los 8 avisos INFO del
 -- Security Advisor: "RLS Enabled No Policy".
 --
--- Contexto: estas 7 tablas tienen RLS activado pero sin políticas declaradas
+-- Contexto: estas 8 tablas tienen RLS activado pero sin políticas declaradas
 -- (deny-all IMPLÍCITO). El aviso es nivel INFO, no un agujero: para Orión es el
 -- estado correcto, porque la API REST pública de Supabase (PostgREST con la anon
 -- key) NO debe acceder a nada. Este script convierte ese deny-all implícito en
@@ -18,14 +18,16 @@
 -- Idempotente: se puede correr varias veces sin error.
 -- ============================================================
 
--- ---------- 1) Asegurar RLS activado en las 7 tablas ----------
+-- ---------- 1) Asegurar RLS activado en las 8 tablas ----------
 -- (comunidades no estaba en el Bloque 3.5 de setup_supabase.sql; se incluye aquí)
+-- (solicitudes se agregó en migracion_solicitudes.sql sin activar RLS; se incluye aquí)
 ALTER TABLE public.comunidades   ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.configuracion ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.estados       ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.pedidos       ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.permisos      ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.productos     ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.solicitudes   ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.usuarios      ENABLE ROW LEVEL SECURITY;
 
 -- ---------- 2) Política deny-all explícita por tabla ----------
@@ -63,6 +65,11 @@ CREATE POLICY "deny_all_api" ON public.productos
     AS PERMISSIVE FOR ALL TO anon, authenticated
     USING (false) WITH CHECK (false);
 
+DROP POLICY IF EXISTS "deny_all_api" ON public.solicitudes;
+CREATE POLICY "deny_all_api" ON public.solicitudes
+    AS PERMISSIVE FOR ALL TO anon, authenticated
+    USING (false) WITH CHECK (false);
+
 DROP POLICY IF EXISTS "deny_all_api" ON public.usuarios;
 CREATE POLICY "deny_all_api" ON public.usuarios
     AS PERMISSIVE FOR ALL TO anon, authenticated
@@ -77,6 +84,7 @@ REVOKE ALL ON public.estados       FROM anon, authenticated;
 REVOKE ALL ON public.pedidos       FROM anon, authenticated;
 REVOKE ALL ON public.permisos      FROM anon, authenticated;
 REVOKE ALL ON public.productos     FROM anon, authenticated;
+REVOKE ALL ON public.solicitudes   FROM anon, authenticated;
 REVOKE ALL ON public.usuarios      FROM anon, authenticated;
 
 -- ---------- 4) Verificación (solo SELECT, no cambia nada) ----------
@@ -86,13 +94,13 @@ FROM pg_policies
 WHERE schemaname = 'public'
 ORDER BY tablename;
 
--- b) Confirmar que RLS sigue activo (relrowsecurity = true) en las 7 tablas.
+-- b) Confirmar que RLS sigue activo (relrowsecurity = true) en las 8 tablas.
 SELECT relname, relrowsecurity
 FROM pg_class
 WHERE relnamespace = 'public'::regnamespace
   AND relname IN ('comunidades','configuracion','estados','pedidos',
-                  'permisos','productos','usuarios')
+                  'permisos','productos','solicitudes','usuarios')
 ORDER BY relname;
 
 -- 5) Tras correr esto, re-ejecutar el Security Advisor:
---    los 7 avisos "RLS Enabled No Policy" deben desaparecer.
+--    los 8 avisos "RLS Enabled No Policy" deben desaparecer.
