@@ -51,6 +51,9 @@ Panel admin + sitio público de Orión Logistic. Parte del **monorepo** `Orion_I
 
 ## `files/` (documentación SDD, espejo del back)
 `00_index` … `10_supabase_sql`, más contratos `05b`/`05c` y plan diario `08b`. Es el SDD v2.0.
+El back tiene además `11_supabase_rls_policies` (seguridad RLS, solo back): todas las tablas de
+Supabase (incl. `solicitudes`) llevan política deny-all explícita para `anon, authenticated`.
+No afecta al front: nunca usa la `anon key` de Supabase, todo pasa por el backend vía REST + JWT.
 
 ## Cómo correr
 `npm install && npm run dev` (puerto 3000). Ver `RUNNING.md` en la raíz del repo.

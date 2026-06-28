@@ -8,7 +8,7 @@
 
 ## 11.1 Qué dice el aviso
 
-El **Security Advisor** de Supabase muestra 7 avisos con el nombre
+El **Security Advisor** de Supabase muestra 8 avisos con el nombre
 `rls_enabled_no_policy`:
 
 > *"Table `public.<tabla>` has RLS enabled, but no policies exist."*
@@ -23,6 +23,7 @@ Tablas afectadas:
 | `pedidos` | Pedidos de importación |
 | `permisos` | Permisos por módulo de cada empleado |
 | `productos` | Productos de cada pedido |
+| `solicitudes` | Registro público de pedidos pendientes de revisión |
 | `usuarios` | Usuarios del panel (incluye `password_hash`) |
 
 **Nivel: `INFO`**, no `WARN` ni `ERROR`. Es informativo: avisa que activaste
@@ -78,7 +79,7 @@ CREATE POLICY "deny_all_api" ON public.<tabla>
 
 **Esto logra dos cosas:**
 
-1. **Silencia los 7 avisos** del Security Advisor (ya existe una política declarada).
+1. **Silencia los 8 avisos** del Security Advisor (ya existe una política declarada).
 2. **Documenta la intención** en código: queda escrito explícitamente que la API pública
    de Supabase no debe acceder a estas tablas.
 
@@ -95,7 +96,7 @@ política ya niega todo— pero quita además los permisos de tabla a esos roles
 1. Abrí el **SQL Editor** de Supabase.
 2. Pegá el contenido completo de [`migracion_rls_policies.sql`](migracion_rls_policies.sql)
    y ejecutalo. (Es idempotente: se puede correr varias veces sin error.)
-3. Re-ejecutá el **Security Advisor**. Los 7 avisos `RLS Enabled No Policy` deben
+3. Re-ejecutá el **Security Advisor**. Los 8 avisos `RLS Enabled No Policy` deben
    desaparecer.
 4. Verificá que el backend sigue funcionando normal (login + listar pedidos): no debe
    cambiar nada, porque entra como *owner*.
@@ -119,11 +120,11 @@ SELECT relname, relrowsecurity
 FROM pg_class
 WHERE relnamespace = 'public'::regnamespace
   AND relname IN ('comunidades','configuracion','estados','pedidos',
-                  'permisos','productos','usuarios')
+                  'permisos','productos','solicitudes','usuarios')
 ORDER BY relname;
 ```
 
-Esperado: las 7 políticas `deny_all_api` listadas, y `relrowsecurity = true` en las 7
+Esperado: las 8 políticas `deny_all_api` listadas, y `relrowsecurity = true` en las 8
 tablas.
 
 ---
